@@ -699,17 +699,31 @@ def evaluate_badges(purchases):
 # ------------------------------------------------------------------------------
 
 if "dark_theme" not in st.session_state: st.session_state.dark_theme = True
-if "onboarded" not in st.session_state: st.session_state.onboarded = False
+if "onboarded" not in st.session_state:
+    if st.query_params.get("onboarded") in ["true", "1"]:
+        st.session_state.onboarded = True
+    else:
+        st.session_state.onboarded = False
+
 if "user_name" not in st.session_state: st.session_state.user_name = "Parth Gajera"
-if "user_mascot" not in st.session_state: st.session_state.user_mascot = "Shelly the Sea Turtle 🐢"
+if "user_mascot" not in st.session_state: st.session_state.user_mascot = "Pip the Forest Fox 🦊"
 if "carbon_budget" not in st.session_state: st.session_state.carbon_budget = 150
 if "recent_art" not in st.session_state: st.session_state.recent_art = None
-if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "mindful"
+if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "ecstatic"
 if "mascot_message" not in st.session_state:
-    st.session_state.mascot_message = "Welcome! I am your eco companion. I react live to every purchase you make and guide you toward greener habits!"
+    st.session_state.mascot_message = "CLEVER THRIFT MASTER! Pip put on gold sunglasses! 'Vintage Denim Jacket' is a circular gem!"
 if "nav_view" not in st.session_state: st.session_state.nav_view = "📊 Dashboard"
 if "last_logged" not in st.session_state: st.session_state.last_logged = None
-if "purchases" not in st.session_state: st.session_state.purchases = []
+if "purchases" not in st.session_state:
+    if st.query_params.get("demo") in ["true", "1"]:
+        st.session_state.purchases = [
+            {"time": "14:20", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Vintage Denim Jacket", "category": "Second-Hand / Thrift", "price": 35.0, "co2": 1.22, "ethical": True, "saved": 14.53},
+            {"time": "14:22", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Organic CSA Harvest Box", "category": "Local / Organic Food", "price": 42.0, "co2": 2.35, "ethical": True, "saved": 16.55},
+            {"time": "14:25", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Certified Renewed ThinkPad", "category": "Refurbished Tech", "price": 280.0, "co2": 21.56, "ethical": True, "saved": 104.44},
+        ]
+        st.session_state.recent_art = "badge"
+    else:
+        st.session_state.purchases = []
 if "confirm_reset" not in st.session_state: st.session_state.confirm_reset = False
 
 # ------------------------------------------------------------------------------
