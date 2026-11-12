@@ -120,13 +120,11 @@ def render_animated_turtle_svg(mood="happy", width=180, height=180):
     """
 
     if mood == "ecstatic":
-        # Level 5: Superhero / Sunglasses & Gold Stars
         svg += """
         <g class="sprout">
         <line x1="100" y1="30" x2="100" y2="12" stroke="#d97706" stroke-width="3"/>
         <polygon points="100,6 103,13 110,13 105,17 107,24 100,20 93,24 95,17 90,13 97,13" fill="#f59e0b"/>
         </g>
-        <!-- Cool Sunglasses -->
         <path d="M 81 46 L 96 46 Q 96 56 88 56 Q 81 56 81 46 Z" fill="#1e293b"/>
         <path d="M 104 46 L 119 46 Q 119 56 112 56 Q 104 56 104 46 Z" fill="#1e293b"/>
         <line x1="96" y1="48" x2="104" y2="48" stroke="#1e293b" stroke-width="2.5"/>
@@ -137,7 +135,6 @@ def render_animated_turtle_svg(mood="happy", width=180, height=180):
         <path d="M 88 61 Q 100 75 112 61" fill="#f43f5e" stroke="#1b4332" stroke-width="2.5" stroke-linecap="round"/>
         """
     elif mood == "happy":
-        # Level 4: Happy Blushing
         svg += """
         <g class="sprout">
         <line x1="100" y1="30" x2="100" y2="14" stroke="#1b4332" stroke-width="2.5"/>
@@ -155,7 +152,6 @@ def render_animated_turtle_svg(mood="happy", width=180, height=180):
         <path d="M 88 61 Q 100 73 112 61" fill="none" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/>
         """
     elif mood == "alarmed":
-        # Level 1: Alarmed Shock / Siren
         svg += """
         <polygon points="100,10 107,24 93,24" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/>
         <text x="98" y="22" font-size="9" font-weight="bold" fill="#ffffff">!</text>
@@ -170,7 +166,6 @@ def render_animated_turtle_svg(mood="happy", width=180, height=180):
         </g>
         """
     elif mood == "worried":
-        # Level 2: Worried Sweating
         svg += """
         <circle cx="89" cy="52" r="5.5" fill="#1b4332"/>
         <circle cx="111" cy="52" r="5.5" fill="#1b4332"/>
@@ -180,7 +175,6 @@ def render_animated_turtle_svg(mood="happy", width=180, height=180):
         </g>
         """
     else:
-        # Level 3: Mindful / Calm
         svg += """
         <g class="sprout">
         <line x1="100" y1="30" x2="100" y2="16" stroke="#1b4332" stroke-width="2"/>
@@ -196,7 +190,7 @@ def render_animated_turtle_svg(mood="happy", width=180, height=180):
     return svg
 
 class HeadlessTurtle:
-    def __init__(self, w=260, h=260):
+    def __init__(self, w=220, h=220):
         self.w, self.h = w, h
         self.img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         self.draw = ImageDraw.Draw(self.img)
@@ -229,36 +223,26 @@ class HeadlessTurtle:
             self.forward(step_len)
             self.left(ext / steps)
 
-def draw_vector_art(art_type="leaf", initial="P"):
-    t = HeadlessTurtle(260, 260)
+def draw_vector_art(art_type="leaf"):
+    t = HeadlessTurtle(220, 220)
     if art_type == "leaf":
-        t.penup(); t.goto(130, 235); t.heading = 90; t.color = (64, 145, 108, 255); t.pendown(); t.forward(40)
-        t.color = (45, 106, 79, 255); t.arc(95, 58); t.left(122); t.arc(95, 58)
-        t.penup(); t.goto(130, 195); t.heading = 90; t.color = (82, 183, 136, 255); t.width = 2; t.pendown(); t.forward(90)
-        for y, ang in [(165, 45), (165, 135), (135, 45), (135, 135), (105, 45), (105, 135)]:
-            t.penup(); t.goto(130, y); t.heading = ang; t.pendown(); t.forward(18)
+        t.penup(); t.goto(110, 195); t.heading = 90; t.color = (64, 145, 108, 255); t.pendown(); t.forward(30)
+        t.color = (45, 106, 79, 255); t.arc(80, 58); t.left(122); t.arc(80, 58)
+        t.penup(); t.goto(110, 165); t.heading = 90; t.color = (82, 183, 136, 255); t.width = 2; t.pendown(); t.forward(70)
+        for y, ang in [(140, 45), (140, 135), (115, 45), (115, 135), (90, 45), (90, 135)]:
+            t.penup(); t.goto(110, y); t.heading = ang; t.pendown(); t.forward(15)
     elif art_type == "footprint":
-        t.penup(); t.goto(130, 225); t.heading = 90; t.color = (45, 106, 79, 255); t.pendown()
-        t.arc(60, 40); t.arc(22, -50); t.arc(50, 70); t.arc(32, 90); t.arc(75, 45); t.arc(28, 80); t.goto(130, 225)
-        for tx, ty, r in [(110, 80, 7), (124, 70, 9), (138, 72, 8), (152, 78, 6), (164, 88, 5)]:
+        t.penup(); t.goto(110, 185); t.heading = 90; t.color = (45, 106, 79, 255); t.pendown()
+        t.arc(50, 40); t.arc(18, -50); t.arc(42, 70); t.arc(26, 90); t.arc(62, 45); t.arc(24, 80); t.goto(110, 185)
+        for tx, ty, r in [(95, 68, 6), (106, 58, 8), (118, 60, 7), (129, 65, 5), (138, 73, 4)]:
             t.draw.ellipse([(tx-r, ty-r), (tx+r, ty+r)], fill=(82, 183, 136, 220), outline=(45, 106, 79, 255), width=2)
-    elif art_type == "badge":
-        t.draw.ellipse([(75, 55), (185, 165)], fill=(254, 243, 199, 240), outline=(217, 119, 6, 255), width=3)
-        t.draw.ellipse([(90, 70), (170, 150)], fill=(236, 253, 245, 240), outline=(5, 150, 105, 255), width=2)
-        t.penup(); t.goto(110, 160); t.heading = 250; t.pendown(); t.color = (5, 150, 105, 255)
-        t.forward(50); t.left(120); t.forward(20); t.left(120); t.forward(45)
-        t.penup(); t.goto(150, 160); t.heading = 290; t.pendown()
-        t.forward(50); t.right(120); t.forward(20); t.right(120); t.forward(45)
-    else:
-        t.draw.ellipse([(45, 45), (215, 215)], fill=(232, 245, 233, 240), outline=(45, 106, 79, 255), width=4)
-        t.draw.ellipse([(60, 60), (200, 200)], outline=(82, 183, 136, 255), width=2)
-        for ang in range(0, 360, 45):
-            rad = math.radians(ang)
-            lx = 130 + 80 * math.cos(rad)
-            ly = 130 - 80 * math.sin(rad)
-            t.draw.ellipse([(lx-4, ly-4), (lx+4, ly+4)], fill=(45, 106, 79, 255))
-        glyph = initial.upper() if initial else "P"
-        t.draw.text((115, 105), glyph, fill=(27, 67, 50, 255), font_size=56)
+    else:  # badge rosette
+        t.draw.ellipse([(65, 48), (155, 138)], fill=(254, 243, 199, 240), outline=(217, 119, 6, 255), width=3)
+        t.draw.ellipse([(77, 60), (143, 126)], fill=(236, 253, 245, 240), outline=(5, 150, 105, 255), width=2)
+        t.penup(); t.goto(92, 134); t.heading = 250; t.pendown(); t.color = (5, 150, 105, 255)
+        t.forward(40); t.left(120); t.forward(16); t.left(120); t.forward(36)
+        t.penup(); t.goto(128, 134); t.heading = 290; t.pendown()
+        t.forward(40); t.right(120); t.forward(16); t.right(120); t.forward(36)
     return t.img
 
 def calculate_carbon(price, category, is_ethical):
@@ -272,8 +256,7 @@ def get_equivalency(carbon_kg):
     tree_months = round((carbon_kg / 21.0) * 12, 1)
     return f"🚗 ~{miles:,} petrol miles • 📱 ~{charges:,} phone charges • 🌲 {tree_months} tree-months"
 
-def evaluate_badges(purchases, overrides=None):
-    if overrides is None: overrides = {}
+def evaluate_badges(purchases):
     total_items = len(purchases)
     total_spend = sum(p["price"] for p in purchases)
     total_co2 = sum(p["carbon_kg"] for p in purchases)
@@ -283,18 +266,47 @@ def evaluate_badges(purchases, overrides=None):
     zero_waste_count = sum(1 for p in purchases if "Zero-Waste" in p["category"] or "Thrift" in p["category"])
 
     badges = [
-        {"id": "starter", "name": "Seed Starter", "icon": "🌱", "desc": "Log your 1st conscious purchase", "unlocked": overrides.get("starter", total_items >= 1), "progress": f"{min(total_items, 1)}/1 item"},
-        {"id": "low_impact", "name": "Low Impact Shopper", "icon": "🍃", "desc": "Maintain carbon intensity ≤ 0.25 kg/$", "unlocked": overrides.get("low_impact", total_items >= 3 and avg_intensity <= 0.25), "progress": f"{avg_intensity:.2f} kg/$ (Goal ≤ 0.25)"},
-        {"id": "ethical_pioneer", "name": "Conscious Pioneer", "icon": "♻️", "desc": "Choose 5+ verified circular or thrift items", "unlocked": overrides.get("ethical_pioneer", ethical_count >= 5), "progress": f"{ethical_count}/5 green choices"},
-        {"id": "eco_saver", "name": "Eco Saver of Month", "icon": "🌟", "desc": "Save 15+ kg CO₂ vs industry standard", "unlocked": overrides.get("eco_saver", co2_saved >= 15.0), "progress": f"{co2_saved:.1f}/15.0 kg saved"},
-        {"id": "zero_waste", "name": "Zero-Waste Hero", "icon": "🏆", "desc": "Log 2+ zero-waste or thrift items", "unlocked": overrides.get("zero_waste", zero_waste_count >= 2), "progress": f"{zero_waste_count}/2 items"},
-        {"id": "biosphere_master", "name": "Biosphere Master", "icon": "👑", "desc": "Unlock 4+ badges and stay within budget", "unlocked": overrides.get("biosphere_master", False), "progress": ""},
+        {
+            "id": "starter",
+            "name": "Seed Starter",
+            "icon": "🌱",
+            "desc": "Log your 1st conscious purchase in the dashboard",
+            "unlocked": total_items >= 1,
+            "progress": f"{min(total_items, 1)}/1 item"
+        },
+        {
+            "id": "low_impact",
+            "name": "Low Impact Shopper",
+            "icon": "🍃",
+            "desc": "Maintain carbon intensity ≤ 0.25 kg/$ (min 2 items)",
+            "unlocked": total_items >= 2 and avg_intensity <= 0.25,
+            "progress": f"{avg_intensity:.2f} kg/$ (Goal ≤ 0.25)" if total_items >= 2 else f"{total_items}/2 items required"
+        },
+        {
+            "id": "ethical_pioneer",
+            "name": "Conscious Pioneer",
+            "icon": "♻️",
+            "desc": "Choose 3+ verified circular, thrift, or ethical items",
+            "unlocked": ethical_count >= 3,
+            "progress": f"{ethical_count}/3 ethical items"
+        },
+        {
+            "id": "eco_saver",
+            "name": "Eco Saver of the Month",
+            "icon": "🌟",
+            "desc": "Save 10+ kg CO₂ vs standard retail baseline",
+            "unlocked": co2_saved >= 10.0 and total_items >= 1,
+            "progress": f"{co2_saved:.1f}/10.0 kg CO₂ saved"
+        },
+        {
+            "id": "zero_waste",
+            "name": "Zero-Waste Hero",
+            "icon": "🏆",
+            "desc": "Log 2+ zero-waste or second-hand thrift items",
+            "unlocked": zero_waste_count >= 2,
+            "progress": f"{zero_waste_count}/2 items"
+        },
     ]
-    if "biosphere_master" not in overrides:
-        badges[5]["unlocked"] = sum(1 for b in badges[:5] if b["unlocked"]) >= 4 and total_co2 <= st.session_state.carbon_budget and total_items > 0
-        badges[5]["progress"] = f"{sum(1 for b in badges[:5] if b['unlocked'])}/4 badges"
-    else:
-        badges[5]["progress"] = "Demo override"
     return badges, total_spend, total_co2, avg_intensity, co2_saved, ethical_count
 
 # Session state initialization - Starts completely CLEAN with zero seed data
@@ -302,10 +314,9 @@ if "onboarded" not in st.session_state: st.session_state.onboarded = False
 if "user_name" not in st.session_state: st.session_state.user_name = "Parth Gajera"
 if "user_mascot" not in st.session_state: st.session_state.user_mascot = "Shelly the Sea Turtle 🐢"
 if "carbon_budget" not in st.session_state: st.session_state.carbon_budget = 150
-if "recent_art" not in st.session_state: st.session_state.recent_art = "leaf"
+if "recent_art" not in st.session_state: st.session_state.recent_art = None
 if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "mindful"
 if "mascot_message" not in st.session_state: st.session_state.mascot_message = "Welcome! I am Shelly. I react to every purchase you make and guide you toward greener habits!"
-if "badge_overrides" not in st.session_state: st.session_state.badge_overrides = {}
 if "nav_view" not in st.session_state: st.session_state.nav_view = "📊 Dashboard"
 if "last_logged" not in st.session_state: st.session_state.last_logged = None
 if "purchases" not in st.session_state: st.session_state.purchases = []
@@ -358,37 +369,19 @@ else:
         st.rerun()
 
     st.sidebar.markdown("---")
-    st.session_state.nav_view = st.sidebar.radio("Navigation:", ["📊 Dashboard", "🏆 Wall of Badges", "🎨 Turtle Studio"])
+    st.session_state.nav_view = st.sidebar.radio("Navigation:", ["📊 Dashboard", "🏆 Wall of Badges"])
 
     dark_theme = st.sidebar.toggle("🌙 High-Contrast Dark Mode", value=False)
     st.sidebar.markdown("---")
     st.sidebar.caption(f"💡 *{random.choice(ECO_TIPS)}*")
 
-    c_rst1, c_rst2 = st.sidebar.columns(2)
-    with c_rst1:
-        if st.button("📥 Load Demo", help="Populates 12 test transactions for demo evaluation", use_container_width=True):
-            st.session_state.purchases = [
-                {"id": 1, "item": "Organic Hemp Jacket", "category": "Fast Fashion Apparel", "brand": "Patagonia", "price": 120.0, "carbon_kg": 35.28, "date": "2026-10-02", "is_ethical": True},
-                {"id": 2, "item": "Graphic Polyester T-Shirt", "category": "Fast Fashion Apparel", "brand": "Shein", "price": 18.0, "carbon_kg": 7.56, "date": "2026-10-05", "is_ethical": False},
-                {"id": 3, "item": "Refurbished iPad Mini", "category": "Refurbished Tech", "brand": "Back Market", "price": 280.0, "carbon_kg": 21.56, "date": "2026-10-10", "is_ethical": True},
-                {"id": 4, "item": "Leather Oxford Shoes", "category": "Footwear & Leather", "brand": "Zara", "price": 110.0, "carbon_kg": 71.50, "date": "2026-10-14", "is_ethical": False},
-                {"id": 5, "item": "Thrifted Vintage Denim", "category": "Second-Hand / Thrift", "brand": "Local Thrift", "price": 25.0, "carbon_kg": 0.88, "date": "2026-10-18", "is_ethical": True},
-                {"id": 6, "item": "Weekly Organic Veggies", "category": "Local / Organic Food", "brand": "Green Valley CSA", "price": 42.0, "carbon_kg": 2.35, "date": "2026-10-22", "is_ethical": True},
-                {"id": 7, "item": "Single-Use Plastic Storage", "category": "Home & Plastics", "brand": "Generic Mart", "price": 16.0, "carbon_kg": 7.36, "date": "2026-10-25", "is_ethical": False},
-                {"id": 8, "item": "Bamboo Kitchen Cutlery Set", "category": "Zero-Waste Reusables", "brand": "EcoLiving", "price": 22.0, "carbon_kg": 1.08, "date": "2026-10-28", "is_ethical": True},
-                {"id": 9, "item": "Winter Down Coat", "category": "Fast Fashion Apparel", "brand": "H&M", "price": 85.0, "carbon_kg": 35.70, "date": "2026-11-01", "is_ethical": False},
-                {"id": 10, "item": "Noise Cancelling Headphones", "category": "Consumer Electronics", "brand": "Sony", "price": 190.0, "carbon_kg": 104.50, "date": "2026-11-03", "is_ethical": False},
-                {"id": 11, "item": "Fairphone Modular Battery", "category": "Refurbished Tech", "brand": "Fairphone", "price": 38.0, "carbon_kg": 2.93, "date": "2026-11-05", "is_ethical": True},
-                {"id": 12, "item": "Organic Fair-Trade Coffee", "category": "Local / Organic Food", "brand": "Equator Organics", "price": 24.0, "carbon_kg": 1.34, "date": "2026-11-06", "is_ethical": True},
-            ]
-            st.session_state.last_logged = st.session_state.purchases[-1]
-            st.rerun()
-    with c_rst2:
-        if st.button("🗑️ Clear All", use_container_width=True):
-            st.session_state.purchases = []
-            st.session_state.last_logged = None
-            st.session_state.badge_overrides = {}
-            st.rerun()
+    if st.sidebar.button("🗑️ Reset / Clear All Purchases", use_container_width=True):
+        st.session_state.purchases = []
+        st.session_state.last_logged = None
+        st.session_state.recent_art = None
+        st.session_state.mascot_mood = "mindful"
+        st.session_state.mascot_message = "All purchases cleared. Ready for your first eco-conscious log!"
+        st.rerun()
 
     # Complete Dual-Palette Engine: Comprehensive styling for page AND sidebar
     if dark_theme:
@@ -424,17 +417,33 @@ else:
     # VIEW: 📊 DASHBOARD
     # --------------------------------------------------------------------------
     if st.session_state.nav_view == "📊 Dashboard":
-        # Interactive Mascot Reaction Bar
-        col_m1, col_m2 = st.columns([0.65, 3.35])
-        with col_m1:
-            render_html(render_animated_turtle_svg(st.session_state.mascot_mood, 140, 140))
-        with col_m2:
-            render_html(f"""
-            <div class="reaction-bubble">
-                <div style="font-size: 1.1rem; font-weight: 800;">{st.session_state.user_mascot.split()[0]}'s Live Reaction:</div>
-                <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{st.session_state.mascot_message}"</div>
-            </div>
-            """)
+        # Interactive Mascot Reaction & Optional Turtle Graphic Reward
+        if st.session_state.recent_art:
+            col_m1, col_m2, col_m3 = st.columns([0.65, 2.35, 1.0])
+            with col_m1:
+                render_html(render_animated_turtle_svg(st.session_state.mascot_mood, 140, 140))
+            with col_m2:
+                render_html(f"""
+                <div class="reaction-bubble">
+                    <div style="font-size: 1.1rem; font-weight: 800;">{st.session_state.user_mascot.split()[0]}'s Live Reaction:</div>
+                    <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{st.session_state.mascot_message}"</div>
+                </div>
+                """)
+            with col_m3:
+                art_img = draw_vector_art(st.session_state.recent_art)
+                art_label = {"leaf": "Eco Leaf 🌿", "footprint": "Low Footprint 👣", "badge": "Eco Badge ⭐"}.get(st.session_state.recent_art, "Eco Choice")
+                st.image(art_img, width=130, caption=f"Shelly drew: {art_label}")
+        else:
+            col_m1, col_m2 = st.columns([0.65, 3.35])
+            with col_m1:
+                render_html(render_animated_turtle_svg(st.session_state.mascot_mood, 140, 140))
+            with col_m2:
+                render_html(f"""
+                <div class="reaction-bubble">
+                    <div style="font-size: 1.1rem; font-weight: 800;">{st.session_state.user_mascot.split()[0]}'s Live Reaction:</div>
+                    <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{st.session_state.mascot_message}"</div>
+                </div>
+                """)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -484,24 +493,29 @@ else:
                     st.session_state.purchases.append(new_rec)
                     st.session_state.last_logged = new_rec
                     
-                    # 5-Stage Multi-Level Mascot Reaction Engine
+                    # 5-Stage Multi-Level Mascot Reaction Engine & Turtle Graphic Drawing
                     if is_eth and live_co2 <= 3.0:
                         st.session_state.mascot_mood = "ecstatic"
                         st.session_state.mascot_message = f"LEGENDARY ECO-CHOICE! Shelly put on gold sunglasses! '{item_name}' has virtually zero factory footprint!"
+                        st.session_state.recent_art = "badge"
                         st.balloons()
                     elif is_eth or live_co2 <= 10.0:
                         st.session_state.mascot_mood = "happy"
                         st.session_state.mascot_message = f"Wonderful green purchase! '{item_name}' logged at only {live_co2} kg CO₂e! Shelly is waving happily!"
+                        st.session_state.recent_art = "leaf" if is_eth else "footprint"
                         st.balloons()
                     elif live_co2 <= 25.0:
                         st.session_state.mascot_mood = "mindful"
                         st.session_state.mascot_message = f"Recorded '{item_name}' ({live_co2} kg CO₂e). A balanced choice. Take a look at greener swaps below!"
+                        st.session_state.recent_art = None
                     elif live_co2 <= 50.0:
                         st.session_state.mascot_mood = "worried"
                         st.session_state.mascot_message = f"Whew, getting heavy! '{item_name}' generated {live_co2} kg CO₂e. Shelly feels the carbon heat!"
+                        st.session_state.recent_art = None
                     else:
                         st.session_state.mascot_mood = "alarmed"
                         st.session_state.mascot_message = f"🚨 CARBON SPIKE ALERT! That single item created {live_co2} kg CO₂e! Shelly's shell is shivering! Adopt a greener swap below to balance your budget!"
+                        st.session_state.recent_art = None
                     st.rerun()
 
         # Explanatory Standard Guide Expander
@@ -543,18 +557,20 @@ else:
                         """)
                         b_name = sw['brand'].split('/')[0].strip()
                         if st.button(f"Adopt {b_name} 🌿", key=f"adopt_swap_{idx}"):
+                            swap_co2 = calculate_carbon(35.0, last['category'], True)
                             st.session_state.purchases.append({
                                 "id": len(st.session_state.purchases) + 1,
                                 "item": f"Greener Swap: {b_name} ({last['category']})",
                                 "category": last['category'],
                                 "brand": b_name,
                                 "price": 35.0,
-                                "carbon_kg": calculate_carbon(35.0, last['category'], True),
+                                "carbon_kg": swap_co2,
                                 "date": str(date.today()),
                                 "is_ethical": True,
                             })
                             st.session_state.mascot_mood = "ecstatic"
                             st.session_state.mascot_message = f"LEGENDARY CHOICE! You adopted {b_name}! Circular swaps actively restore the biosphere!"
+                            st.session_state.recent_art = "badge"
                             st.balloons()
                             st.rerun()
 
@@ -582,7 +598,7 @@ else:
             filtered_data = [p for p in st.session_state.purchases if p["date"].startswith(period_choice)]
             period_label = period_choice
 
-        badges, spend_tot, co2_tot, avg_int, saved_tot, eth_cnt = evaluate_badges(filtered_data, st.session_state.badge_overrides)
+        badges, spend_tot, co2_tot, avg_int, saved_tot, eth_cnt = evaluate_badges(filtered_data)
         trees_tot = round(co2_tot / 21.0, 1)
 
         # 4 Primary KPI Cards using clean native Streamlit metrics
@@ -623,24 +639,15 @@ else:
     # --------------------------------------------------------------------------
     elif st.session_state.nav_view == "🏆 Wall of Badges":
         st.title("🏆 Wall of Badges & Eco Fame")
-        st.caption("Unlocked achievements glow in full vibrant color. Locked badges stay in black & white until earned!")
+        st.caption("Unlocked achievements glow in vibrant emerald color. Locked badges stay in monochrome black & white until earned!")
 
-        badges, _, _, _, _, _ = evaluate_badges(st.session_state.purchases, st.session_state.badge_overrides)
+        badges, _, _, _, _, _ = evaluate_badges(st.session_state.purchases)
         unlocked_num = sum(1 for b in badges if b["unlocked"])
 
         st.metric("Badges Unlocked", f"{unlocked_num} of {len(badges)}", f"{int((unlocked_num/len(badges))*100)}% Complete")
-
-        with st.expander("🎯 Test & Allot Badges (Demo Sandbox)", expanded=False):
-            st.write("Toggle badges on/off to watch them transition between **Black & White** and **Vibrant Color** live:")
-            sb_cols = st.columns(3)
-            for i, b in enumerate(badges):
-                with sb_cols[i % 3]:
-                    st.session_state.badge_overrides[b["id"]] = st.checkbox(f"Allot {b['name']}", value=b["unlocked"], key=f"sb_{b['id']}")
-
         st.markdown("<br>", unsafe_allow_html=True)
-        b_c1, b_c2 = st.columns(2, gap="large")
-        badges, _, _, _, _, _ = evaluate_badges(st.session_state.purchases, st.session_state.badge_overrides)
 
+        b_c1, b_c2 = st.columns(2, gap="large")
         for i, b in enumerate(badges):
             target = b_c1 if i % 2 == 0 else b_c2
             with target:
@@ -674,43 +681,6 @@ else:
                         </div>
                     </div>
                     """)
-
-    # --------------------------------------------------------------------------
-    # VIEW: 🎨 TURTLE STUDIO
-    # --------------------------------------------------------------------------
-    elif st.session_state.nav_view == "🎨 Turtle Studio":
-        st.title("🎨 Turtle Vector Studio")
-        st.caption("Live animated SVG mascot and pure Python vector Turtle graphics drawn natively onto PIL canvases.")
-
-        a_col1, a_col2 = st.columns([1.0, 1.2], gap="large")
-        with a_col1:
-            u_init = st.session_state.user_name.strip()[0] if st.session_state.user_name.strip() else "P"
-            opts = ["mascot_ecstatic", "mascot_happy", "mascot_mindful", "mascot_worried", "mascot_alarmed", "leaf", "footprint", "badge", "seal"]
-            labels = {
-                "mascot_ecstatic": "😎 Shelly Sunglasses (Level 5 — Ecstatic)",
-                "mascot_happy": "🌸 Shelly Waving (Level 4 — Happy)",
-                "mascot_mindful": "🌱 Shelly Calm (Level 3 — Mindful)",
-                "mascot_worried": "💧 Shelly Sweating (Level 2 — Worried)",
-                "mascot_alarmed": "🚨 Shelly Alarm (Level 1 — Alarmed)",
-                "leaf": "🌿 Procedural Eco Leaf",
-                "footprint": "👣 Low Carbon Footprint",
-                "badge": "⭐ Achievement Rosette",
-                "seal": f"🛡️ {u_init}'s Personal Avatar Seal",
-            }
-            pick = st.radio("Choose artwork:", opts, format_func=lambda x: labels[x])
-
-        with a_col2:
-            if pick.startswith("mascot_"):
-                mood = pick.replace("mascot_", "")
-                render_html(render_animated_turtle_svg(mood, 220, 220))
-                st.caption(f"Live 60 FPS Animated Vector SVG: {labels[pick]}")
-            else:
-                out_img = draw_vector_art(pick, u_init)
-                st.image(out_img, width=260, caption=f"Headless Turtle Canvas: {labels[pick]}")
-                import io
-                buf = io.BytesIO()
-                out_img.save(buf, format="PNG")
-                st.download_button("💾 Download Artwork (PNG)", buf.getvalue(), f"turtle_{pick}.png", "image/png")
 
 st.divider()
 render_html("""
