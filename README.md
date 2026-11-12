@@ -2,9 +2,10 @@
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-2D6A4F.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-DDA15E.svg)](LICENSE)
-[![Status: Operational](https://img.shields.io/badge/Status-Operational-10B981.svg)]()
-[![Code Style: Senior Dev](https://img.shields.io/badge/Code%20Style-PonyTail%20Minimalist-34D399.svg)]()
+[![Framework: Streamlit](https://img.shields.io/badge/framework-Streamlit%201.35+-FF4B4B.svg)](https://streamlit.io/)
+[![Status: Operational](https://img.shields.io/badge/status-Operational-10B981.svg)]()
+[![Design: Human--Centered](https://img.shields.io/badge/design-Human--Centered-8B5CF6.svg)]()
+[![Theme: Obsidian%20Emerald](https://img.shields.io/badge/theme-Obsidian%20Emerald-059669.svg)]()
 
 > **IDAI 102: Python Programming — Summative Assessment (SA)**  
 > **Course Subject (CRS)**: Artificial Intelligence: Real-World Applications & Implications  
@@ -54,11 +55,14 @@ flowchart TD
 ```
 
 ### Key Architectural Pillars
+- **60 FPS Animated SVG Living Biosphere Globe**: A dynamic central terrarium globe featuring swaying tree canopy kinematics, bio-spore particle drift, radiant sun pulses, and atmospheric shifts that visually reflect the health of your monthly carbon budget.
+- **Tactile Quick-Purchase Chips**: 6 one-click interactive chips for routine purchases (Coffee, Organic Meal, Thrift Jacket, Refurb Tech, Apparel, Footwear) providing instant sub-second logging without manual typing.
+- **Interactive Carbon Impact & Tree Offset Simulator**: Real-time calculator equating dollar spend to petrol car miles, smartphone battery charges, and tree-months of biological carbon sequestration with direct 1-click ledger logging.
 - **Default High-Contrast Dark Mode**: Built from the ground up with deep obsidian pine (`#0c120e`), emerald accents (`#34d399`), and cream contrasts, with an instant toggle for warm linen light mode.
 - **Personalized Avatar Profile Card**: The sidebar features a circular avatar portrait of your chosen spirit companion, honorific Eco-Rank, budget target, and name.
 - **5-Character Multi-Stage Mascot System**: Supports 5 distinct animal spirits (*Shelly the Turtle 🐢*, *Pip the Fox 🦊*, *Barnaby the Owl 🦉*, *Bumble the Bee 🐝*, *Bao the Panda 🐼*). Whichever companion is chosen reacts live with custom speech and 5 animated vector expressions (25 unique SVG variations).
 - **In-Memory Headless Vector Turtle**: Standard `import turtle` requires `tkinter`, which crashes on headless web servers (`TclError: no display name`). ShopImpact implements a pure Python `HeadlessTurtle` class using Pillow (`PIL.ImageDraw`), procedurally drawing mathematical vector leaves, footprints, and achievement badges on eco-choices.
-- **Living Wall of Badges**: Evaluated 100% dynamically from active transactions. Starts in monochrome black & white (`filter: grayscale(100%); opacity: 0.6;`) and illuminates into glowing color as real criteria are met.
+- **Living Wall of Badges & Non-Destructive Undo**: Badges evaluate 100% dynamically from active transactions (transitioning from grayscale to radiant emerald), paired with a 1-click "Undo Last Purchase" rollback action and CSV export.
 
 ---
 
