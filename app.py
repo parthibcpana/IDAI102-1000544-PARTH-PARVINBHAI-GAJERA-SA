@@ -7,16 +7,20 @@ import streamlit as st
 
 st.set_page_config(page_title="ShopImpact — Conscious Shopping Dashboard", page_icon="🌱", layout="wide")
 
+def render_html(html_str: str):
+    clean = "\n".join(line.strip() for line in html_str.splitlines() if line.strip())
+    st.markdown(clean, unsafe_allow_html=True)
+
 CATEGORIES = {
-    "Fast Fashion Apparel": {"multiplier": 0.42, "rating": "High Carbon", "icon": "👗", "fact": "Polyester spinning & chemical dyes generate heavy emissions."},
-    "Footwear & Leather": {"multiplier": 0.65, "rating": "Very High", "icon": "👞", "fact": "Cattle methane & chemical chrome tanning are emission-heavy."},
-    "Consumer Electronics": {"multiplier": 0.55, "rating": "High Carbon", "icon": "📱", "fact": "Semiconductor fabrication & rare earth mining drive ~80% of footprint."},
-    "Refurbished Tech": {"multiplier": 0.11, "rating": "Low Carbon", "icon": "♻️", "fact": "Avoids raw mining; only covers diagnostics & clean parcel transit."},
-    "Second-Hand / Thrift": {"multiplier": 0.05, "rating": "Minimal Impact", "icon": "🧥", "fact": "Pure circular reuse; manufacturing emissions are 100% amortized."},
-    "Packaged Groceries": {"multiplier": 0.38, "rating": "Medium-High", "icon": "🛒", "fact": "Industrial food processing and multi-layer plastic packaging add carbon."},
-    "Local / Organic Food": {"multiplier": 0.08, "rating": "Low Carbon", "icon": "🥗", "fact": "Zero air-freight and regenerative soil agriculture without synthetic nitrates."},
-    "Home & Plastics": {"multiplier": 0.46, "rating": "High Carbon", "icon": "📦", "fact": "Virgin petroleum polymers & high-temperature molding drive footprint."},
-    "Zero-Waste Reusables": {"multiplier": 0.07, "rating": "Minimal Impact", "icon": "🌿", "fact": "Durable steel and bamboo replace thousands of disposable plastics."},
+    "Fast Fashion Apparel": {"multiplier": 0.42, "rating": "High Carbon", "icon": "👗", "fact": "Synthetic polyester spinning and chemical dyes drive emissions."},
+    "Footwear & Leather": {"multiplier": 0.65, "rating": "Very High", "icon": "👞", "fact": "Cattle methane and energy-intensive chrome tanning create heavy footprints."},
+    "Consumer Electronics": {"multiplier": 0.55, "rating": "High Carbon", "icon": "📱", "fact": "Semiconductor cleanrooms & rare earth mining drive ~80% of lifecycle CO₂."},
+    "Refurbished Tech": {"multiplier": 0.11, "rating": "Low Carbon", "icon": "♻️", "fact": "Avoids raw mining; only covers diagnostics and clean parcel shipping."},
+    "Second-Hand / Thrift": {"multiplier": 0.05, "rating": "Minimal Impact", "icon": "🧥", "fact": "Pure circular economy; manufacturing emissions are 100% amortized."},
+    "Packaged Groceries": {"multiplier": 0.38, "rating": "Medium-High", "icon": "🛒", "fact": "Multi-layer non-recyclable plastic packaging and industrial processing."},
+    "Local / Organic Food": {"multiplier": 0.08, "rating": "Low Carbon", "icon": "🥗", "fact": "Zero air-freight logistics and organic regenerative soil practices."},
+    "Home & Plastics": {"multiplier": 0.46, "rating": "High Carbon", "icon": "📦", "fact": "Virgin petroleum feedstocks and high-heat injection molding."},
+    "Zero-Waste Reusables": {"multiplier": 0.07, "rating": "Minimal Impact", "icon": "🌿", "fact": "Durable steel and bamboo replace thousands of single-use disposables."},
 }
 
 ETHICAL_ALTERNATIVES = {
@@ -25,32 +29,32 @@ ETHICAL_ALTERNATIVES = {
         {"brand": "Depop / Thrift", "perk": "Extends existing garment life; 0 new factory emissions", "saving": "92%"},
     ],
     "Footwear & Leather": [
-        {"brand": "Allbirds / Veja", "perk": "Sugarcane SweetFoam & sustainably tapped Amazonian rubber", "saving": "52%"},
-        {"brand": "Will's Vegan Store", "perk": "Bio-based agricultural grain waste; 100% plastic-free packaging", "saving": "70%"},
+        {"brand": "Allbirds / Veja", "perk": "Sugarcane SweetFoam & wild Amazonian rubber", "saving": "52%"},
+        {"brand": "Will's Vegan Store", "perk": "Bio-based agricultural waste; plastic-free packing", "saving": "70%"},
     ],
     "Consumer Electronics": [
-        {"brand": "Back Market Refurbished", "perk": "Certified renew tech avoids toxic mineral extraction", "saving": "82%"},
-        {"brand": "Fairphone Modular", "perk": "Repairable modular build with 5-year guaranteed spare parts", "saving": "60%"},
+        {"brand": "Back Market Refurbished", "perk": "Certified renew tech avoids toxic raw mining", "saving": "82%"},
+        {"brand": "Fairphone Modular", "perk": "Modular build with 5-year guaranteed spare parts", "saving": "60%"},
     ],
     "Refurbished Tech": [
-        {"brand": "Certified Renewed Hub", "perk": "Optimal circular loop! Extends hardware lifespan by 3+ years", "saving": "Optimal"},
+        {"brand": "Certified Renewed Hub", "perk": "Optimal circular loop! Extends hardware life by 3+ years", "saving": "Optimal"},
     ],
     "Second-Hand / Thrift": [
-        {"brand": "Local Charity Thrift Shop", "perk": "Gold standard sustainability! Diverts textiles from landfill", "saving": "Optimal"},
+        {"brand": "Local Community Thrift", "perk": "Top-tier circular reuse; zero new factory footprint", "saving": "Optimal"},
     ],
     "Packaged Groceries": [
-        {"brand": "Local Farmers Market", "perk": "Fresh seasonal produce, zero air-miles & plastic-free baskets", "saving": "58%"},
-        {"brand": "Bulk Food Co-op", "perk": "Bring-your-own container pantry staples with zero packaging", "saving": "45%"},
+        {"brand": "Local Farmers Market", "perk": "Seasonal crops, zero air-miles & plastic-free baskets", "saving": "58%"},
+        {"brand": "Bulk Food Co-op", "perk": "Bring-your-own container pantry essentials", "saving": "45%"},
     ],
     "Local / Organic Food": [
         {"brand": "Community CSA Farm", "perk": "Regenerative soil farming preserving local groundwater", "saving": "Optimal"},
     ],
     "Home & Plastics": [
-        {"brand": "Zero-Waste Refill Station", "perk": "Refill cleaning liquids in existing glass jars", "saving": "75%"},
+        {"brand": "Zero-Waste Refill Station", "perk": "Refill bulk cleaners in reusable glass jars", "saving": "75%"},
         {"brand": "Bamboo & Steel Essentials", "perk": "Fast-growing renewable bamboo; fully biodegradable", "saving": "68%"},
     ],
     "Zero-Waste Reusables": [
-        {"brand": "Circular Home Refill", "perk": "Zero single-use packaging! Keeps marine ecosystems clean", "saving": "Optimal"},
+        {"brand": "Circular Home Refill", "perk": "Gold standard zero-waste; keeps oceans clean", "saving": "Optimal"},
     ],
 }
 
@@ -73,117 +77,77 @@ ECO_TIPS = [
 def render_animated_turtle_svg(mood="happy", width=180, height=180):
     is_worried = (mood == "worried")
     is_happy = (mood == "happy")
-    
     shiver_class = "shiver" if is_worried else "bob"
     
     svg = f"""
     <svg width="{width}" height="{height}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
     <style>
-        @keyframes turtle-bob {{
-            0%, 100% {{ transform: translateY(0px); }}
-            50% {{ transform: translateY(-7px); }}
-        }}
-        @keyframes flipper-wave-l {{
-            0%, 100% {{ transform: rotate(0deg); }}
-            50% {{ transform: rotate(20deg); }}
-        }}
-        @keyframes flipper-wave-r {{
-            0%, 100% {{ transform: rotate(0deg); }}
-            50% {{ transform: rotate(-20deg); }}
-        }}
-        @keyframes sprout-sway {{
-            0%, 100% {{ transform: rotate(-7deg); }}
-            50% {{ transform: rotate(7deg); }}
-        }}
-        @keyframes eye-blink {{
-            0%, 90%, 100% {{ transform: scaleY(1); }}
-            95% {{ transform: scaleY(0.1); }}
-        }}
-        @keyframes sweat-drip {{
-            0% {{ opacity: 0; transform: translateY(-4px); }}
-            40% {{ opacity: 1; transform: translateY(0px); }}
-            80% {{ opacity: 0; transform: translateY(7px); }}
-            100% {{ opacity: 0; transform: translateY(7px); }}
-        }}
-        @keyframes turtle-shiver {{
-            0%, 100% {{ transform: translate(0, 0); }}
-            25% {{ transform: translate(-2px, 1.5px); }}
-            75% {{ transform: translate(2px, -1.5px); }}
-        }}
-        .bob {{ animation: turtle-bob 2.2s ease-in-out infinite; transform-origin: center; }}
-        .shiver {{ animation: turtle-shiver 0.25s infinite; }}
-        .wave-l {{ animation: flipper-wave-l 1.5s ease-in-out infinite; transform-origin: 50px 85px; }}
-        .wave-r {{ animation: flipper-wave-r 1.5s ease-in-out infinite; transform-origin: 150px 85px; }}
-        .sprout {{ animation: sprout-sway 2s ease-in-out infinite; transform-origin: 100px 30px; }}
-        .blink {{ animation: eye-blink 3.8s infinite; transform-origin: 100px 50px; }}
-        .sweat {{ animation: sweat-drip 1.3s infinite; }}
+    @keyframes turtle-bob {{ 0%, 100% {{ transform: translateY(0px); }} 50% {{ transform: translateY(-7px); }} }}
+    @keyframes flipper-wave-l {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(20deg); }} }}
+    @keyframes flipper-wave-r {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(-20deg); }} }}
+    @keyframes sprout-sway {{ 0%, 100% {{ transform: rotate(-7deg); }} 50% {{ transform: rotate(7deg); }} }}
+    @keyframes eye-blink {{ 0%, 90%, 100% {{ transform: scaleY(1); }} 95% {{ transform: scaleY(0.1); }} }}
+    @keyframes sweat-drip {{ 0% {{ opacity: 0; transform: translateY(-4px); }} 40% {{ opacity: 1; transform: translateY(0px); }} 80% {{ opacity: 0; transform: translateY(7px); }} 100% {{ opacity: 0; transform: translateY(7px); }} }}
+    @keyframes turtle-shiver {{ 0%, 100% {{ transform: translate(0, 0); }} 25% {{ transform: translate(-2px, 1.5px); }} 75% {{ transform: translate(2px, -1.5px); }} }}
+    .bob {{ animation: turtle-bob 2.2s ease-in-out infinite; transform-origin: center; }}
+    .shiver {{ animation: turtle-shiver 0.25s infinite; }}
+    .wave-l {{ animation: flipper-wave-l 1.5s ease-in-out infinite; transform-origin: 50px 85px; }}
+    .wave-r {{ animation: flipper-wave-r 1.5s ease-in-out infinite; transform-origin: 150px 85px; }}
+    .sprout {{ animation: sprout-sway 2s ease-in-out infinite; transform-origin: 100px 30px; }}
+    .blink {{ animation: eye-blink 3.8s infinite; transform-origin: 100px 50px; }}
+    .sweat {{ animation: sweat-drip 1.3s infinite; }}
     </style>
     <g class="{shiver_class}">
-        <!-- Rear Flippers (Feet) -->
-        <ellipse cx="60" cy="155" rx="15" ry="22" fill="#40916c" stroke="#1b4332" stroke-width="2.5" transform="rotate(-25 60 155)"/>
-        <ellipse cx="140" cy="155" rx="15" ry="22" fill="#40916c" stroke="#1b4332" stroke-width="2.5" transform="rotate(25 140 155)"/>
-        <!-- Tail -->
-        <polygon points="95,160 105,160 100,180" fill="#40916c" stroke="#1b4332" stroke-width="2"/>
-        <!-- Front Flippers (Waving) -->
-        <g class="wave-l">
-            <ellipse cx="48" cy="88" rx="17" ry="28" fill="#52b788" stroke="#1b4332" stroke-width="2.5" transform="rotate(-35 48 88)"/>
-        </g>
-        <g class="wave-r">
-            <ellipse cx="152" cy="88" rx="17" ry="28" fill="#52b788" stroke="#1b4332" stroke-width="2.5" transform="rotate(35 152 88)"/>
-        </g>
-        <!-- Main Shell Dome -->
-        <ellipse cx="100" cy="120" rx="54" ry="48" fill="#2d6a4f" stroke="#1b4332" stroke-width="3"/>
-        <ellipse cx="100" cy="120" rx="42" ry="36" fill="#40916c" stroke="#1b4332" stroke-width="2"/>
-        <ellipse cx="100" cy="120" rx="26" ry="22" fill="#74c69d" stroke="#2d6a4f" stroke-width="2"/>
-        <!-- Turtle Head -->
-        <ellipse cx="100" cy="55" rx="28" ry="26" fill="#74c69d" stroke="#1b4332" stroke-width="2.5"/>
+    <ellipse cx="60" cy="155" rx="15" ry="22" fill="#40916c" stroke="#1b4332" stroke-width="2.5" transform="rotate(-25 60 155)"/>
+    <ellipse cx="140" cy="155" rx="15" ry="22" fill="#40916c" stroke="#1b4332" stroke-width="2.5" transform="rotate(25 140 155)"/>
+    <polygon points="95,160 105,160 100,180" fill="#40916c" stroke="#1b4332" stroke-width="2"/>
+    <g class="wave-l">
+    <ellipse cx="48" cy="88" rx="17" ry="28" fill="#52b788" stroke="#1b4332" stroke-width="2.5" transform="rotate(-35 48 88)"/>
+    </g>
+    <g class="wave-r">
+    <ellipse cx="152" cy="88" rx="17" ry="28" fill="#52b788" stroke="#1b4332" stroke-width="2.5" transform="rotate(35 152 88)"/>
+    </g>
+    <ellipse cx="100" cy="120" rx="54" ry="48" fill="#2d6a4f" stroke="#1b4332" stroke-width="3"/>
+    <ellipse cx="100" cy="120" rx="42" ry="36" fill="#40916c" stroke="#1b4332" stroke-width="2"/>
+    <ellipse cx="100" cy="120" rx="26" ry="22" fill="#74c69d" stroke="#2d6a4f" stroke-width="2"/>
+    <ellipse cx="100" cy="55" rx="28" ry="26" fill="#74c69d" stroke="#1b4332" stroke-width="2.5"/>
     """
 
     if is_happy:
         svg += """
-        <!-- Sprout on Head -->
         <g class="sprout">
-            <line x1="100" y1="30" x2="100" y2="14" stroke="#1b4332" stroke-width="2.5"/>
-            <ellipse cx="94" cy="12" rx="7" ry="4.5" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(-30 94 12)"/>
-            <ellipse cx="106" cy="12" rx="7" ry="4.5" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(30 106 12)"/>
+        <line x1="100" y1="30" x2="100" y2="14" stroke="#1b4332" stroke-width="2.5"/>
+        <ellipse cx="94" cy="12" rx="7" ry="4.5" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(-30 94 12)"/>
+        <ellipse cx="106" cy="12" rx="7" ry="4.5" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(30 106 12)"/>
         </g>
-        <!-- Blinking Joyful Eyes -->
         <g class="blink">
-            <circle cx="89" cy="49" r="5" fill="#1b4332"/>
-            <circle cx="87" cy="47" r="1.8" fill="#ffffff"/>
-            <circle cx="111" cy="49" r="5" fill="#1b4332"/>
-            <circle cx="109" cy="47" r="1.8" fill="#ffffff"/>
+        <circle cx="89" cy="49" r="5" fill="#1b4332"/>
+        <circle cx="87" cy="47" r="1.8" fill="#ffffff"/>
+        <circle cx="111" cy="49" r="5" fill="#1b4332"/>
+        <circle cx="109" cy="47" r="1.8" fill="#ffffff"/>
         </g>
-        <!-- Rosy Cheeks -->
         <ellipse cx="81" cy="61" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.6"/>
         <ellipse cx="119" cy="61" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.6"/>
-        <!-- Beaming Smile -->
         <path d="M 88 61 Q 100 73 112 61" fill="none" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/>
         """
     elif is_worried:
         svg += """
-        <!-- Worried Eyes -->
         <circle cx="89" cy="52" r="5.5" fill="#1b4332"/>
         <circle cx="111" cy="52" r="5.5" fill="#1b4332"/>
-        <!-- Wobbly Mouth -->
         <path d="M 89 67 Q 100 58 111 67" fill="none" stroke="#1b4332" stroke-width="2.8" stroke-linecap="round"/>
-        <!-- Sweat Droplet -->
         <g class="sweat">
-            <path d="M 124 38 Q 128 47 124 51 Q 120 47 124 38" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
+        <path d="M 124 38 Q 128 47 124 51 Q 120 47 124 38" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
         </g>
         """
     else:
         svg += """
-        <!-- Sprout -->
         <g class="sprout">
-            <line x1="100" y1="30" x2="100" y2="16" stroke="#1b4332" stroke-width="2"/>
-            <ellipse cx="94" cy="14" rx="6" ry="4" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(-30 94 14)"/>
-            <ellipse cx="106" cy="14" rx="6" ry="4" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(30 106 14)"/>
+        <line x1="100" y1="30" x2="100" y2="16" stroke="#1b4332" stroke-width="2"/>
+        <ellipse cx="94" cy="14" rx="6" ry="4" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(-30 94 14)"/>
+        <ellipse cx="106" cy="14" rx="6" ry="4" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(30 106 14)"/>
         </g>
-        <!-- Calm Eyes -->
         <path d="M 84 50 Q 89 44 94 50" fill="none" stroke="#1b4332" stroke-width="2.5" stroke-linecap="round"/>
         <path d="M 106 50 Q 111 44 116 50" fill="none" stroke="#1b4332" stroke-width="2.5" stroke-linecap="round"/>
-        <!-- Gentle Smile -->
         <path d="M 91 63 Q 100 69 109 63" fill="none" stroke="#1b4332" stroke-width="2.2" stroke-linecap="round"/>
         """
 
@@ -259,7 +223,6 @@ def draw_vector_art(art_type="leaf", initial="P"):
 def calculate_carbon(price, category, is_ethical):
     rate = CATEGORIES.get(category, {"multiplier": 0.35})["multiplier"]
     base = price * rate
-    # Reality-oriented: 30% discount represents amortized circular reuse or verified clean manufacturing
     return round(base * 0.70 if is_ethical else base, 2)
 
 def get_equivalency(carbon_kg):
@@ -310,8 +273,7 @@ if "purchases" not in st.session_state: st.session_state.purchases = []
 # SCREEN 1: WELCOME & ONBOARDING (Clean, Visual, Standalone First-Run)
 # ------------------------------------------------------------------------------
 if not st.session_state.onboarded:
-    st.markdown("<h1 style='text-align: center; color: #1b4332; margin-top: 1rem; margin-bottom: 0;'>🌱 Meet ShopImpact</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #64748b; font-size: 1.15rem; margin-bottom: 2.2rem;'>Your playful, conscious shopping companion.</p>", unsafe_allow_html=True)
+    render_html("<h1 style='text-align: center; color: #1b4332; margin-top: 1rem; margin-bottom: 0;'>🌱 Meet ShopImpact</h1><p style='text-align: center; color: #64748b; font-size: 1.15rem; margin-bottom: 2.2rem;'>Your playful, conscious shopping companion.</p>")
 
     c1, c2 = st.columns([1.1, 0.9], gap="large")
     with c1:
@@ -330,21 +292,18 @@ if not st.session_state.onboarded:
             st.rerun()
 
     with c2:
-        st.markdown(render_animated_turtle_svg("happy", 220, 220), unsafe_allow_html=True)
-        st.markdown(
-            """
-            <div style="background: #f0fdf4; border: 1.5px solid #a7f3d0; border-radius: 14px; padding: 1.1rem; color: #166534; margin-top: 0.8rem;">
-                <strong>What you'll experience inside:</strong>
-                <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0; line-height: 1.6;">
-                    <li>⚡ <strong>Live Carbon Preview:</strong> calculate footprint as you type</li>
-                    <li>🔄 <strong>Dynamic Swaps:</strong> get greener brand recommendations right after logging</li>
-                    <li>🏆 <strong>Wall of Badges:</strong> watch gray badges turn into glowing colors</li>
-                    <li>🐢 <strong>Live Mascot:</strong> Shelly smiles, bobs, and waves at your choices!</li>
-                </ul>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        render_html(render_animated_turtle_svg("happy", 220, 220))
+        render_html("""
+        <div style="background: #f0fdf4; border: 1.5px solid #a7f3d0; border-radius: 14px; padding: 1.1rem; color: #166534; margin-top: 0.8rem;">
+            <strong>What you'll experience inside:</strong>
+            <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0; line-height: 1.6;">
+                <li>⚡ <strong>Live Carbon Preview:</strong> calculate footprint as you type</li>
+                <li>🔄 <strong>Dynamic Swaps:</strong> get greener brand recommendations right after logging</li>
+                <li>🏆 <strong>Wall of Badges:</strong> watch gray badges turn into glowing colors</li>
+                <li>🐢 <strong>Live Mascot:</strong> Shelly smiles, bobs, and waves at your choices!</li>
+            </ul>
+        </div>
+        """)
 
 # ------------------------------------------------------------------------------
 # SCREEN 2: MAIN DASHBOARD & TABS
@@ -390,64 +349,50 @@ else:
             st.session_state.badge_overrides = {}
             st.rerun()
 
-    # High-Contrast Complete Theme Engine: Inverts the entire page, text, and cards
+    # High-Contrast Complete Theme Engine
     if dark_theme:
-        st.markdown(
-            """
-            <style>
-            .stApp { background-color: #0c120e !important; color: #f8fafc !important; }
-            h1, h2, h3, h4, h5, p, span, label, div { color: #f8fafc !important; }
-            .kpi-box { background: #152219 !important; border: 1.5px solid #2d3e32 !important; border-radius: 12px; padding: 1.1rem; color: #f8fafc !important; }
-            .kpi-box h4 { color: #94a3b8 !important; }
-            .kpi-box .val { color: #4ade80 !important; }
-            .preview-box { background: #13271c !important; border: 1.5px solid #34d399 !important; border-radius: 12px; padding: 0.9rem 1.2rem; color: #f8fafc !important; }
-            .swap-card { background: #152219 !important; border: 1.5px solid #2d3e32 !important; border-radius: 12px; padding: 1rem; color: #f8fafc !important; }
-            .badge-on { background: linear-gradient(135deg, #064e3b, #047857) !important; border: 2px solid #34d399 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; }
-            .badge-off { background: #1e293b !important; border: 2px dashed #475569 !important; border-radius: 14px; padding: 1rem; color: #94a3b8 !important; filter: grayscale(100%); opacity: 0.6; }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+        render_html("""
+        <style>
+        .stApp { background-color: #0c120e !important; color: #f8fafc !important; }
+        h1, h2, h3, h4, h5, p, span, label { color: #f8fafc !important; }
+        .preview-box { background: #13271c !important; border: 1.5px solid #34d399 !important; border-radius: 12px; padding: 0.9rem 1.2rem; color: #f8fafc !important; }
+        .swap-card { background: #152219 !important; border: 1.5px solid #2d3e32 !important; border-radius: 12px; padding: 1rem; color: #f8fafc !important; margin-bottom: 0.5rem; }
+        .badge-on { background: linear-gradient(135deg, #064e3b, #047857) !important; border: 2px solid #34d399 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; margin-bottom: 0.8rem; }
+        .badge-off { background: #1e293b !important; border: 2px dashed #475569 !important; border-radius: 14px; padding: 1rem; color: #94a3b8 !important; filter: grayscale(100%); opacity: 0.6; margin-bottom: 0.8rem; }
+        .reaction-bubble { border-radius: 14px; padding: 1rem 1.3rem; margin-top: 0.6rem; border: 1.5px solid #34d399; background: #162a1e; color: #f8fafc; }
+        </style>
+        """)
     else:
-        st.markdown(
-            """
-            <style>
-            .stApp { background-color: #fafaf9 !important; color: #0f172a !important; }
-            h1, h2, h3, h4, h5, p, span, label { color: #0f172a !important; }
-            .kpi-box { background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 12px; padding: 1.1rem; color: #0f172a !important; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
-            .kpi-box h4 { color: #64748b !important; }
-            .kpi-box .val { color: #1b4332 !important; }
-            .preview-box { background: #f0fdf4 !important; border: 1.5px solid #86efac !important; border-radius: 12px; padding: 0.9rem 1.2rem; color: #14532d !important; }
-            .swap-card { background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 12px; padding: 1rem; color: #0f172a !important; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-            .badge-on { background: linear-gradient(135deg, #1b4332, #2d6a4f) !important; border: 2px solid #52b788 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; box-shadow: 0 4px 14px rgba(45,106,79,0.18); }
-            .badge-off { background: #f1f5f9 !important; border: 2px dashed #cbd5e1 !important; border-radius: 14px; padding: 1rem; color: #64748b !important; filter: grayscale(100%); opacity: 0.6; }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+        render_html("""
+        <style>
+        .stApp { background-color: #fafaf9 !important; color: #0f172a !important; }
+        h1, h2, h3, h4, h5, p, span, label { color: #0f172a !important; }
+        .preview-box { background: #f0fdf4 !important; border: 1.5px solid #86efac !important; border-radius: 12px; padding: 0.9rem 1.2rem; color: #14532d !important; }
+        .swap-card { background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 12px; padding: 1rem; color: #0f172a !important; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 0.5rem; }
+        .badge-on { background: linear-gradient(135deg, #1b4332, #2d6a4f) !important; border: 2px solid #52b788 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; box-shadow: 0 4px 14px rgba(45,106,79,0.18); margin-bottom: 0.8rem; }
+        .badge-off { background: #f1f5f9 !important; border: 2px dashed #cbd5e1 !important; border-radius: 14px; padding: 1rem; color: #64748b !important; filter: grayscale(100%); opacity: 0.6; margin-bottom: 0.8rem; }
+        .reaction-bubble { border-radius: 14px; padding: 1rem 1.3rem; margin-top: 0.6rem; border: 1.5px solid #86efac; background: #f0fdf4; color: #14532d; }
+        </style>
+        """)
 
     # --------------------------------------------------------------------------
     # VIEW: 📊 DASHBOARD
     # --------------------------------------------------------------------------
     if st.session_state.nav_view == "📊 Dashboard":
-        # Interactive Mascot Reaction Bar
         col_m1, col_m2 = st.columns([0.65, 3.35])
         with col_m1:
-            st.markdown(render_animated_turtle_svg(st.session_state.mascot_mood, 140, 140), unsafe_allow_html=True)
+            render_html(render_animated_turtle_svg(st.session_state.mascot_mood, 140, 140))
         with col_m2:
-            st.markdown(
-                f"""
-                <div style="border-radius: 14px; padding: 1rem 1.3rem; margin-top: 0.6rem; border: 1.5px solid #a7f3d0; background: {'#162a1e' if dark_theme else '#f0fdf4'};">
-                    <div style="font-size: 1.1rem; font-weight: 800;">{st.session_state.user_mascot.split()[0]}'s Live Reaction:</div>
-                    <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{st.session_state.mascot_message}"</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            render_html(f"""
+            <div class="reaction-bubble">
+                <div style="font-size: 1.1rem; font-weight: 800;">{st.session_state.user_mascot.split()[0]}'s Live Reaction:</div>
+                <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{st.session_state.mascot_message}"</div>
+            </div>
+            """)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Log a Purchase Form (Input at top as required)
+        # Log a Purchase Form
         st.subheader("🛒 Log a Planned Purchase")
         with st.form("quick_log_form", clear_on_submit=True):
             f1, f2, f3 = st.columns([1.2, 1.2, 1.0])
@@ -464,18 +409,14 @@ else:
             live_co2 = calculate_carbon(price_val, cat_choice, is_eth)
             equiv_msg = get_equivalency(live_co2)
             c_info = CATEGORIES[cat_choice]
-            
-            # Transparent reality-oriented formula breakdown
             discount_note = "30% Eco Discount applied" if is_eth else "Standard lifecycle factor"
-            st.markdown(
-                f"""
-                <div class="preview-box">
-                    <strong>⚡ Live Lifecycle Calculation:</strong> <code>${price_val:.2f} × {c_info['multiplier']} kg/$ = {live_co2} kg CO₂e</code> ({discount_note})<br>
-                    <span style="font-size: 0.86rem;">📊 Impact Context: {equiv_msg} • <em>{c_info['fact']}</em></span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            
+            render_html(f"""
+            <div class="preview-box">
+                <strong>⚡ Live Lifecycle Calculation:</strong> <code>${price_val:.2f} × {c_info['multiplier']} kg/$ = {live_co2} kg CO₂e</code> ({discount_note})<br>
+                <span style="font-size: 0.86rem;">📊 Impact Context: {equiv_msg} • <em>{c_info['fact']}</em></span>
+            </div>
+            """)
 
             if st.form_submit_button("🌿 Record Purchase in Dashboard", use_container_width=True):
                 if not item_name.strip():
@@ -502,7 +443,7 @@ else:
                         st.session_state.mascot_message = f"Careful! '{item_name}' added {live_co2} kg CO₂e. Check the greener swaps below for your next purchase!"
                     st.rerun()
 
-        # Contextual Greener Swaps: Appears right after a purchase is logged
+        # Contextual Greener Swaps: Appears reactively right after a purchase is logged
         if st.session_state.last_logged:
             last = st.session_state.last_logged
             st.markdown("<br>", unsafe_allow_html=True)
@@ -510,7 +451,7 @@ else:
             
             sc1, sc2 = st.columns([1.1, 2.0], gap="medium")
             with sc1:
-                st.markdown(render_animated_turtle_svg("happy", 130, 130), unsafe_allow_html=True)
+                render_html(render_animated_turtle_svg("happy", 130, 130))
                 st.caption(f"💡 **Shelly's Tip**: You logged **{last['carbon_kg']} kg CO₂e**. Adopting a verified circular swap can reduce emissions by up to 92%!")
             
             with sc2:
@@ -518,16 +459,13 @@ else:
                 sw_cols = st.columns(len(swaps))
                 for idx, sw in enumerate(swaps):
                     with sw_cols[idx]:
-                        st.markdown(
-                            f"""
-                            <div class="swap-card">
-                                <strong>{sw['brand']}</strong><br>
-                                <span style="font-size: 0.85rem;">{sw['perk']}</span><br>
-                                <span style="color: #10b981; font-weight: 700; font-size: 0.82rem;">⚡ Carbon Cut: {sw['saving']}</span>
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
+                        render_html(f"""
+                        <div class="swap-card">
+                            <strong>{sw['brand']}</strong><br>
+                            <span style="font-size: 0.85rem;">{sw['perk']}</span><br>
+                            <span style="color: #10b981; font-weight: 700; font-size: 0.82rem;">⚡ Carbon Cut: {sw['saving']}</span>
+                        </div>
+                        """)
                         b_name = sw['brand'].split('/')[0].strip()
                         if st.button(f"Adopt {b_name} 🌿", key=f"adopt_swap_{idx}"):
                             st.session_state.purchases.append({
@@ -572,13 +510,13 @@ else:
         badges, spend_tot, co2_tot, avg_int, saved_tot, eth_cnt = evaluate_badges(filtered_data, st.session_state.badge_overrides)
         trees_tot = round(co2_tot / 21.0, 1)
 
-        # 4 Primary KPI Cards
+        # 4 Primary KPI Cards using clean native Streamlit metrics
         st.markdown("<br>", unsafe_allow_html=True)
         m1, m2, m3, m4 = st.columns(4)
-        m1.markdown(f"<div class='kpi-box'><h4>Total Spend</h4><div class='val'>${spend_tot:,.2f}</div><span>{len(filtered_data)} items recorded</span></div>", unsafe_allow_html=True)
-        m2.markdown(f"<div class='kpi-box'><h4>Carbon Footprint</h4><div class='val'>{co2_tot:.1f} kg</div><span>{avg_int:.2f} kg/$ intensity</span></div>", unsafe_allow_html=True)
-        m3.markdown(f"<div class='kpi-box'><h4>Carbon Avoided</h4><div class='val'>{saved_tot:.1f} kg</div><span>Vs 0.45 kg/$ standard</span></div>", unsafe_allow_html=True)
-        m4.markdown(f"<div class='kpi-box'><h4>Trees to Offset</h4><div class='val'>{trees_tot} Trees</div><span>21 kg CO₂/tree/year</span></div>", unsafe_allow_html=True)
+        m1.metric("Total Spend", f"${spend_tot:,.2f}", f"{len(filtered_data)} items recorded")
+        m2.metric("Carbon Footprint", f"{co2_tot:.1f} kg", f"{avg_int:.2f} kg/$ intensity", delta_color="inverse")
+        m3.metric("Carbon Avoided", f"{saved_tot:.1f} kg", "Vs standard 0.45 kg/$")
+        m4.metric("Trees to Offset", f"{trees_tot} Trees", "21 kg CO₂/tree/year", delta_color="inverse")
 
         st.markdown("<br>", unsafe_allow_html=True)
         b_lim = st.session_state.carbon_budget
@@ -632,41 +570,35 @@ else:
             target = b_c1 if i % 2 == 0 else b_c2
             with target:
                 if b["unlocked"]:
-                    st.markdown(
-                        f"""
-                        <div class="badge-on">
-                            <div style="display: flex; gap: 1rem; align-items: center;">
-                                <div style="font-size: 3rem;">{b['icon']}</div>
-                                <div>
-                                    <h3 style="margin: 0; color: #ffffff;">{b['name']}</h3>
-                                    <p style="margin: 0.2rem 0; font-size: 0.9rem; color: #d1fae5;">{b['desc']}</p>
-                                    <span style="background: #34d399; color: #064e3b; font-weight: 800; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px;">
-                                        ✨ UNLOCKED ({b['progress']})
-                                    </span>
-                                </div>
+                    render_html(f"""
+                    <div class="badge-on">
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div style="font-size: 3rem;">{b['icon']}</div>
+                            <div>
+                                <h3 style="margin: 0; color: #ffffff;">{b['name']}</h3>
+                                <p style="margin: 0.2rem 0; font-size: 0.9rem; color: #d1fae5;">{b['desc']}</p>
+                                <span style="background: #34d399; color: #064e3b; font-weight: 800; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px;">
+                                    ✨ UNLOCKED ({b['progress']})
+                                </span>
                             </div>
                         </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
+                    </div>
+                    """)
                 else:
-                    st.markdown(
-                        f"""
-                        <div class="badge-off">
-                            <div style="display: flex; gap: 1rem; align-items: center;">
-                                <div style="font-size: 3rem;">🔒</div>
-                                <div>
-                                    <h3 style="margin: 0; color: #475569;">{b['name']}</h3>
-                                    <p style="margin: 0.2rem 0; font-size: 0.9rem; color: #64748b;">{b['desc']}</p>
-                                    <span style="background: #94a3b8; color: #ffffff; font-weight: 700; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px;">
-                                        🔒 LOCKED ({b['progress']})
-                                    </span>
-                                </div>
+                    render_html(f"""
+                    <div class="badge-off">
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div style="font-size: 3rem;">🔒</div>
+                            <div>
+                                <h3 style="margin: 0; color: #475569;">{b['name']}</h3>
+                                <p style="margin: 0.2rem 0; font-size: 0.9rem; color: #64748b;">{b['desc']}</p>
+                                <span style="background: #94a3b8; color: #ffffff; font-weight: 700; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px;">
+                                    🔒 LOCKED ({b['progress']})
+                                </span>
                             </div>
                         </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
+                    </div>
+                    """)
 
     # --------------------------------------------------------------------------
     # VIEW: 🎨 TURTLE STUDIO
@@ -693,7 +625,7 @@ else:
         with a_col2:
             if pick.startswith("mascot_"):
                 mood = pick.replace("mascot_", "")
-                st.markdown(render_animated_turtle_svg(mood, 220, 220), unsafe_allow_html=True)
+                render_html(render_animated_turtle_svg(mood, 220, 220))
                 st.caption(f"Live 60 FPS Animated Vector SVG: {labels[pick]}")
             else:
                 out_img = draw_vector_art(pick, u_init)
@@ -704,12 +636,9 @@ else:
                 st.download_button("💾 Download Artwork (PNG)", buf.getvalue(), f"turtle_{pick}.png", "image/png")
 
 st.divider()
-st.markdown(
-    """
-    <div style="text-align: center; color: #64748b; font-size: 0.8rem; padding: 0.8rem 0;">
-        <strong>ShopImpact Conscious Shopping Dashboard</strong> • Summative Assessment (60 Marks)<br>
-        Candidate: <strong>Parth Pravinbhai Gajera</strong> (ID: <code>1000544</code>) • CRS: Artificial Intelligence • IDAI 102
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+render_html("""
+<div style="text-align: center; color: #64748b; font-size: 0.8rem; padding: 0.8rem 0;">
+    <strong>ShopImpact Conscious Shopping Dashboard</strong> • Summative Assessment (60 Marks)<br>
+    Candidate: <strong>Parth Pravinbhai Gajera</strong> (ID: <code>1000544</code>) • CRS: Artificial Intelligence • IDAI 102
+</div>
+""")
