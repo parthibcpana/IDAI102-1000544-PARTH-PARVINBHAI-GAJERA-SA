@@ -23,9 +23,10 @@ Modern consumerism often hides the true environmental cost of everyday purchases
 **ShopImpact** is an interactive, responsive web dashboard built in pure Python and Streamlit. Developed for the design team at *ShopImpact Ltd.*, the application transforms routine shopping into an empowering, conscious habit. Instead of relying on dry spreadsheets or guilt-inducing warnings, ShopImpact provides:
 - **Instant Carbon Calculations**: Real-time emission estimates using curated lifecycle multipliers.
 - **Dynamic Monthly Dashboards**: Clear metrics for spending, cumulative $\text{CO}_2$, and equivalent trees required for carbon absorption.
-- **Actionable Greener Swaps**: Verified ethical alternative brands, organic materials, and circular reuse options tailored to each product category.
-- **Gamified Milestone Badges**: A rewarding badge engine ("Seed Starter", "Low Impact Shopper", "Conscious Pioneer", "Eco Saver of the Month") celebrating sustainable habits.
-- **Procedural Turtle Visualizer**: A custom headless vector Turtle graphics engine rendering dynamic eco-leaf and badge graphics directly in the browser without Tkinter desktop window dependencies.
+- **Actionable Greener Swaps with 1-Click Adoption**: Verified ethical alternative brands, organic materials, and circular reuse options with instant one-click ledger insertion.
+- **Gamified Milestone Badges**: A rewarding 5-tier badge engine ("Seed Starter", "Low Impact Shopper", "Conscious Pioneer", "Eco Saver of the Month", "Zero-Waste Hero") with live progress bars.
+- **Eco-Avatar & Persona Engine**: Customizable shopper identity featuring 5 Spirit Mascots (Shelly the Turtle 🐢, Pip the Fox 🦊, Barnaby the Owl 🦉, Bumble the Bee 🐝, Bao the Panda 🐼) and dynamic honorific Eco-Ranks (*Curious Explorer*, *Conscious Forager*, *Circular Pioneer*, *Master of Biosphere*).
+- **Procedural Turtle Studio**: A custom headless vector Turtle graphics engine rendering 4 reactive vector graphics (Eco-Leaf Badge, Carbon Footprint, Golden Rosette, and Personalized Avatar Seal) directly in the browser without Tkinter desktop window dependencies.
 
 ---
 
@@ -57,12 +58,16 @@ Most sustainability tools make users feel anxious or helpless. ShopImpact is del
 | **1. Input Fields** | Category dropdown, Brand text, Price number input, Date picker, Ethical flag checkbox. | Intuitive 2-column form with automatic validation. |
 | **2. Real-Time CO₂ Calculation** | Pure function `calculate_carbon(price, category, is_ethical)` updating dynamically. | Users see exact $\text{kg CO}_2\text{e}$ before submitting. |
 | **3. Monthly Dashboard** | Top KPI cards (`st.metric`) + Category footprint bar chart + Tabular ledger. | High-contrast metrics showing spend, $\text{CO}_2$, and trees needed. |
-| **4. Fun Badges** | Deterministic rule engine evaluating history for 4 distinct badge tiers. | Live badges display unlock status and completion progress. |
-| **5. Greener Alternatives** | Curated relational dictionary mapping categories to sustainable brands & perks. | Displays actionable swaps with verified carbon cuts ($50\%\text{--}90\%$). |
-| **6. Turtle Graphic** | Headless vector turtle engine rendering stylized eco-leaf badge. | Rendered live in PIL and displayed natively via `st.image`. |
+| **4. Fun Badges** | Deterministic rule engine evaluating history for 5 distinct milestone tiers. | Live badges display unlock status, requirements, and progress bars. |
+| **5. Greener Alternatives** | Curated relational dictionary mapping categories to sustainable brands & perks. | Displays actionable swaps with verified carbon cuts ($50\%\text{--}90\%$) and 1-click ledger adoption. |
+| **6. Turtle Graphic** | Headless vector turtle engine rendering 4 distinct mathematical vector artworks. | Rendered live in PIL and displayed natively via `st.image` with zero Tkinter crashes. |
 
 ### Creative Out-of-the-Box Features
-- **Tree-Offset Equivalency**: Dynamically calculates how many mature trees are needed to sequester the user's monthly emissions ($1\text{ tree} \approx 21\text{ kg CO}_2/\text{year}$).
+- **Eco-Avatar Persona & Spirit Mascots**: Selectable avatar spirit guide with dynamic honorific rank calculated in real-time from spending behavior.
+- **Personalized Vector Avatar Seal**: Turtle engine mathematically constructs concentric laurel wreaths, star rosettes, and user initial engraving.
+- **Tangible Real-World Equivalencies**: Translates abstract $\text{CO}_2\text{ kg}$ metrics into everyday context (car driving miles avoided/incurred, smartphone full recharges, mature tree absorption months).
+- **1-Click Swap Adoption**: Users can immediately adopt suggested sustainable brand swaps into their ledger with a single click.
+- **High-Contrast Dark Mode Toggle**: Custom injected CSS providing a dark-mode palette for night-time conscious budgeting.
 - **Carbon-Saved Delta Counter**: Compares purchases against conventional industry baselines ($0.45\text{ kg CO}_2/\$$) to show positive impact in kilograms.
 - **Ethical Brand Discount**: Verifying a purchase as circular/thrift/ethical automatically rewards users with a $30\%$ carbon-efficiency reduction.
 - **Rotating Daily Eco Wisdom**: Curated trivia highlighting tangible conservation statistics on water, e-waste, and single-use packaging.
