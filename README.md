@@ -28,7 +28,7 @@ Modern consumerism often hides the true environmental cost of everyday purchases
 - **Living Wall of Badges & Fame**: Dynamic milestone showcase where locked badges remain in monochrome grayscale (black & white), and activate into vibrant, radiant earthy color the instant criteria are achieved.
 - **Interactive Evaluator Sandbox**: Built-in allotment panel on the Wall of Badges allowing evaluators to manually allot and observe the real-time grayscale-to-color transition.
 - **Eco-Avatar & Persona Engine**: Customizable shopper identity featuring 5 Spirit Mascots (Shelly the Turtle 🐢, Pip the Fox 🦊, Barnaby the Owl 🦉, Bumble the Bee 🐝, Bao the Panda 🐼) and dynamic honorific Eco-Ranks (*Curious Explorer*, *Conscious Forager*, *Circular Pioneer*, *Master of Biosphere*).
-- **Procedural Turtle Studio**: A custom headless vector Turtle graphics engine rendering 4 reactive vector graphics (Eco-Leaf Badge, Carbon Footprint, Golden Rosette, and Personalized Avatar Seal) directly in the browser with 1-click PNG download.
+- **Procedural Turtle Studio & Reactive Mascot**: A custom headless vector Turtle graphics engine rendering responsive expressions (Smiling/Happy Shelly, Worried Shelly, Mindful Shelly) and 4 vector graphics (Eco-Leaf Badge, Carbon Footprint, Golden Rosette, and Personalized Avatar Seal) directly in the browser with 1-click PNG download.
 - **High-Contrast Theme System**: Strictly paired container backgrounds and text colors, guaranteeing 100% readability and zero invisible text across Light and Dark modes.
 
 ---
