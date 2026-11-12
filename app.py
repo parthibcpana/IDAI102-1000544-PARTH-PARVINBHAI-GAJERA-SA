@@ -12,29 +12,29 @@ def render_html(html_str: str):
     st.markdown(clean, unsafe_allow_html=True)
 
 CATEGORIES = {
-    "Fast Fashion Apparel": {"multiplier": 0.42, "rating": "High Carbon", "icon": "👗", "fact": "Synthetic polyester spinning and chemical dyes drive emissions."},
-    "Footwear & Leather": {"multiplier": 0.65, "rating": "Very High", "icon": "👞", "fact": "Cattle methane and energy-intensive chrome tanning create heavy footprints."},
-    "Consumer Electronics": {"multiplier": 0.55, "rating": "High Carbon", "icon": "📱", "fact": "Semiconductor cleanrooms & rare earth mining drive ~80% of lifecycle CO₂."},
-    "Refurbished Tech": {"multiplier": 0.11, "rating": "Low Carbon", "icon": "♻️", "fact": "Avoids raw mining; only covers diagnostics and clean parcel shipping."},
-    "Second-Hand / Thrift": {"multiplier": 0.05, "rating": "Minimal Impact", "icon": "🧥", "fact": "Pure circular economy; manufacturing emissions are 100% amortized."},
-    "Packaged Groceries": {"multiplier": 0.38, "rating": "Medium-High", "icon": "🛒", "fact": "Multi-layer non-recyclable plastic packaging and industrial processing."},
-    "Local / Organic Food": {"multiplier": 0.08, "rating": "Low Carbon", "icon": "🥗", "fact": "Zero air-freight logistics and organic regenerative soil practices."},
-    "Home & Plastics": {"multiplier": 0.46, "rating": "High Carbon", "icon": "📦", "fact": "Virgin petroleum feedstocks and high-heat injection molding."},
-    "Zero-Waste Reusables": {"multiplier": 0.07, "rating": "Minimal Impact", "icon": "🌿", "fact": "Durable steel and bamboo replace thousands of single-use disposables."},
+    "Fast Fashion Apparel": {"multiplier": 0.42, "rating": "High Carbon", "tier": "⚠️ High", "icon": "👗", "fact": "Synthetic polyester spinning and chemical dyes create high industrial footprints."},
+    "Footwear & Leather": {"multiplier": 0.65, "rating": "Very High", "tier": "🚨 Heavy", "icon": "👞", "fact": "Cattle methane and energy-intensive chemical chrome tanning drive high emissions."},
+    "Consumer Electronics": {"multiplier": 0.55, "rating": "High Carbon", "tier": "🚨 Heavy", "icon": "📱", "fact": "Semiconductor silicon fabrication and rare-earth mining account for ~80% of lifecycle CO₂."},
+    "Refurbished Tech": {"multiplier": 0.11, "rating": "Low Carbon", "tier": "🌾 Conscious", "icon": "♻️", "fact": "Eliminates raw metal mining; only covers diagnostic refurbishment and parcel shipping."},
+    "Second-Hand / Thrift": {"multiplier": 0.05, "rating": "Minimal Impact", "tier": "🌿 Ultra-Green", "icon": "🧥", "fact": "Pure circular economy; original manufacturing emissions are 100% amortized."},
+    "Packaged Groceries": {"multiplier": 0.38, "rating": "Medium-High", "tier": "⚠️ High", "icon": "🛒", "fact": "Industrial food processing and multi-layer plastic packaging add embodied carbon."},
+    "Local / Organic Food": {"multiplier": 0.08, "rating": "Low Carbon", "tier": "🌿 Ultra-Green", "icon": "🥗", "fact": "Zero air-freight transit and regenerative organic soil practices without synthetic nitrates."},
+    "Home & Plastics": {"multiplier": 0.46, "rating": "High Carbon", "tier": "⚠️ High", "icon": "📦", "fact": "Virgin petroleum feedstocks and high-temperature molding drive lifecycle footprint."},
+    "Zero-Waste Reusables": {"multiplier": 0.07, "rating": "Minimal Impact", "tier": "🌿 Ultra-Green", "icon": "🌿", "fact": "Durable steel and bamboo displace hundreds of single-use disposable plastics."},
 }
 
 ETHICAL_ALTERNATIVES = {
     "Fast Fashion Apparel": [
-        {"brand": "Patagonia", "perk": "100% organic cotton, Fair Trade sewing & free repairs", "saving": "65%"},
-        {"brand": "Depop / Thrift", "perk": "Extends existing garment life; 0 new factory emissions", "saving": "92%"},
+        {"brand": "Patagonia", "perk": "100% organic cotton, Fair Trade sewing & free lifelong repairs", "saving": "65%"},
+        {"brand": "Depop / Thrift", "perk": "Extends existing garment life; zero new factory emissions", "saving": "92%"},
     ],
     "Footwear & Leather": [
-        {"brand": "Allbirds / Veja", "perk": "Sugarcane SweetFoam & wild Amazonian rubber", "saving": "52%"},
-        {"brand": "Will's Vegan Store", "perk": "Bio-based agricultural waste; plastic-free packing", "saving": "70%"},
+        {"brand": "Allbirds / Veja", "perk": "Sugarcane SweetFoam & wild-harvested Amazonian rubber", "saving": "52%"},
+        {"brand": "Will's Vegan Store", "perk": "Bio-based agricultural grain waste; 100% plastic-free packaging", "saving": "70%"},
     ],
     "Consumer Electronics": [
-        {"brand": "Back Market Refurbished", "perk": "Certified renew tech avoids toxic raw mining", "saving": "82%"},
-        {"brand": "Fairphone Modular", "perk": "Modular build with 5-year guaranteed spare parts", "saving": "60%"},
+        {"brand": "Back Market Refurbished", "perk": "Certified renew tech avoids toxic raw mineral mining", "saving": "82%"},
+        {"brand": "Fairphone Modular", "perk": "Repairable modular build with 5-year guaranteed spare parts", "saving": "60%"},
     ],
     "Refurbished Tech": [
         {"brand": "Certified Renewed Hub", "perk": "Optimal circular loop! Extends hardware life by 3+ years", "saving": "Optimal"},
@@ -44,7 +44,7 @@ ETHICAL_ALTERNATIVES = {
     ],
     "Packaged Groceries": [
         {"brand": "Local Farmers Market", "perk": "Seasonal crops, zero air-miles & plastic-free baskets", "saving": "58%"},
-        {"brand": "Bulk Food Co-op", "perk": "Bring-your-own container pantry essentials", "saving": "45%"},
+        {"brand": "Bulk Food Co-op", "perk": "Bring-your-own container pantry essentials with zero waste", "saving": "45%"},
     ],
     "Local / Organic Food": [
         {"brand": "Community CSA Farm", "perk": "Regenerative soil farming preserving local groundwater", "saving": "Optimal"},
@@ -54,12 +54,12 @@ ETHICAL_ALTERNATIVES = {
         {"brand": "Bamboo & Steel Essentials", "perk": "Fast-growing renewable bamboo; fully biodegradable", "saving": "68%"},
     ],
     "Zero-Waste Reusables": [
-        {"brand": "Circular Home Refill", "perk": "Gold standard zero-waste; keeps oceans clean", "saving": "Optimal"},
+        {"brand": "Circular Home Refill", "perk": "Gold standard zero-waste; keeps oceans and landfills clean", "saving": "Optimal"},
     ],
 }
 
 ECO_MASCOTS = {
-    "Shelly the Sea Turtle 🐢": "Patience, wisdom & clean, plastic-free oceans",
+    "Shelly the Sea Turtle 🐢": "Wisdom, clean oceans & circular longevity",
     "Pip the Forest Fox 🦊": "Agile thrifting, clever reuse & finding vintage gems",
     "Barnaby the Eco Owl 🦉": "Science, footprint analytics & carbon budget discipline",
     "Bumble the Pollinator 🐝": "Local organic farmers, seasonal harvest & biodiversity",
@@ -74,28 +74,34 @@ ECO_TIPS = [
     "Shopping at a local farmers market eliminates long-haul cold-chain logistics emissions.",
 ]
 
+SUSTAINABILITY_QUOTES = [
+    "“The greatest threat to our planet is the belief that someone else will save it.” — Robert Swan",
+    "“The most sustainable garment is the one already in your wardrobe — or thrifted from someone else's.” — Orsola de Castro",
+    "“Small acts, when multiplied by millions of people, can transform the world.” — Howard Zinn",
+    "“There is no such thing as ‘away’. When we throw anything away it must go somewhere.” — Annie Leonard",
+    "“We do not inherit the Earth from our ancestors; we borrow it from our children.” — Native Proverb",
+]
+
 def render_animated_turtle_svg(mood="happy", width=180, height=180):
-    is_worried = (mood == "worried")
-    is_happy = (mood == "happy")
-    shiver_class = "shiver" if is_worried else "bob"
+    shiver_class = "shiver" if mood in ["worried", "alarmed"] else "bob"
     
     svg = f"""
-    <svg width="{width}" height="{height}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <svg width="{width}" height="{height}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto;">
     <style>
     @keyframes turtle-bob {{ 0%, 100% {{ transform: translateY(0px); }} 50% {{ transform: translateY(-7px); }} }}
-    @keyframes flipper-wave-l {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(20deg); }} }}
-    @keyframes flipper-wave-r {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(-20deg); }} }}
-    @keyframes sprout-sway {{ 0%, 100% {{ transform: rotate(-7deg); }} 50% {{ transform: rotate(7deg); }} }}
+    @keyframes flipper-wave-l {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(24deg); }} }}
+    @keyframes flipper-wave-r {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(-24deg); }} }}
+    @keyframes sprout-sway {{ 0%, 100% {{ transform: rotate(-8deg); }} 50% {{ transform: rotate(8deg); }} }}
     @keyframes eye-blink {{ 0%, 90%, 100% {{ transform: scaleY(1); }} 95% {{ transform: scaleY(0.1); }} }}
     @keyframes sweat-drip {{ 0% {{ opacity: 0; transform: translateY(-4px); }} 40% {{ opacity: 1; transform: translateY(0px); }} 80% {{ opacity: 0; transform: translateY(7px); }} 100% {{ opacity: 0; transform: translateY(7px); }} }}
-    @keyframes turtle-shiver {{ 0%, 100% {{ transform: translate(0, 0); }} 25% {{ transform: translate(-2px, 1.5px); }} 75% {{ transform: translate(2px, -1.5px); }} }}
+    @keyframes turtle-shiver {{ 0%, 100% {{ transform: translate(0, 0); }} 25% {{ transform: translate(-2.5px, 1.5px); }} 75% {{ transform: translate(2.5px, -1.5px); }} }}
     .bob {{ animation: turtle-bob 2.2s ease-in-out infinite; transform-origin: center; }}
-    .shiver {{ animation: turtle-shiver 0.25s infinite; }}
-    .wave-l {{ animation: flipper-wave-l 1.5s ease-in-out infinite; transform-origin: 50px 85px; }}
-    .wave-r {{ animation: flipper-wave-r 1.5s ease-in-out infinite; transform-origin: 150px 85px; }}
-    .sprout {{ animation: sprout-sway 2s ease-in-out infinite; transform-origin: 100px 30px; }}
+    .shiver {{ animation: turtle-shiver 0.2s infinite; }}
+    .wave-l {{ animation: flipper-wave-l 1.3s ease-in-out infinite; transform-origin: 50px 85px; }}
+    .wave-r {{ animation: flipper-wave-r 1.3s ease-in-out infinite; transform-origin: 150px 85px; }}
+    .sprout {{ animation: sprout-sway 1.8s ease-in-out infinite; transform-origin: 100px 30px; }}
     .blink {{ animation: eye-blink 3.8s infinite; transform-origin: 100px 50px; }}
-    .sweat {{ animation: sweat-drip 1.3s infinite; }}
+    .sweat {{ animation: sweat-drip 1.2s infinite; }}
     </style>
     <g class="{shiver_class}">
     <ellipse cx="60" cy="155" rx="15" ry="22" fill="#40916c" stroke="#1b4332" stroke-width="2.5" transform="rotate(-25 60 155)"/>
@@ -113,7 +119,25 @@ def render_animated_turtle_svg(mood="happy", width=180, height=180):
     <ellipse cx="100" cy="55" rx="28" ry="26" fill="#74c69d" stroke="#1b4332" stroke-width="2.5"/>
     """
 
-    if is_happy:
+    if mood == "ecstatic":
+        # Level 5: Superhero / Sunglasses & Gold Stars
+        svg += """
+        <g class="sprout">
+        <line x1="100" y1="30" x2="100" y2="12" stroke="#d97706" stroke-width="3"/>
+        <polygon points="100,6 103,13 110,13 105,17 107,24 100,20 93,24 95,17 90,13 97,13" fill="#f59e0b"/>
+        </g>
+        <!-- Cool Sunglasses -->
+        <path d="M 81 46 L 96 46 Q 96 56 88 56 Q 81 56 81 46 Z" fill="#1e293b"/>
+        <path d="M 104 46 L 119 46 Q 119 56 112 56 Q 104 56 104 46 Z" fill="#1e293b"/>
+        <line x1="96" y1="48" x2="104" y2="48" stroke="#1e293b" stroke-width="2.5"/>
+        <line x1="84" y1="49" x2="93" y2="49" stroke="#94a3b8" stroke-width="1.2"/>
+        <line x1="107" y1="49" x2="116" y2="49" stroke="#94a3b8" stroke-width="1.2"/>
+        <ellipse cx="79" cy="62" rx="6" ry="3.5" fill="#f43f5e" opacity="0.6"/>
+        <ellipse cx="121" cy="62" rx="6" ry="3.5" fill="#f43f5e" opacity="0.6"/>
+        <path d="M 88 61 Q 100 75 112 61" fill="#f43f5e" stroke="#1b4332" stroke-width="2.5" stroke-linecap="round"/>
+        """
+    elif mood == "happy":
+        # Level 4: Happy Blushing
         svg += """
         <g class="sprout">
         <line x1="100" y1="30" x2="100" y2="14" stroke="#1b4332" stroke-width="2.5"/>
@@ -130,7 +154,23 @@ def render_animated_turtle_svg(mood="happy", width=180, height=180):
         <ellipse cx="119" cy="61" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.6"/>
         <path d="M 88 61 Q 100 73 112 61" fill="none" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/>
         """
-    elif is_worried:
+    elif mood == "alarmed":
+        # Level 1: Alarmed Shock / Siren
+        svg += """
+        <polygon points="100,10 107,24 93,24" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/>
+        <text x="98" y="22" font-size="9" font-weight="bold" fill="#ffffff">!</text>
+        <circle cx="89" cy="51" r="7" fill="#ffffff" stroke="#1b4332" stroke-width="2"/>
+        <circle cx="89" cy="51" r="3" fill="#1b4332"/>
+        <circle cx="111" cy="51" r="7" fill="#ffffff" stroke="#1b4332" stroke-width="2"/>
+        <circle cx="111" cy="51" r="3" fill="#1b4332"/>
+        <ellipse cx="100" cy="68" rx="6" ry="8" fill="#1b4332"/>
+        <g class="sweat">
+        <path d="M 125 36 Q 130 45 125 50 Q 120 45 125 36" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
+        <path d="M 75 36 Q 80 45 75 50 Q 70 45 75 36" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
+        </g>
+        """
+    elif mood == "worried":
+        # Level 2: Worried Sweating
         svg += """
         <circle cx="89" cy="52" r="5.5" fill="#1b4332"/>
         <circle cx="111" cy="52" r="5.5" fill="#1b4332"/>
@@ -140,6 +180,7 @@ def render_animated_turtle_svg(mood="happy", width=180, height=180):
         </g>
         """
     else:
+        # Level 3: Mindful / Calm
         svg += """
         <g class="sprout">
         <line x1="100" y1="30" x2="100" y2="16" stroke="#1b4332" stroke-width="2"/>
@@ -262,8 +303,8 @@ if "user_name" not in st.session_state: st.session_state.user_name = "Parth Gaje
 if "user_mascot" not in st.session_state: st.session_state.user_mascot = "Shelly the Sea Turtle 🐢"
 if "carbon_budget" not in st.session_state: st.session_state.carbon_budget = 150
 if "recent_art" not in st.session_state: st.session_state.recent_art = "leaf"
-if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "happy"
-if "mascot_message" not in st.session_state: st.session_state.mascot_message = "Welcome! I am Shelly, your conscious shopping guide!"
+if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "mindful"
+if "mascot_message" not in st.session_state: st.session_state.mascot_message = "Welcome! I am Shelly. I react to every purchase you make and guide you toward greener habits!"
 if "badge_overrides" not in st.session_state: st.session_state.badge_overrides = {}
 if "nav_view" not in st.session_state: st.session_state.nav_view = "📊 Dashboard"
 if "last_logged" not in st.session_state: st.session_state.last_logged = None
@@ -278,9 +319,9 @@ if not st.session_state.onboarded:
     c1, c2 = st.columns([1.1, 0.9], gap="large")
     with c1:
         st.subheader("Set Your Goals & Avatar")
-        u_name = st.text_input("What is your name?", value=st.session_state.user_name)
-        m_choice = st.selectbox("Choose your spirit guide:", options=list(ECO_MASCOTS.keys()))
-        b_choice = st.slider("Monthly Carbon Target (kg CO₂e):", min_value=50, max_value=300, value=st.session_state.carbon_budget, step=10)
+        u_name = st.text_input("Your Shopper Name (Required):", value=st.session_state.user_name)
+        m_choice = st.selectbox("Choose Your Eco Mascot Spirit (Required):", options=list(ECO_MASCOTS.keys()))
+        b_choice = st.slider("Monthly Sustainable Carbon Target (kg CO₂e):", min_value=50, max_value=300, value=st.session_state.carbon_budget, step=10, help="Standard Paris-aligned conscious shopper target is 100-150 kg.")
 
         st.caption(f"✨ **{m_choice.split()[0]}**: {ECO_MASCOTS[m_choice]}")
         st.markdown("<br>", unsafe_allow_html=True)
@@ -297,10 +338,10 @@ if not st.session_state.onboarded:
         <div style="background: #f0fdf4; border: 1.5px solid #a7f3d0; border-radius: 14px; padding: 1.1rem; color: #166534; margin-top: 0.8rem;">
             <strong>What you'll experience inside:</strong>
             <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0; line-height: 1.6;">
-                <li>⚡ <strong>Live Carbon Preview:</strong> calculate footprint as you type</li>
-                <li>🔄 <strong>Dynamic Swaps:</strong> get greener brand recommendations right after logging</li>
-                <li>🏆 <strong>Wall of Badges:</strong> watch gray badges turn into glowing colors</li>
-                <li>🐢 <strong>Live Mascot:</strong> Shelly smiles, bobs, and waves at your choices!</li>
+                <li>⚡ <strong>Instant Carbon Calculator:</strong> estimates emissions as you type</li>
+                <li>🔄 <strong>Contextual Swaps:</strong> get greener brand recommendations right after recording</li>
+                <li>🏆 <strong>Living Wall of Badges:</strong> watch gray badges turn into glowing colors</li>
+                <li>🐢 <strong>5-Stage Reactive Mascot:</strong> Shelly smiles, bobs, sweats, and puts on sunglasses!</li>
             </ul>
         </div>
         """)
@@ -349,13 +390,15 @@ else:
             st.session_state.badge_overrides = {}
             st.rerun()
 
-    # High-Contrast Complete Theme Engine
+    # Complete Dual-Palette Engine: Comprehensive styling for page AND sidebar
     if dark_theme:
         render_html("""
         <style>
         .stApp { background-color: #0c120e !important; color: #f8fafc !important; }
         h1, h2, h3, h4, h5, p, span, label { color: #f8fafc !important; }
-        .preview-box { background: #13271c !important; border: 1.5px solid #34d399 !important; border-radius: 12px; padding: 0.9rem 1.2rem; color: #f8fafc !important; }
+        [data-testid="stSidebar"] { background-color: #080d0a !important; border-right: 1.5px solid #1e2d22 !important; }
+        [data-testid="stSidebar"] * { color: #f8fafc !important; }
+        .preview-box { background: #13271c !important; border: 1.5px solid #34d399 !important; border-radius: 12px; padding: 1rem 1.2rem; color: #f8fafc !important; }
         .swap-card { background: #152219 !important; border: 1.5px solid #2d3e32 !important; border-radius: 12px; padding: 1rem; color: #f8fafc !important; margin-bottom: 0.5rem; }
         .badge-on { background: linear-gradient(135deg, #064e3b, #047857) !important; border: 2px solid #34d399 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; margin-bottom: 0.8rem; }
         .badge-off { background: #1e293b !important; border: 2px dashed #475569 !important; border-radius: 14px; padding: 1rem; color: #94a3b8 !important; filter: grayscale(100%); opacity: 0.6; margin-bottom: 0.8rem; }
@@ -365,9 +408,11 @@ else:
     else:
         render_html("""
         <style>
-        .stApp { background-color: #fafaf9 !important; color: #0f172a !important; }
+        .stApp { background-color: #fcfbf9 !important; color: #0f172a !important; }
         h1, h2, h3, h4, h5, p, span, label { color: #0f172a !important; }
-        .preview-box { background: #f0fdf4 !important; border: 1.5px solid #86efac !important; border-radius: 12px; padding: 0.9rem 1.2rem; color: #14532d !important; }
+        [data-testid="stSidebar"] { background-color: #f4f1eb !important; border-right: 1.5px solid #e5dfd5 !important; }
+        [data-testid="stSidebar"] * { color: #0f172a !important; }
+        .preview-box { background: #f0fdf4 !important; border: 1.5px solid #86efac !important; border-radius: 12px; padding: 1rem 1.2rem; color: #14532d !important; }
         .swap-card { background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 12px; padding: 1rem; color: #0f172a !important; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 0.5rem; }
         .badge-on { background: linear-gradient(135deg, #1b4332, #2d6a4f) !important; border: 2px solid #52b788 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; box-shadow: 0 4px 14px rgba(45,106,79,0.18); margin-bottom: 0.8rem; }
         .badge-off { background: #f1f5f9 !important; border: 2px dashed #cbd5e1 !important; border-radius: 14px; padding: 1rem; color: #64748b !important; filter: grayscale(100%); opacity: 0.6; margin-bottom: 0.8rem; }
@@ -379,6 +424,7 @@ else:
     # VIEW: 📊 DASHBOARD
     # --------------------------------------------------------------------------
     if st.session_state.nav_view == "📊 Dashboard":
+        # Interactive Mascot Reaction Bar
         col_m1, col_m2 = st.columns([0.65, 3.35])
         with col_m1:
             render_html(render_animated_turtle_svg(st.session_state.mascot_mood, 140, 140))
@@ -394,33 +440,36 @@ else:
 
         # Log a Purchase Form
         st.subheader("🛒 Log a Planned Purchase")
+        st.caption("Calculate lifecycle emissions live, test certified circular discounts, and record purchases into your active ledger.")
+
         with st.form("quick_log_form", clear_on_submit=True):
             f1, f2, f3 = st.columns([1.2, 1.2, 1.0])
             with f1:
-                item_name = st.text_input("Item Description", placeholder="e.g. Vintage Denim Jacket, USB Charger")
-                cat_choice = st.selectbox("Product Category", options=list(CATEGORIES.keys()))
+                item_name = st.text_input("Item Description (Required)", placeholder="e.g. Vintage Denim Jacket, USB Charger")
+                cat_choice = st.selectbox("Product Category (Required)", options=list(CATEGORIES.keys()))
             with f2:
-                brand_val = st.text_input("Brand or Vendor", placeholder="e.g. Patagonia, Zara, Back Market")
-                price_val = st.number_input("Price ($)", min_value=1.0, max_value=5000.0, value=45.0, step=5.0)
+                brand_val = st.text_input("Brand or Vendor (Optional)", placeholder="e.g. Patagonia, Zara, Back Market")
+                price_val = st.number_input("Purchase Price ($) (Required)", min_value=1.0, max_value=5000.0, value=45.0, step=5.0)
             with f3:
-                date_val = st.date_input("Date", value=date.today())
-                is_eth = st.checkbox("🌱 Certified Circular / Thrift / Ethical", help="Applies a 30% footprint discount for verified reuse or certified clean logistics.")
+                date_val = st.date_input("Purchase Date (Required)", value=date.today())
+                is_eth = st.checkbox("🌱 Certified Circular / Thrift / Ethical (Optional)", help="Applies a 30% footprint discount: accounts for avoiding raw extraction and virgin factory manufacturing.")
 
             live_co2 = calculate_carbon(price_val, cat_choice, is_eth)
             equiv_msg = get_equivalency(live_co2)
             c_info = CATEGORIES[cat_choice]
-            discount_note = "30% Eco Discount applied" if is_eth else "Standard lifecycle factor"
+            discount_note = "🌱 30% Circular Discount Applied" if is_eth else "Standard Lifecycle Intensity"
             
             render_html(f"""
             <div class="preview-box">
-                <strong>⚡ Live Lifecycle Calculation:</strong> <code>${price_val:.2f} × {c_info['multiplier']} kg/$ = {live_co2} kg CO₂e</code> ({discount_note})<br>
-                <span style="font-size: 0.86rem;">📊 Impact Context: {equiv_msg} • <em>{c_info['fact']}</em></span>
+                <div style="font-size: 1.05rem; font-weight: 800; margin-bottom: 0.25rem;">⚡ Instant Carbon Estimate: {live_co2} kg CO₂e ({c_info['tier']})</div>
+                <div style="font-size: 0.88rem;"><strong>Scientific Calculation:</strong> ${price_val:.2f} spend × {c_info['multiplier']} kg/$ factor = {live_co2} kg CO₂e ({discount_note})</div>
+                <div style="font-size: 0.84rem; margin-top: 0.3rem;">📊 Everyday Equivalency: {equiv_msg} • <em>{c_info['fact']}</em></div>
             </div>
             """)
 
-            if st.form_submit_button("🌿 Record Purchase in Dashboard", use_container_width=True):
+            if st.form_submit_button("🌿 Record Purchase in Active Ledger", use_container_width=True):
                 if not item_name.strip():
-                    st.error("Please enter an item name before recording.")
+                    st.error("Please enter an item description before recording.")
                 else:
                     new_rec = {
                         "id": len(st.session_state.purchases) + 1,
@@ -434,14 +483,39 @@ else:
                     }
                     st.session_state.purchases.append(new_rec)
                     st.session_state.last_logged = new_rec
-                    if is_eth or live_co2 < 4.0:
-                        st.session_state.mascot_mood = "happy"
-                        st.session_state.mascot_message = f"Woohoo! Loving your green choice of '{item_name}'! Shelly is waving happily!"
+                    
+                    # 5-Stage Multi-Level Mascot Reaction Engine
+                    if is_eth and live_co2 <= 3.0:
+                        st.session_state.mascot_mood = "ecstatic"
+                        st.session_state.mascot_message = f"LEGENDARY ECO-CHOICE! Shelly put on gold sunglasses! '{item_name}' has virtually zero factory footprint!"
                         st.balloons()
-                    else:
+                    elif is_eth or live_co2 <= 10.0:
+                        st.session_state.mascot_mood = "happy"
+                        st.session_state.mascot_message = f"Wonderful green purchase! '{item_name}' logged at only {live_co2} kg CO₂e! Shelly is waving happily!"
+                        st.balloons()
+                    elif live_co2 <= 25.0:
+                        st.session_state.mascot_mood = "mindful"
+                        st.session_state.mascot_message = f"Recorded '{item_name}' ({live_co2} kg CO₂e). A balanced choice. Take a look at greener swaps below!"
+                    elif live_co2 <= 50.0:
                         st.session_state.mascot_mood = "worried"
-                        st.session_state.mascot_message = f"Careful! '{item_name}' added {live_co2} kg CO₂e. Check the greener swaps below for your next purchase!"
+                        st.session_state.mascot_message = f"Whew, getting heavy! '{item_name}' generated {live_co2} kg CO₂e. Shelly feels the carbon heat!"
+                    else:
+                        st.session_state.mascot_mood = "alarmed"
+                        st.session_state.mascot_message = f"🚨 CARBON SPIKE ALERT! That single item created {live_co2} kg CO₂e! Shelly's shell is shivering! Adopt a greener swap below to balance your budget!"
                     st.rerun()
+
+        # Explanatory Standard Guide Expander
+        with st.expander("ℹ️ Understanding Carbon Standards & Scoring Logic", expanded=False):
+            st.markdown(
+                r"""
+                ShopImpact uses calibrated lifecycle assessment (LCA) standards based on GHG Protocol and DEFRA data:
+                - **🌿 Ultra-Green (≤ 0.10 kg/$)**: Second-Hand, Community Thrift, Zero-Waste Reusables, Organic Local Food. Original manufacturing emissions are amortized.
+                - **🌾 Conscious (0.11 - 0.35 kg/$)**: Certified Refurbished Electronics, repairable modular tech, bulk pantry foods.
+                - **⚠️ High Carbon (0.36 - 0.50 kg/$)**: Fast fashion apparel, virgin single-use plastics, multi-layer packaged foods.
+                - **🚨 Carbon Heavy (> 0.50 kg/$)**: Virgin leather footwear, new flagship consumer electronics with intensive silicon semiconductor manufacturing.
+                - **🌱 Certified Circular Tag**: Bypasses virgin mining/processing, applying an automatic 30% emissions reduction credit.
+                """
+            )
 
         # Contextual Greener Swaps: Appears reactively right after a purchase is logged
         if st.session_state.last_logged:
@@ -452,7 +526,8 @@ else:
             sc1, sc2 = st.columns([1.1, 2.0], gap="medium")
             with sc1:
                 render_html(render_animated_turtle_svg("happy", 130, 130))
-                st.caption(f"💡 **Shelly's Tip**: You logged **{last['carbon_kg']} kg CO₂e**. Adopting a verified circular swap can reduce emissions by up to 92%!")
+                st.caption(f"💡 **Shelly's Insight**: You logged **{last['carbon_kg']} kg CO₂e**. Adopting a verified circular swap can reduce emissions by up to 92%!")
+                st.markdown(f"<div style='font-size: 0.82rem; font-style: italic; color: #64748b; margin-top: 0.4rem;'>{random.choice(SUSTAINABILITY_QUOTES)}</div>", unsafe_allow_html=True)
             
             with sc2:
                 swaps = ETHICAL_ALTERNATIVES.get(last["category"], [])
@@ -478,8 +553,8 @@ else:
                                 "date": str(date.today()),
                                 "is_ethical": True,
                             })
-                            st.session_state.mascot_mood = "happy"
-                            st.session_state.mascot_message = f"Brilliant choice! You adopted {b_name} and protected the planet!"
+                            st.session_state.mascot_mood = "ecstatic"
+                            st.session_state.mascot_message = f"LEGENDARY CHOICE! You adopted {b_name}! Circular swaps actively restore the biosphere!"
                             st.balloons()
                             st.rerun()
 
@@ -610,11 +685,13 @@ else:
         a_col1, a_col2 = st.columns([1.0, 1.2], gap="large")
         with a_col1:
             u_init = st.session_state.user_name.strip()[0] if st.session_state.user_name.strip() else "P"
-            opts = ["mascot_happy", "mascot_worried", "mascot_mindful", "leaf", "footprint", "badge", "seal"]
+            opts = ["mascot_ecstatic", "mascot_happy", "mascot_mindful", "mascot_worried", "mascot_alarmed", "leaf", "footprint", "badge", "seal"]
             labels = {
-                "mascot_happy": "🐢 Shelly Animated (Happy & Celebrating)",
-                "mascot_worried": "💧 Shelly Animated (Worried & Sweating)",
-                "mascot_mindful": "🌱 Shelly Animated (Calm & Mindful)",
+                "mascot_ecstatic": "😎 Shelly Sunglasses (Level 5 — Ecstatic)",
+                "mascot_happy": "🌸 Shelly Waving (Level 4 — Happy)",
+                "mascot_mindful": "🌱 Shelly Calm (Level 3 — Mindful)",
+                "mascot_worried": "💧 Shelly Sweating (Level 2 — Worried)",
+                "mascot_alarmed": "🚨 Shelly Alarm (Level 1 — Alarmed)",
                 "leaf": "🌿 Procedural Eco Leaf",
                 "footprint": "👣 Low Carbon Footprint",
                 "badge": "⭐ Achievement Rosette",
