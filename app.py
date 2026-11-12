@@ -643,12 +643,12 @@ def get_user_eco_rank(purchases):
 
 def evaluate_badges(purchases):
     total_items = len(purchases)
-    total_spend = sum(p["price"] for p in purchases)
-    total_co2 = sum(p["carbon_kg"] for p in purchases)
-    ethical_count = sum(1 for p in purchases if p.get("is_ethical", False))
+    total_spend = sum(p.get("price", 0.0) for p in purchases)
+    total_co2 = sum(p.get("carbon_kg", p.get("co2", 0.0)) for p in purchases)
+    ethical_count = sum(1 for p in purchases if p.get("is_ethical", p.get("ethical", False)))
     avg_intensity = (total_co2 / total_spend) if total_spend > 0 else 0.0
     co2_saved = max(0.0, round(total_spend * 0.45 - total_co2, 1))
-    zero_waste_count = sum(1 for p in purchases if "Zero-Waste" in p["category"] or "Thrift" in p["category"])
+    zero_waste_count = sum(1 for p in purchases if "Zero-Waste" in p.get("category", "") or "Thrift" in p.get("category", ""))
 
     badges = [
         {
@@ -717,9 +717,9 @@ if "last_logged" not in st.session_state: st.session_state.last_logged = None
 if "purchases" not in st.session_state:
     if st.query_params.get("demo") in ["true", "1"]:
         st.session_state.purchases = [
-            {"time": "14:20", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Vintage Denim Jacket", "category": "Second-Hand / Thrift", "price": 35.0, "co2": 1.22, "ethical": True, "saved": 14.53},
-            {"time": "14:22", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Organic CSA Harvest Box", "category": "Local / Organic Food", "price": 42.0, "co2": 2.35, "ethical": True, "saved": 16.55},
-            {"time": "14:25", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Certified Renewed ThinkPad", "category": "Refurbished Tech", "price": 280.0, "co2": 21.56, "ethical": True, "saved": 104.44},
+            {"id": 1, "time": "14:20", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Vintage Denim Jacket", "category": "Second-Hand / Thrift", "brand": "Community Thrift", "price": 35.0, "carbon_kg": 1.22, "co2": 1.22, "is_ethical": True, "ethical": True, "saved": 14.53},
+            {"id": 2, "time": "14:22", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Organic CSA Harvest Box", "category": "Local / Organic Food", "brand": "Local Farmers Market", "price": 42.0, "carbon_kg": 2.35, "co2": 2.35, "is_ethical": True, "ethical": True, "saved": 16.55},
+            {"id": 3, "time": "14:25", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Certified Renewed ThinkPad", "category": "Refurbished Tech", "brand": "Back Market Refurbished", "price": 280.0, "carbon_kg": 21.56, "co2": 21.56, "is_ethical": True, "ethical": True, "saved": 104.44},
         ]
         st.session_state.recent_art = "badge"
     else:
@@ -1155,6 +1155,11 @@ else:
         with col_g1:
             st.markdown(f"**Emissions by Category ({period_label})**")
             if filtered_data:
+                for p in filtered_data:
+                    if "carbon_kg" not in p and "co2" in p: p["carbon_kg"] = p["co2"]
+                    if "is_ethical" not in p and "ethical" in p: p["is_ethical"] = p["ethical"]
+                    if "price" not in p: p["price"] = 0.0
+                    if "category" not in p: p["category"] = "General"
                 df = pd.DataFrame(filtered_data)
                 st.bar_chart(df.groupby("category")["carbon_kg"].sum().sort_values(ascending=False), color="#2d6a4f")
             else:
@@ -1163,6 +1168,11 @@ else:
         with col_g2:
             st.markdown(f"**Transaction Ledger ({len(filtered_data)} records)**")
             if filtered_data:
+                for p in filtered_data:
+                    if "carbon_kg" not in p and "co2" in p: p["carbon_kg"] = p["co2"]
+                    if "is_ethical" not in p and "ethical" in p: p["is_ethical"] = p["ethical"]
+                    if "item" not in p: p["item"] = "Purchase"
+                    if "date" not in p: p["date"] = str(date.today())
                 df_view = pd.DataFrame(filtered_data)[["date", "item", "category", "price", "carbon_kg", "is_ethical"]]
                 df_view.columns = ["Date", "Item", "Category", "Price ($)", "CO₂ (kg)", "Ethical?"]
                 st.dataframe(df_view, width="stretch", hide_index=True)
