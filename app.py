@@ -344,25 +344,73 @@ class HeadlessTurtle:
             self.left(ext / steps)
 
 def draw_vector_art(art_type="leaf"):
-    t = HeadlessTurtle(220, 220)
+    t = HeadlessTurtle(240, 240)
+    cx, cy = 120, 100
     if art_type == "leaf":
-        t.penup(); t.goto(110, 195); t.heading = 90; t.color = (64, 145, 108, 255); t.pendown(); t.forward(30)
-        t.color = (45, 106, 79, 255); t.arc(80, 58); t.left(122); t.arc(80, 58)
-        t.penup(); t.goto(110, 165); t.heading = 90; t.color = (82, 183, 136, 255); t.width = 2; t.pendown(); t.forward(70)
-        for y, ang in [(140, 45), (140, 135), (115, 45), (115, 135), (90, 45), (90, 135)]:
-            t.penup(); t.goto(110, y); t.heading = ang; t.pendown(); t.forward(15)
+        t.penup(); t.goto(120, 215); t.heading = 90; t.color = (74, 122, 92, 255); t.width = 5; t.pendown(); t.forward(45)
+        leaf_pts = []
+        for step in range(21):
+            frac = step / 20.0
+            y = 175 - frac * 140
+            x = 120 + math.sin(frac * math.pi) * 48
+            leaf_pts.append((x, y))
+        for step in range(20, -1, -1):
+            frac = step / 20.0
+            y = 175 - frac * 140
+            x = 120 - math.sin(frac * math.pi) * 48
+            leaf_pts.append((x, y))
+        t.draw.polygon(leaf_pts, fill=(16, 185, 129, 240), outline=(5, 150, 105, 255))
+        t.penup(); t.goto(120, 175); t.heading = 90; t.color = (5, 150, 105, 255); t.width = 3; t.pendown(); t.forward(140)
+        for y_pos in [145, 120, 95, 70]:
+            t.penup(); t.goto(120, y_pos); t.heading = 40; t.width = 2; t.pendown(); t.forward(30)
+            t.penup(); t.goto(120, y_pos); t.heading = 140; t.pendown(); t.forward(30)
     elif art_type == "footprint":
-        t.penup(); t.goto(110, 185); t.heading = 90; t.color = (45, 106, 79, 255); t.pendown()
-        t.arc(50, 40); t.arc(18, -50); t.arc(42, 70); t.arc(26, 90); t.arc(62, 45); t.arc(24, 80); t.goto(110, 185)
-        for tx, ty, r in [(95, 68, 6), (106, 58, 8), (118, 60, 7), (129, 65, 5), (138, 73, 4)]:
-            t.draw.ellipse([(tx-r, ty-r), (tx+r, ty+r)], fill=(82, 183, 136, 220), outline=(45, 106, 79, 255), width=2)
+        t.draw.ellipse([(cx - 24, cy + 25), (cx + 24, cy + 75)], fill=(16, 185, 129, 230), outline=(5, 150, 105, 255), width=2)
+        foot_pts = [
+            (cx - 20, cy + 35), (cx - 14, cy - 5), (cx - 28, cy - 35), (cx - 15, cy - 65),
+            (cx + 20, cy - 65), (cx + 32, cy - 35), (cx + 18, cy - 5), (cx + 20, cy + 35)
+        ]
+        t.draw.polygon(foot_pts, fill=(16, 185, 129, 230), outline=(5, 150, 105, 255))
+        t.draw.ellipse([(cx - 28, cy - 65), (cx + 32, cy - 15)], fill=(16, 185, 129, 230), outline=(5, 150, 105, 255), width=2)
+        for tx, ty, tr in [(-16, -78, 10), (1, -83, 8.5), (15, -80, 7.5), (27, -73, 6.5), (37, -64, 5.5)]:
+            t.draw.ellipse([(cx + tx - tr, cy + ty - tr), (cx + tx + tr, cy + ty + tr)], fill=(52, 211, 153, 240), outline=(5, 150, 105, 255), width=2)
     else:  # badge rosette
-        t.draw.ellipse([(65, 48), (155, 138)], fill=(254, 243, 199, 240), outline=(217, 119, 6, 255), width=3)
-        t.draw.ellipse([(77, 60), (143, 126)], fill=(236, 253, 245, 240), outline=(5, 150, 105, 255), width=2)
-        t.penup(); t.goto(92, 134); t.heading = 250; t.pendown(); t.color = (5, 150, 105, 255)
-        t.forward(40); t.left(120); t.forward(16); t.left(120); t.forward(36)
-        t.penup(); t.goto(128, 134); t.heading = 290; t.pendown()
-        t.forward(40); t.right(120); t.forward(16); t.right(120); t.forward(36)
+        # Emerald Swallowtail Ribbons
+        r_pts_l = [(cx - 24, cy + 26), (cx - 52, cy + 126), (cx - 32, cy + 112), (cx - 12, cy + 120), (cx - 6, cy + 28)]
+        t.draw.polygon(r_pts_l, fill=(5, 150, 105, 255), outline=(4, 120, 87, 255))
+        t.draw.line([(cx - 24, cy + 26), (cx - 32, cy + 112)], fill=(52, 211, 153, 200), width=2)
+        r_pts_r = [(cx + 6, cy + 28), (cx + 12, cy + 120), (cx + 32, cy + 112), (cx + 52, cy + 126), (cx + 24, cy + 26)]
+        t.draw.polygon(r_pts_r, fill=(4, 120, 87, 255), outline=(6, 95, 70, 255))
+        t.draw.line([(cx + 24, cy + 26), (cx + 32, cy + 112)], fill=(52, 211, 153, 200), width=2)
+        # 32-point Scalloped Gold Rosette
+        rosette_pts = []
+        for i in range(64):
+            ang = i * (math.pi / 32)
+            r = 58 if i % 2 == 0 else 50
+            rosette_pts.append((cx + r * math.cos(ang), cy + r * math.sin(ang)))
+        t.draw.polygon(rosette_pts, fill=(245, 158, 11, 255), outline=(180, 83, 9, 255))
+        # Inner Rings
+        t.draw.ellipse([(cx - 48, cy - 48), (cx + 48, cy + 48)], fill=(251, 191, 36, 255), outline=(217, 119, 6, 255), width=2)
+        t.draw.ellipse([(cx - 41, cy - 41), (cx + 41, cy + 41)], fill=(6, 95, 70, 255), outline=(4, 120, 87, 255), width=2)
+        for j in range(12):
+            s_ang = j * (2 * math.pi / 12)
+            sx = cx + 37 * math.cos(s_ang)
+            sy = cy + 37 * math.sin(s_ang)
+            t.draw.ellipse([(sx - 2, sy - 2), (sx + 2, sy + 2)], fill=(254, 240, 138, 255))
+        t.draw.ellipse([(cx - 30, cy - 30), (cx + 30, cy + 30)], fill=(254, 243, 199, 255), outline=(217, 119, 6, 255), width=2)
+        # Radiant Star
+        star_pts = []
+        for k in range(10):
+            ang = -math.pi / 2 + k * (math.pi / 5)
+            sr = 19 if k % 2 == 0 else 8.0
+            star_pts.append((cx + sr * math.cos(ang), cy + sr * math.sin(ang)))
+        t.draw.polygon(star_pts, fill=(217, 119, 6, 255), outline=(146, 64, 14, 255))
+        star_inner = []
+        for k in range(10):
+            ang = -math.pi / 2 + k * (math.pi / 5)
+            sr = 15 if k % 2 == 0 else 6.0
+            star_inner.append((cx + sr * math.cos(ang), cy + sr * math.sin(ang)))
+        t.draw.polygon(star_inner, fill=(245, 158, 11, 255))
     return t.img
 
 def calculate_carbon(price, category, is_ethical):
@@ -534,20 +582,21 @@ if not st.session_state.onboarded:
 # ------------------------------------------------------------------------------
 else:
     # Sidebar Profile Card: Circular Avatar, Name, Eco-Rank, and Goals
-    rank_title = get_user_eco_rank(st.session_state.purchases)
-    avatar_svg_mini = render_animated_avatar_svg(st.session_state.user_mascot, st.session_state.mascot_mood, 86, 86)
-    
-    render_html(f"""
-    <div class="avatar-card">
-        <div class="avatar-circle">
-            {avatar_svg_mini}
+    with st.sidebar:
+        rank_title = get_user_eco_rank(st.session_state.purchases)
+        avatar_svg_mini = render_animated_avatar_svg(st.session_state.user_mascot, st.session_state.mascot_mood, 86, 86)
+        
+        render_html(f"""
+        <div class="avatar-card">
+            <div class="avatar-circle">
+                {avatar_svg_mini}
+            </div>
+            <div style="font-size: 1.25rem; font-weight: 800; margin-top: 0.6rem;">{html.escape(st.session_state.user_name)}</div>
+            <div class="rank-pill">{rank_title}</div>
+            <div style="font-size: 0.82rem; margin-top: 0.35rem; opacity: 0.85;">{st.session_state.user_mascot.split('—')[0].strip()}</div>
+            <div style="font-size: 0.8rem; opacity: 0.7;">Budget: {st.session_state.carbon_budget} kg CO₂e/mo</div>
         </div>
-        <div style="font-size: 1.25rem; font-weight: 800; margin-top: 0.6rem;">{html.escape(st.session_state.user_name)}</div>
-        <div class="rank-pill">{rank_title}</div>
-        <div style="font-size: 0.82rem; margin-top: 0.35rem; opacity: 0.85;">{st.session_state.user_mascot.split('—')[0].strip()}</div>
-        <div style="font-size: 0.8rem; opacity: 0.7;">Budget: {st.session_state.carbon_budget} kg CO₂e/mo</div>
-    </div>
-    """)
+        """)
 
     if st.sidebar.button("⚙️ Edit Profile / Avatar", width="stretch"):
         st.session_state.onboarded = False
@@ -595,7 +644,7 @@ else:
             with col_m3:
                 art_img = draw_vector_art(st.session_state.recent_art)
                 art_label = {"leaf": "Eco Leaf 🌿", "footprint": "Low Footprint 👣", "badge": "Eco Badge ⭐"}.get(st.session_state.recent_art, "Eco Choice")
-                st.image(art_img, width=130, caption=f"Shelly drew: {art_label}")
+                st.image(art_img, width=130, caption=f"{c_name} drew: {art_label}")
         else:
             col_m1, col_m2 = st.columns([0.65, 3.35])
             with col_m1:
@@ -852,7 +901,7 @@ else:
 st.divider()
 render_html("""
 <div style="text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 0.8rem 0;">
-    <strong>ShopImpact Conscious Shopping Dashboard</strong> • Summative Assessment (60 Marks)<br>
-    Candidate: <strong>Parth Pravinbhai Gajera</strong> (ID: <code>1000544</code>) • CRS: Artificial Intelligence • IDAI 102
+    <strong>ShopImpact Conscious Shopping Dashboard</strong> • IDAI 102: Python Programming<br>
+    Candidate: <strong>Parth Pravinbhai Gajera</strong> (ID: <code>1000544</code>) • CRS: Artificial Intelligence
 </div>
 """)
