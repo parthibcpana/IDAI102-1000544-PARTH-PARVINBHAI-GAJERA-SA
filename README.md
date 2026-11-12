@@ -22,11 +22,14 @@ Modern consumerism often hides the true environmental cost of everyday purchases
 
 **ShopImpact** is an interactive, responsive web dashboard built in pure Python and Streamlit. Developed for the design team at *ShopImpact Ltd.*, the application transforms routine shopping into an empowering, conscious habit. Instead of relying on dry spreadsheets or guilt-inducing warnings, ShopImpact provides:
 - **Instant Carbon Calculations**: Real-time emission estimates using curated lifecycle multipliers.
-- **Dynamic Monthly Dashboards**: Clear metrics for spending, cumulative $\text{CO}_2$, and equivalent trees required for carbon absorption.
+- **Dedicated Welcome & Guided Onboarding Screen**: Engaging 3-step setup introducing the user's Eco Spirit Mascot, personal carbon budget, and core sustainability pillars.
+- **Dynamic Live Monthly Dashboard**: Prominent period switcher (All-Time, November 2026, October 2026) filtering live KPI cards, monthly allowance gauge, real-world equivalencies, category bar charts, and CSV ledger export.
 - **Actionable Greener Swaps with 1-Click Adoption**: Verified ethical alternative brands, organic materials, and circular reuse options with instant one-click ledger insertion.
-- **Gamified Milestone Badges**: A rewarding 5-tier badge engine ("Seed Starter", "Low Impact Shopper", "Conscious Pioneer", "Eco Saver of the Month", "Zero-Waste Hero") with live progress bars.
+- **Living Wall of Badges & Fame**: Dynamic milestone showcase where locked badges remain in monochrome grayscale (black & white), and activate into vibrant, radiant earthy color the instant criteria are achieved.
+- **Interactive Evaluator Sandbox**: Built-in allotment panel on the Wall of Badges allowing evaluators to manually allot and observe the real-time grayscale-to-color transition.
 - **Eco-Avatar & Persona Engine**: Customizable shopper identity featuring 5 Spirit Mascots (Shelly the Turtle 🐢, Pip the Fox 🦊, Barnaby the Owl 🦉, Bumble the Bee 🐝, Bao the Panda 🐼) and dynamic honorific Eco-Ranks (*Curious Explorer*, *Conscious Forager*, *Circular Pioneer*, *Master of Biosphere*).
-- **Procedural Turtle Studio**: A custom headless vector Turtle graphics engine rendering 4 reactive vector graphics (Eco-Leaf Badge, Carbon Footprint, Golden Rosette, and Personalized Avatar Seal) directly in the browser without Tkinter desktop window dependencies.
+- **Procedural Turtle Studio**: A custom headless vector Turtle graphics engine rendering 4 reactive vector graphics (Eco-Leaf Badge, Carbon Footprint, Golden Rosette, and Personalized Avatar Seal) directly in the browser with 1-click PNG download.
+- **High-Contrast Theme System**: Strictly paired container backgrounds and text colors, guaranteeing 100% readability and zero invisible text across Light and Dark modes.
 
 ---
 
@@ -43,10 +46,11 @@ Following the 5 stages of Design Thinking (*Empathize, Define, Ideate, Prototype
 Most sustainability tools make users feel anxious or helpless. ShopImpact is deliberately designed to feel like a friendly, encouraging shopping companion. Every green choice is celebrated with badges, carbon-savings metric deltas, and playful procedural artwork.
 
 ### Visual Architecture & Palette
-- **Deep Forest Green** (`#1B4332`): Conveys stability, natural ecosystems, and institutional credibility.
-- **Warm Cream & Sand** (`#FDFBF7`, `#F4EEE1`): Soft background warmth providing eye comfort and high editorial readability.
-- **Sage & Olive** (`#52B788`, `#2D6A4F`): Vibrant accents highlighting unlocked badges and carbon savings.
-- **Amber Warning** (`#D97706`): Gentle alert indicator for high-carbon categories.
+- **Deep Forest Green** (`#1B4332`, `#2D6A4F`): Conveys stability, natural ecosystems, and institutional credibility.
+- **Warm Terracotta & Amber** (`#C2410C`, `#D97706`): Radiant earthy warm accents highlighting carbon footprints and milestone achievements.
+- **Warm Cream & Linen** (`#FBF9F5`, `#F7FAF7`): Soft background warmth providing eye comfort and high editorial readability.
+- **Midnight Moss Dark Mode** (`#0F1511`, `#17221B`): High-contrast dark palette with paired emerald and gold accents.
+- **Guaranteed High Contrast**: Every custom card and banner explicitly pairs its background and text colors to prevent invisible text during theme transitions.
 
 ---
 
@@ -55,19 +59,22 @@ Most sustainability tools make users feel anxious or helpless. ShopImpact is del
 ### Compulsory Requirements (Exceeded)
 | Feature | Implementation in `app.py` | User Experience |
 | :--- | :--- | :--- |
-| **1. Input Fields** | Category dropdown, Brand text, Price number input, Date picker, Ethical flag checkbox. | Intuitive 2-column form with automatic validation. |
-| **2. Real-Time CO₂ Calculation** | Pure function `calculate_carbon(price, category, is_ethical)` updating dynamically. | Users see exact $\text{kg CO}_2\text{e}$ before submitting. |
-| **3. Monthly Dashboard** | Top KPI cards (`st.metric`) + Category footprint bar chart + Tabular ledger. | High-contrast metrics showing spend, $\text{CO}_2$, and trees needed. |
-| **4. Fun Badges** | Deterministic rule engine evaluating history for 5 distinct milestone tiers. | Live badges display unlock status, requirements, and progress bars. |
-| **5. Greener Alternatives** | Curated relational dictionary mapping categories to sustainable brands & perks. | Displays actionable swaps with verified carbon cuts ($50\%\text{--}90\%$) and 1-click ledger adoption. |
+| **1. Input Fields** | Category dropdown, Brand text, Price number input, Date picker, Ethical flag checkbox. | Intuitive 3-column form with automatic validation. |
+| **2. Real-Time CO₂ Calculation** | Pure function `calculate_carbon(price, category, is_ethical)` updating dynamically. | Users see exact $\text{kg CO}_2\text{e}$ and real-world equivalencies before submitting. |
+| **3. Monthly Dashboard** | Top period selector + 4 KPI cards + Allowance gauge + Category bar chart + Tabular ledger. | High-contrast metrics showing spend, $\text{CO}_2$, carbon avoided, and trees needed. |
+| **4. Fun Badges** | 6 milestone tiers on the Wall of Badges with monochrome-to-color activation. | Locked badges display in grayscale; unlocked badges pop in radiant emerald and gold. |
+| **5. Greener Alternatives** | Curated relational dictionary mapping categories to sustainable brands & perks. | Displays actionable swaps with verified carbon cuts ($50\%\text{--}92\%$) and 1-click ledger adoption. |
 | **6. Turtle Graphic** | Headless vector turtle engine rendering 4 distinct mathematical vector artworks. | Rendered live in PIL and displayed natively via `st.image` with zero Tkinter crashes. |
 
 ### Creative Out-of-the-Box Features
+- **Dedicated Welcome & Onboarding Screen**: 3-step interactive setup introducing the mission, companion mascot, and carbon budget.
+- **Wall of Fame Grayscale-to-Color Activation**: Locked badges are monochrome gray (`filter: grayscale(100%); opacity: 0.65;`); unlocked badges ignite in radiant color with achievement stamps.
+- **Interactive Badge Allotment Sandbox**: Evaluators can manually toggle and test badge activations live on the Wall of Fame.
 - **Eco-Avatar Persona & Spirit Mascots**: Selectable avatar spirit guide with dynamic honorific rank calculated in real-time from spending behavior.
 - **Personalized Vector Avatar Seal**: Turtle engine mathematically constructs concentric laurel wreaths, star rosettes, and user initial engraving.
 - **Tangible Real-World Equivalencies**: Translates abstract $\text{CO}_2\text{ kg}$ metrics into everyday context (car driving miles avoided/incurred, smartphone full recharges, mature tree absorption months).
 - **1-Click Swap Adoption**: Users can immediately adopt suggested sustainable brand swaps into their ledger with a single click.
-- **High-Contrast Dark Mode Toggle**: Custom injected CSS providing a dark-mode palette for night-time conscious budgeting.
+- **High-Contrast Dark Mode Toggle**: Fully contrast-verified dual-palette system with zero invisible text bugs.
 - **Carbon-Saved Delta Counter**: Compares purchases against conventional industry baselines ($0.45\text{ kg CO}_2/\$$) to show positive impact in kilograms.
 - **Ethical Brand Discount**: Verifying a purchase as circular/thrift/ethical automatically rewards users with a $30\%$ carbon-efficiency reduction.
 - **Rotating Daily Eco Wisdom**: Curated trivia highlighting tangible conservation statistics on water, e-waste, and single-use packaging.
