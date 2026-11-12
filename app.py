@@ -8,73 +8,187 @@ import streamlit as st
 st.set_page_config(page_title="ShopImpact — Conscious Shopping Dashboard", page_icon="🌱", layout="wide")
 
 CATEGORIES = {
-    "Fast Fashion Apparel": {"multiplier": 0.42, "rating": "High Carbon", "icon": "👗"},
-    "Footwear & Leather": {"multiplier": 0.65, "rating": "Very High", "icon": "👞"},
-    "Consumer Electronics": {"multiplier": 0.55, "rating": "High Carbon", "icon": "📱"},
-    "Refurbished Tech": {"multiplier": 0.11, "rating": "Low Carbon", "icon": "♻️"},
-    "Second-Hand / Thrift": {"multiplier": 0.05, "rating": "Minimal Impact", "icon": "🧥"},
-    "Packaged Groceries": {"multiplier": 0.38, "rating": "Medium-High", "icon": "🛒"},
-    "Local / Organic Food": {"multiplier": 0.08, "rating": "Low Carbon", "icon": "🥗"},
-    "Home & Plastics": {"multiplier": 0.46, "rating": "High Carbon", "icon": "📦"},
-    "Zero-Waste Reusables": {"multiplier": 0.07, "rating": "Minimal Impact", "icon": "🌿"},
+    "Fast Fashion Apparel": {"multiplier": 0.42, "rating": "High Carbon", "icon": "👗", "fact": "Polyester spinning & chemical dyes generate heavy emissions."},
+    "Footwear & Leather": {"multiplier": 0.65, "rating": "Very High", "icon": "👞", "fact": "Cattle methane & chemical chrome tanning are emission-heavy."},
+    "Consumer Electronics": {"multiplier": 0.55, "rating": "High Carbon", "icon": "📱", "fact": "Semiconductor fabrication & rare earth mining drive ~80% of footprint."},
+    "Refurbished Tech": {"multiplier": 0.11, "rating": "Low Carbon", "icon": "♻️", "fact": "Avoids raw mining; only covers diagnostics & clean parcel transit."},
+    "Second-Hand / Thrift": {"multiplier": 0.05, "rating": "Minimal Impact", "icon": "🧥", "fact": "Pure circular reuse; manufacturing emissions are 100% amortized."},
+    "Packaged Groceries": {"multiplier": 0.38, "rating": "Medium-High", "icon": "🛒", "fact": "Industrial food processing and multi-layer plastic packaging add carbon."},
+    "Local / Organic Food": {"multiplier": 0.08, "rating": "Low Carbon", "icon": "🥗", "fact": "Zero air-freight and regenerative soil agriculture without synthetic nitrates."},
+    "Home & Plastics": {"multiplier": 0.46, "rating": "High Carbon", "icon": "📦", "fact": "Virgin petroleum polymers & high-temperature molding drive footprint."},
+    "Zero-Waste Reusables": {"multiplier": 0.07, "rating": "Minimal Impact", "icon": "🌿", "fact": "Durable steel and bamboo replace thousands of disposable plastics."},
 }
 
 ETHICAL_ALTERNATIVES = {
     "Fast Fashion Apparel": [
-        {"brand": "Patagonia", "perk": "100% GOTS organic cotton & fair trade sewing", "saving": "65%"},
-        {"brand": "Depop / Vinted Thrift", "perk": "Extends garment lifecycle; zero factory footprint", "saving": "92%"},
+        {"brand": "Patagonia", "perk": "100% organic cotton, Fair Trade sewing & free repairs", "saving": "65%"},
+        {"brand": "Depop / Thrift", "perk": "Extends existing garment life; 0 new factory emissions", "saving": "92%"},
     ],
     "Footwear & Leather": [
-        {"brand": "Allbirds / Veja", "perk": "Sugarcane SweetFoam & wild Amazonian rubber", "saving": "52%"},
-        {"brand": "Will's Vegan Store", "perk": "Bio-based agricultural waste; chrome-free", "saving": "70%"},
+        {"brand": "Allbirds / Veja", "perk": "Sugarcane SweetFoam & sustainably tapped Amazonian rubber", "saving": "52%"},
+        {"brand": "Will's Vegan Store", "perk": "Bio-based agricultural grain waste; 100% plastic-free packaging", "saving": "70%"},
     ],
     "Consumer Electronics": [
-        {"brand": "Back Market Refurbished", "perk": "Certified renew tech avoids toxic raw mining", "saving": "82%"},
-        {"brand": "Fairphone Modular", "perk": "Repairable modular build with 5-year parts guarantee", "saving": "60%"},
+        {"brand": "Back Market Refurbished", "perk": "Certified renew tech avoids toxic mineral extraction", "saving": "82%"},
+        {"brand": "Fairphone Modular", "perk": "Repairable modular build with 5-year guaranteed spare parts", "saving": "60%"},
     ],
     "Refurbished Tech": [
-        {"brand": "Direct Certified Refurbished", "perk": "Outstanding! Circular electronics loop is active", "saving": "Optimal"},
+        {"brand": "Certified Renewed Hub", "perk": "Optimal circular loop! Extends hardware lifespan by 3+ years", "saving": "Optimal"},
     ],
     "Second-Hand / Thrift": [
-        {"brand": "Local Community Charity Shop", "perk": "Top-tier circular economy; zero new packaging", "saving": "Optimal"},
+        {"brand": "Local Charity Thrift Shop", "perk": "Gold standard sustainability! Diverts textiles from landfill", "saving": "Optimal"},
     ],
     "Packaged Groceries": [
-        {"brand": "Local Farmer's Market", "perk": "Seasonal crops, zero air-miles, plastic-free baskets", "saving": "58%"},
-        {"brand": "Bulk Food Co-op", "perk": "Bring-your-own container pantry essentials", "saving": "45%"},
+        {"brand": "Local Farmers Market", "perk": "Fresh seasonal produce, zero air-miles & plastic-free baskets", "saving": "58%"},
+        {"brand": "Bulk Food Co-op", "perk": "Bring-your-own container pantry staples with zero packaging", "saving": "45%"},
     ],
     "Local / Organic Food": [
-        {"brand": "Community CSA Farm Share", "perk": "Regenerative soil farming without synthetic nitrates", "saving": "Optimal"},
+        {"brand": "Community CSA Farm", "perk": "Regenerative soil farming preserving local groundwater", "saving": "Optimal"},
     ],
     "Home & Plastics": [
-        {"brand": "Zero-Waste Refill Station", "perk": "Refill bulk cleaners; zero single-use bottles", "saving": "75%"},
-        {"brand": "Bamboo & Steel Essentials", "perk": "Fast-growing renewable materials; biodegrades", "saving": "68%"},
+        {"brand": "Zero-Waste Refill Station", "perk": "Refill cleaning liquids in existing glass jars", "saving": "75%"},
+        {"brand": "Bamboo & Steel Essentials", "perk": "Fast-growing renewable bamboo; fully biodegradable", "saving": "68%"},
     ],
     "Zero-Waste Reusables": [
-        {"brand": "Circular Home Refill", "perk": "Gold standard sustainability! Oceans stay clean", "saving": "Optimal"},
+        {"brand": "Circular Home Refill", "perk": "Zero single-use packaging! Keeps marine ecosystems clean", "saving": "Optimal"},
     ],
 }
 
 ECO_MASCOTS = {
-    "Shelly the Sea Turtle 🐢": "Wisdom & plastic-free clean oceans",
-    "Pip the Forest Fox 🦊": "Agile thrifting & clever second-hand hunting",
-    "Barnaby the Eco Owl 🦉": "Analytics, science & carbon tracking",
-    "Bumble the Pollinator 🐝": "Local organic farms & biodiversity",
-    "Bao the Bamboo Panda 🐼": "Zero-waste reusables & gentle living",
+    "Shelly the Sea Turtle 🐢": "Patience, wisdom & clean, plastic-free oceans",
+    "Pip the Forest Fox 🦊": "Agile thrifting, clever reuse & finding vintage gems",
+    "Barnaby the Eco Owl 🦉": "Science, footprint analytics & carbon budget discipline",
+    "Bumble the Pollinator 🐝": "Local organic farmers, seasonal harvest & biodiversity",
+    "Bao the Bamboo Panda 🐼": "Zero-waste reusables, gentle living & compostable goods",
 }
 
 ECO_TIPS = [
-    "Buying a single cotton shirt second-hand saves ~2,700 liters of water (3 years of drinking water).",
-    "Keeping your phone for 4 years instead of 2 cuts manufacturing emissions by 50%.",
+    "Buying a single cotton shirt second-hand saves ~2,700 liters of drinking water.",
+    "Keeping your smartphone for 4 years instead of 2 cuts its manufacturing emissions by 50%.",
     "Package-free shampoo bars prevent roughly 3 plastic bottles from landfills each year.",
-    "Refurbished laptops save up to 190 kg of CO2 and 1,200 kg of raw mined minerals.",
-    "Shopping at a farmers market eliminates long-haul cold-chain logistics emissions.",
+    "Refurbished laptops save up to 190 kg of CO₂ and 1,200 kg of raw mined minerals.",
+    "Shopping at a local farmers market eliminates long-haul cold-chain logistics emissions.",
 ]
 
-SUSTAINABLE_QUOTES = [
-    "“The greatest threat to our planet is the belief that someone else will save it.” — Robert Swan",
-    "“We do not inherit the Earth from our ancestors; we borrow it from our children.” — Native Proverb",
-    "“Small acts, when multiplied by millions of people, can transform the world.” — Howard Zinn",
-]
+def render_animated_turtle_svg(mood="happy", width=180, height=180):
+    is_worried = (mood == "worried")
+    is_happy = (mood == "happy")
+    
+    shiver_class = "shiver" if is_worried else "bob"
+    
+    svg = f"""
+    <svg width="{width}" height="{height}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        @keyframes turtle-bob {{
+            0%, 100% {{ transform: translateY(0px); }}
+            50% {{ transform: translateY(-7px); }}
+        }}
+        @keyframes flipper-wave-l {{
+            0%, 100% {{ transform: rotate(0deg); }}
+            50% {{ transform: rotate(20deg); }}
+        }}
+        @keyframes flipper-wave-r {{
+            0%, 100% {{ transform: rotate(0deg); }}
+            50% {{ transform: rotate(-20deg); }}
+        }}
+        @keyframes sprout-sway {{
+            0%, 100% {{ transform: rotate(-7deg); }}
+            50% {{ transform: rotate(7deg); }}
+        }}
+        @keyframes eye-blink {{
+            0%, 90%, 100% {{ transform: scaleY(1); }}
+            95% {{ transform: scaleY(0.1); }}
+        }}
+        @keyframes sweat-drip {{
+            0% {{ opacity: 0; transform: translateY(-4px); }}
+            40% {{ opacity: 1; transform: translateY(0px); }}
+            80% {{ opacity: 0; transform: translateY(7px); }}
+            100% {{ opacity: 0; transform: translateY(7px); }}
+        }}
+        @keyframes turtle-shiver {{
+            0%, 100% {{ transform: translate(0, 0); }}
+            25% {{ transform: translate(-2px, 1.5px); }}
+            75% {{ transform: translate(2px, -1.5px); }}
+        }}
+        .bob {{ animation: turtle-bob 2.2s ease-in-out infinite; transform-origin: center; }}
+        .shiver {{ animation: turtle-shiver 0.25s infinite; }}
+        .wave-l {{ animation: flipper-wave-l 1.5s ease-in-out infinite; transform-origin: 50px 85px; }}
+        .wave-r {{ animation: flipper-wave-r 1.5s ease-in-out infinite; transform-origin: 150px 85px; }}
+        .sprout {{ animation: sprout-sway 2s ease-in-out infinite; transform-origin: 100px 30px; }}
+        .blink {{ animation: eye-blink 3.8s infinite; transform-origin: 100px 50px; }}
+        .sweat {{ animation: sweat-drip 1.3s infinite; }}
+    </style>
+    <g class="{shiver_class}">
+        <!-- Rear Flippers (Feet) -->
+        <ellipse cx="60" cy="155" rx="15" ry="22" fill="#40916c" stroke="#1b4332" stroke-width="2.5" transform="rotate(-25 60 155)"/>
+        <ellipse cx="140" cy="155" rx="15" ry="22" fill="#40916c" stroke="#1b4332" stroke-width="2.5" transform="rotate(25 140 155)"/>
+        <!-- Tail -->
+        <polygon points="95,160 105,160 100,180" fill="#40916c" stroke="#1b4332" stroke-width="2"/>
+        <!-- Front Flippers (Waving) -->
+        <g class="wave-l">
+            <ellipse cx="48" cy="88" rx="17" ry="28" fill="#52b788" stroke="#1b4332" stroke-width="2.5" transform="rotate(-35 48 88)"/>
+        </g>
+        <g class="wave-r">
+            <ellipse cx="152" cy="88" rx="17" ry="28" fill="#52b788" stroke="#1b4332" stroke-width="2.5" transform="rotate(35 152 88)"/>
+        </g>
+        <!-- Main Shell Dome -->
+        <ellipse cx="100" cy="120" rx="54" ry="48" fill="#2d6a4f" stroke="#1b4332" stroke-width="3"/>
+        <ellipse cx="100" cy="120" rx="42" ry="36" fill="#40916c" stroke="#1b4332" stroke-width="2"/>
+        <ellipse cx="100" cy="120" rx="26" ry="22" fill="#74c69d" stroke="#2d6a4f" stroke-width="2"/>
+        <!-- Turtle Head -->
+        <ellipse cx="100" cy="55" rx="28" ry="26" fill="#74c69d" stroke="#1b4332" stroke-width="2.5"/>
+    """
+
+    if is_happy:
+        svg += """
+        <!-- Sprout on Head -->
+        <g class="sprout">
+            <line x1="100" y1="30" x2="100" y2="14" stroke="#1b4332" stroke-width="2.5"/>
+            <ellipse cx="94" cy="12" rx="7" ry="4.5" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(-30 94 12)"/>
+            <ellipse cx="106" cy="12" rx="7" ry="4.5" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(30 106 12)"/>
+        </g>
+        <!-- Blinking Joyful Eyes -->
+        <g class="blink">
+            <circle cx="89" cy="49" r="5" fill="#1b4332"/>
+            <circle cx="87" cy="47" r="1.8" fill="#ffffff"/>
+            <circle cx="111" cy="49" r="5" fill="#1b4332"/>
+            <circle cx="109" cy="47" r="1.8" fill="#ffffff"/>
+        </g>
+        <!-- Rosy Cheeks -->
+        <ellipse cx="81" cy="61" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.6"/>
+        <ellipse cx="119" cy="61" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.6"/>
+        <!-- Beaming Smile -->
+        <path d="M 88 61 Q 100 73 112 61" fill="none" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/>
+        """
+    elif is_worried:
+        svg += """
+        <!-- Worried Eyes -->
+        <circle cx="89" cy="52" r="5.5" fill="#1b4332"/>
+        <circle cx="111" cy="52" r="5.5" fill="#1b4332"/>
+        <!-- Wobbly Mouth -->
+        <path d="M 89 67 Q 100 58 111 67" fill="none" stroke="#1b4332" stroke-width="2.8" stroke-linecap="round"/>
+        <!-- Sweat Droplet -->
+        <g class="sweat">
+            <path d="M 124 38 Q 128 47 124 51 Q 120 47 124 38" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
+        </g>
+        """
+    else:
+        svg += """
+        <!-- Sprout -->
+        <g class="sprout">
+            <line x1="100" y1="30" x2="100" y2="16" stroke="#1b4332" stroke-width="2"/>
+            <ellipse cx="94" cy="14" rx="6" ry="4" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(-30 94 14)"/>
+            <ellipse cx="106" cy="14" rx="6" ry="4" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(30 106 14)"/>
+        </g>
+        <!-- Calm Eyes -->
+        <path d="M 84 50 Q 89 44 94 50" fill="none" stroke="#1b4332" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M 106 50 Q 111 44 116 50" fill="none" stroke="#1b4332" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Gentle Smile -->
+        <path d="M 91 63 Q 100 69 109 63" fill="none" stroke="#1b4332" stroke-width="2.2" stroke-linecap="round"/>
+        """
+
+    svg += "</g></svg>"
+    return svg
 
 class HeadlessTurtle:
     def __init__(self, w=260, h=260):
@@ -109,45 +223,6 @@ class HeadlessTurtle:
         for _ in range(steps):
             self.forward(step_len)
             self.left(ext / steps)
-
-def draw_turtle_mascot(mood="happy"):
-    t = HeadlessTurtle(260, 260)
-    d = t.draw
-    d.ellipse([(45, 65), (85, 115)], fill=(74, 150, 110), outline=(30, 75, 50), width=2)
-    d.ellipse([(175, 65), (215, 115)], fill=(74, 150, 110), outline=(30, 75, 50), width=2)
-    d.ellipse([(55, 160), (95, 205)], fill=(74, 150, 110), outline=(30, 75, 50), width=2)
-    d.ellipse([(165, 160), (205, 205)], fill=(74, 150, 110), outline=(30, 75, 50), width=2)
-    d.polygon([(125, 215), (135, 235), (135, 215)], fill=(74, 150, 110), outline=(30, 75, 50))
-    d.ellipse([(65, 80), (195, 210)], fill=(45, 106, 79), outline=(27, 67, 50), width=3)
-    d.ellipse([(85, 100), (175, 190)], fill=(82, 183, 136), outline=(27, 67, 50), width=2)
-    d.ellipse([(105, 120), (155, 170)], fill=(116, 198, 157), outline=(45, 106, 79), width=2)
-    d.ellipse([(100, 35), (160, 95)], fill=(116, 198, 157), outline=(30, 75, 50), width=3)
-
-    if mood == "happy":
-        d.ellipse([(114, 50), (128, 64)], fill=(20, 40, 30))
-        d.ellipse([(117, 52), (121, 56)], fill=(255, 255, 255))
-        d.ellipse([(132, 50), (146, 64)], fill=(20, 40, 30))
-        d.ellipse([(135, 52), (139, 56)], fill=(255, 255, 255))
-        d.ellipse([(108, 65), (118, 73)], fill=(251, 113, 133, 180))
-        d.ellipse([(142, 65), (152, 73)], fill=(251, 113, 133, 180))
-        d.arc([(118, 62), (142, 82)], start=10, end=170, fill=(20, 40, 30), width=3)
-        d.line([(130, 35), (130, 18)], fill=(45, 106, 79), width=3)
-        d.ellipse([(116, 10), (130, 22)], fill=(116, 198, 157), outline=(45, 106, 79), width=2)
-        d.ellipse([(130, 10), (144, 22)], fill=(116, 198, 157), outline=(45, 106, 79), width=2)
-    elif mood == "worried":
-        d.ellipse([(114, 52), (128, 66)], fill=(20, 40, 30))
-        d.ellipse([(132, 52), (146, 66)], fill=(20, 40, 30))
-        d.arc([(120, 74), (140, 84)], start=190, end=350, fill=(20, 40, 30), width=3)
-        d.ellipse([(148, 38), (158, 52)], fill=(56, 189, 248), outline=(2, 132, 199), width=1)
-    else:
-        d.ellipse([(115, 52), (127, 64)], fill=(20, 40, 30))
-        d.ellipse([(117, 54), (121, 58)], fill=(255, 255, 255))
-        d.ellipse([(133, 52), (145, 64)], fill=(20, 40, 30))
-        d.ellipse([(135, 54), (139, 58)], fill=(255, 255, 255))
-        d.arc([(122, 66), (138, 78)], start=20, end=160, fill=(20, 40, 30), width=2)
-        d.line([(130, 35), (130, 22)], fill=(45, 106, 79), width=2)
-        d.ellipse([(124, 15), (136, 25)], fill=(116, 198, 157), outline=(45, 106, 79), width=1)
-    return t.img
 
 def draw_vector_art(art_type="leaf", initial="P"):
     t = HeadlessTurtle(260, 260)
@@ -184,12 +259,14 @@ def draw_vector_art(art_type="leaf", initial="P"):
 def calculate_carbon(price, category, is_ethical):
     rate = CATEGORIES.get(category, {"multiplier": 0.35})["multiplier"]
     base = price * rate
+    # Reality-oriented: 30% discount represents amortized circular reuse or verified clean manufacturing
     return round(base * 0.70 if is_ethical else base, 2)
 
 def get_equivalency(carbon_kg):
     miles = int(carbon_kg * 2.4)
     charges = int(carbon_kg * 121)
-    return f"🚗 ~{miles:,} petrol miles • 📱 ~{charges:,} phone charges"
+    tree_months = round((carbon_kg / 21.0) * 12, 1)
+    return f"🚗 ~{miles:,} petrol miles • 📱 ~{charges:,} phone charges • 🌲 {tree_months} tree-months"
 
 def evaluate_badges(purchases, overrides=None):
     if overrides is None: overrides = {}
@@ -197,7 +274,7 @@ def evaluate_badges(purchases, overrides=None):
     total_spend = sum(p["price"] for p in purchases)
     total_co2 = sum(p["carbon_kg"] for p in purchases)
     ethical_count = sum(1 for p in purchases if p.get("is_ethical", False))
-    avg_intensity = (total_co2 / total_spend) if total_spend > 0 else 0.40
+    avg_intensity = (total_co2 / total_spend) if total_spend > 0 else 0.0
     co2_saved = max(0.0, round(total_spend * 0.45 - total_co2, 1))
     zero_waste_count = sum(1 for p in purchases if "Zero-Waste" in p["category"] or "Thrift" in p["category"])
 
@@ -210,47 +287,35 @@ def evaluate_badges(purchases, overrides=None):
         {"id": "biosphere_master", "name": "Biosphere Master", "icon": "👑", "desc": "Unlock 4+ badges and stay within budget", "unlocked": overrides.get("biosphere_master", False), "progress": ""},
     ]
     if "biosphere_master" not in overrides:
-        badges[5]["unlocked"] = sum(1 for b in badges[:5] if b["unlocked"]) >= 4 and total_co2 <= st.session_state.carbon_budget
+        badges[5]["unlocked"] = sum(1 for b in badges[:5] if b["unlocked"]) >= 4 and total_co2 <= st.session_state.carbon_budget and total_items > 0
         badges[5]["progress"] = f"{sum(1 for b in badges[:5] if b['unlocked'])}/4 badges"
     else:
         badges[5]["progress"] = "Demo override"
     return badges, total_spend, total_co2, avg_intensity, co2_saved, ethical_count
 
+# Session state initialization - Starts completely CLEAN with zero seed data
 if "onboarded" not in st.session_state: st.session_state.onboarded = False
 if "user_name" not in st.session_state: st.session_state.user_name = "Parth Gajera"
 if "user_mascot" not in st.session_state: st.session_state.user_mascot = "Shelly the Sea Turtle 🐢"
 if "carbon_budget" not in st.session_state: st.session_state.carbon_budget = 150
 if "recent_art" not in st.session_state: st.session_state.recent_art = "leaf"
 if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "happy"
-if "mascot_message" not in st.session_state: st.session_state.mascot_message = "Hi! I am Shelly, your conscious shopping guide!"
+if "mascot_message" not in st.session_state: st.session_state.mascot_message = "Welcome! I am Shelly, your conscious shopping guide!"
 if "badge_overrides" not in st.session_state: st.session_state.badge_overrides = {}
 if "nav_view" not in st.session_state: st.session_state.nav_view = "📊 Dashboard"
-if "purchases" not in st.session_state:
-    st.session_state.purchases = [
-        {"id": 1, "item": "Organic Hemp Jacket", "category": "Fast Fashion Apparel", "brand": "Patagonia", "price": 120.0, "carbon_kg": 35.28, "date": "2026-10-02", "is_ethical": True},
-        {"id": 2, "item": "Graphic Polyester T-Shirt", "category": "Fast Fashion Apparel", "brand": "Shein", "price": 18.0, "carbon_kg": 7.56, "date": "2026-10-05", "is_ethical": False},
-        {"id": 3, "item": "Refurbished iPad Mini", "category": "Refurbished Tech", "brand": "Back Market", "price": 280.0, "carbon_kg": 21.56, "date": "2026-10-10", "is_ethical": True},
-        {"id": 4, "item": "Leather Oxford Shoes", "category": "Footwear & Leather", "brand": "Zara", "price": 110.0, "carbon_kg": 71.50, "date": "2026-10-14", "is_ethical": False},
-        {"id": 5, "item": "Thrifted Vintage Denim", "category": "Second-Hand / Thrift", "brand": "Local Thrift", "price": 25.0, "carbon_kg": 0.88, "date": "2026-10-18", "is_ethical": True},
-        {"id": 6, "item": "Weekly Organic Veggies", "category": "Local / Organic Food", "brand": "Green Valley CSA", "price": 42.0, "carbon_kg": 2.35, "date": "2026-10-22", "is_ethical": True},
-        {"id": 7, "item": "Single-Use Plastic Storage", "category": "Home & Plastics", "brand": "Generic Mart", "price": 16.0, "carbon_kg": 7.36, "date": "2026-10-25", "is_ethical": False},
-        {"id": 8, "item": "Bamboo Kitchen Cutlery Set", "category": "Zero-Waste Reusables", "brand": "EcoLiving", "price": 22.0, "carbon_kg": 1.08, "date": "2026-10-28", "is_ethical": True},
-        {"id": 9, "item": "Winter Down Coat", "category": "Fast Fashion Apparel", "brand": "H&M", "price": 85.0, "carbon_kg": 35.70, "date": "2026-11-01", "is_ethical": False},
-        {"id": 10, "item": "Noise Cancelling Headphones", "category": "Consumer Electronics", "brand": "Sony", "price": 190.0, "carbon_kg": 104.50, "date": "2026-11-03", "is_ethical": False},
-        {"id": 11, "item": "Fairphone Modular Battery", "category": "Refurbished Tech", "brand": "Fairphone", "price": 38.0, "carbon_kg": 2.93, "date": "2026-11-05", "is_ethical": True},
-        {"id": 12, "item": "Organic Fair-Trade Coffee", "category": "Local / Organic Food", "brand": "Equator Organics", "price": 24.0, "carbon_kg": 1.34, "date": "2026-11-06", "is_ethical": True},
-    ]
+if "last_logged" not in st.session_state: st.session_state.last_logged = None
+if "purchases" not in st.session_state: st.session_state.purchases = []
 
 # ------------------------------------------------------------------------------
-# SCREEN 1: WELCOME & ONBOARDING (Clean, Visual, Not a sub-page)
+# SCREEN 1: WELCOME & ONBOARDING (Clean, Visual, Standalone First-Run)
 # ------------------------------------------------------------------------------
 if not st.session_state.onboarded:
-    st.markdown("<h1 style='text-align: center; color: #1b4332; margin-bottom: 0;'>🌱 Meet ShopImpact</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #475569; font-size: 1.15rem; margin-bottom: 2rem;'>Your playful, conscious shopping companion.</p>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #1b4332; margin-top: 1rem; margin-bottom: 0;'>🌱 Meet ShopImpact</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748b; font-size: 1.15rem; margin-bottom: 2.2rem;'>Your playful, conscious shopping companion.</p>", unsafe_allow_html=True)
 
     c1, c2 = st.columns([1.1, 0.9], gap="large")
     with c1:
-        st.subheader("Personalize Your Eco Journey")
+        st.subheader("Set Your Goals & Avatar")
         u_name = st.text_input("What is your name?", value=st.session_state.user_name)
         m_choice = st.selectbox("Choose your spirit guide:", options=list(ECO_MASCOTS.keys()))
         b_choice = st.slider("Monthly Carbon Target (kg CO₂e):", min_value=50, max_value=300, value=st.session_state.carbon_budget, step=10)
@@ -265,17 +330,16 @@ if not st.session_state.onboarded:
             st.rerun()
 
     with c2:
-        img_mascot = draw_turtle_mascot("happy")
-        st.image(img_mascot, width=240, caption="Shelly the Sea Turtle is excited to guide you!")
+        st.markdown(render_animated_turtle_svg("happy", 220, 220), unsafe_allow_html=True)
         st.markdown(
             """
-            <div style="background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 12px; padding: 1rem; color: #065f46;">
-                <strong>What you'll do inside:</strong>
-                <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0;">
-                    <li>⚡ See real-time CO₂ as you type purchases</li>
-                    <li>🔄 Discover greener alternative brand swaps</li>
-                    <li>🏆 Watch badges turn from gray to radiant color</li>
-                    <li>🎨 See Shelly react to every choice you make!</li>
+            <div style="background: #f0fdf4; border: 1.5px solid #a7f3d0; border-radius: 14px; padding: 1.1rem; color: #166534; margin-top: 0.8rem;">
+                <strong>What you'll experience inside:</strong>
+                <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0; line-height: 1.6;">
+                    <li>⚡ <strong>Live Carbon Preview:</strong> calculate footprint as you type</li>
+                    <li>🔄 <strong>Dynamic Swaps:</strong> get greener brand recommendations right after logging</li>
+                    <li>🏆 <strong>Wall of Badges:</strong> watch gray badges turn into glowing colors</li>
+                    <li>🐢 <strong>Live Mascot:</strong> Shelly smiles, bobs, and waves at your choices!</li>
                 </ul>
             </div>
             """,
@@ -283,7 +347,7 @@ if not st.session_state.onboarded:
         )
 
 # ------------------------------------------------------------------------------
-# SCREEN 2: MAIN APPLICATION (DASHBOARD, BADGES, TURTLE STUDIO)
+# SCREEN 2: MAIN DASHBOARD & TABS
 # ------------------------------------------------------------------------------
 else:
     # Sidebar
@@ -294,59 +358,87 @@ else:
         st.rerun()
 
     st.sidebar.markdown("---")
-    st.session_state.nav_view = st.sidebar.radio("Go to:", ["📊 Dashboard", "🏆 Wall of Badges", "🎨 Turtle Studio"])
+    st.session_state.nav_view = st.sidebar.radio("Navigation:", ["📊 Dashboard", "🏆 Wall of Badges", "🎨 Turtle Studio"])
 
-    dark_theme = st.sidebar.toggle("🌙 Dark Mode", value=False)
+    dark_theme = st.sidebar.toggle("🌙 High-Contrast Dark Mode", value=False)
     st.sidebar.markdown("---")
     st.sidebar.caption(f"💡 *{random.choice(ECO_TIPS)}*")
 
     c_rst1, c_rst2 = st.sidebar.columns(2)
     with c_rst1:
-        if st.button("🔄 Reset Demo", use_container_width=True):
-            st.session_state.purchases = []
-            st.session_state.badge_overrides = {}
+        if st.button("📥 Load Demo", help="Populates 12 test transactions for demo evaluation", use_container_width=True):
+            st.session_state.purchases = [
+                {"id": 1, "item": "Organic Hemp Jacket", "category": "Fast Fashion Apparel", "brand": "Patagonia", "price": 120.0, "carbon_kg": 35.28, "date": "2026-10-02", "is_ethical": True},
+                {"id": 2, "item": "Graphic Polyester T-Shirt", "category": "Fast Fashion Apparel", "brand": "Shein", "price": 18.0, "carbon_kg": 7.56, "date": "2026-10-05", "is_ethical": False},
+                {"id": 3, "item": "Refurbished iPad Mini", "category": "Refurbished Tech", "brand": "Back Market", "price": 280.0, "carbon_kg": 21.56, "date": "2026-10-10", "is_ethical": True},
+                {"id": 4, "item": "Leather Oxford Shoes", "category": "Footwear & Leather", "brand": "Zara", "price": 110.0, "carbon_kg": 71.50, "date": "2026-10-14", "is_ethical": False},
+                {"id": 5, "item": "Thrifted Vintage Denim", "category": "Second-Hand / Thrift", "brand": "Local Thrift", "price": 25.0, "carbon_kg": 0.88, "date": "2026-10-18", "is_ethical": True},
+                {"id": 6, "item": "Weekly Organic Veggies", "category": "Local / Organic Food", "brand": "Green Valley CSA", "price": 42.0, "carbon_kg": 2.35, "date": "2026-10-22", "is_ethical": True},
+                {"id": 7, "item": "Single-Use Plastic Storage", "category": "Home & Plastics", "brand": "Generic Mart", "price": 16.0, "carbon_kg": 7.36, "date": "2026-10-25", "is_ethical": False},
+                {"id": 8, "item": "Bamboo Kitchen Cutlery Set", "category": "Zero-Waste Reusables", "brand": "EcoLiving", "price": 22.0, "carbon_kg": 1.08, "date": "2026-10-28", "is_ethical": True},
+                {"id": 9, "item": "Winter Down Coat", "category": "Fast Fashion Apparel", "brand": "H&M", "price": 85.0, "carbon_kg": 35.70, "date": "2026-11-01", "is_ethical": False},
+                {"id": 10, "item": "Noise Cancelling Headphones", "category": "Consumer Electronics", "brand": "Sony", "price": 190.0, "carbon_kg": 104.50, "date": "2026-11-03", "is_ethical": False},
+                {"id": 11, "item": "Fairphone Modular Battery", "category": "Refurbished Tech", "brand": "Fairphone", "price": 38.0, "carbon_kg": 2.93, "date": "2026-11-05", "is_ethical": True},
+                {"id": 12, "item": "Organic Fair-Trade Coffee", "category": "Local / Organic Food", "brand": "Equator Organics", "price": 24.0, "carbon_kg": 1.34, "date": "2026-11-06", "is_ethical": True},
+            ]
+            st.session_state.last_logged = st.session_state.purchases[-1]
             st.rerun()
     with c_rst2:
-        if st.button("🗑️ Clear", use_container_width=True):
+        if st.button("🗑️ Clear All", use_container_width=True):
             st.session_state.purchases = []
+            st.session_state.last_logged = None
+            st.session_state.badge_overrides = {}
             st.rerun()
 
-    # Dynamic CSS styling
-    card_bg = "#17221b" if dark_theme else "#ffffff"
-    text_c = "#f0fdf4" if dark_theme else "#1b4332"
-    sub_c = "#94a3b8" if dark_theme else "#475569"
-    border_c = "#2a3d31" if dark_theme else "#e2d9cc"
-    pill_bg = "#1b2d23" if dark_theme else "#ecfdf5"
-    pill_b = "#34d399" if dark_theme else "#6ee7b7"
-
-    st.markdown(
-        f"""
-        <style>
-        .kpi-box {{ background: {card_bg}; border: 1.5px solid {border_c}; border-radius: 12px; padding: 1rem; color: {text_c}; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }}
-        .kpi-box h4 {{ margin: 0; font-size: 0.8rem; text-transform: uppercase; color: {sub_c}; }}
-        .kpi-box .val {{ font-size: 1.7rem; font-weight: 800; color: {text_c}; margin: 0.2rem 0; }}
-        .preview-box {{ background: {pill_bg}; border: 1.5px solid {pill_b}; border-radius: 10px; padding: 0.8rem 1rem; color: {text_c}; margin: 0.5rem 0; }}
-        .badge-on {{ background: linear-gradient(135deg, #1b4332, #2d6a4f); border: 2px solid #52b788; border-radius: 14px; padding: 1rem; color: #ffffff; margin-bottom: 0.8rem; }}
-        .badge-off {{ background: #f1f5f9; border: 2px dashed #94a3b8; border-radius: 14px; padding: 1rem; color: #64748b; filter: grayscale(100%); opacity: 0.6; margin-bottom: 0.8rem; }}
-        .swap-card {{ background: {card_bg}; border: 1.5px solid {border_c}; border-radius: 10px; padding: 0.85rem; color: {text_c}; margin-bottom: 0.5rem; }}
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    # High-Contrast Complete Theme Engine: Inverts the entire page, text, and cards
+    if dark_theme:
+        st.markdown(
+            """
+            <style>
+            .stApp { background-color: #0c120e !important; color: #f8fafc !important; }
+            h1, h2, h3, h4, h5, p, span, label, div { color: #f8fafc !important; }
+            .kpi-box { background: #152219 !important; border: 1.5px solid #2d3e32 !important; border-radius: 12px; padding: 1.1rem; color: #f8fafc !important; }
+            .kpi-box h4 { color: #94a3b8 !important; }
+            .kpi-box .val { color: #4ade80 !important; }
+            .preview-box { background: #13271c !important; border: 1.5px solid #34d399 !important; border-radius: 12px; padding: 0.9rem 1.2rem; color: #f8fafc !important; }
+            .swap-card { background: #152219 !important; border: 1.5px solid #2d3e32 !important; border-radius: 12px; padding: 1rem; color: #f8fafc !important; }
+            .badge-on { background: linear-gradient(135deg, #064e3b, #047857) !important; border: 2px solid #34d399 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; }
+            .badge-off { background: #1e293b !important; border: 2px dashed #475569 !important; border-radius: 14px; padding: 1rem; color: #94a3b8 !important; filter: grayscale(100%); opacity: 0.6; }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            """
+            <style>
+            .stApp { background-color: #fafaf9 !important; color: #0f172a !important; }
+            h1, h2, h3, h4, h5, p, span, label { color: #0f172a !important; }
+            .kpi-box { background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 12px; padding: 1.1rem; color: #0f172a !important; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+            .kpi-box h4 { color: #64748b !important; }
+            .kpi-box .val { color: #1b4332 !important; }
+            .preview-box { background: #f0fdf4 !important; border: 1.5px solid #86efac !important; border-radius: 12px; padding: 0.9rem 1.2rem; color: #14532d !important; }
+            .swap-card { background: #ffffff !important; border: 1.5px solid #e2e8f0 !important; border-radius: 12px; padding: 1rem; color: #0f172a !important; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+            .badge-on { background: linear-gradient(135deg, #1b4332, #2d6a4f) !important; border: 2px solid #52b788 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; box-shadow: 0 4px 14px rgba(45,106,79,0.18); }
+            .badge-off { background: #f1f5f9 !important; border: 2px dashed #cbd5e1 !important; border-radius: 14px; padding: 1rem; color: #64748b !important; filter: grayscale(100%); opacity: 0.6; }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
 
     # --------------------------------------------------------------------------
     # VIEW: 📊 DASHBOARD
     # --------------------------------------------------------------------------
     if st.session_state.nav_view == "📊 Dashboard":
         # Interactive Mascot Reaction Bar
-        col_m1, col_m2 = st.columns([0.8, 3.2])
+        col_m1, col_m2 = st.columns([0.65, 3.35])
         with col_m1:
-            st.image(draw_turtle_mascot(st.session_state.mascot_mood), width=150)
+            st.markdown(render_animated_turtle_svg(st.session_state.mascot_mood, 140, 140), unsafe_allow_html=True)
         with col_m2:
             st.markdown(
                 f"""
-                <div style="background: {pill_bg}; border: 1.5px solid {pill_b}; border-radius: 14px; padding: 1rem 1.4rem; color: {text_c}; margin-top: 0.5rem;">
-                    <div style="font-size: 1.15rem; font-weight: 800; color: {text_c};">{st.session_state.user_mascot.split()[0]}'s Live Reaction:</div>
+                <div style="border-radius: 14px; padding: 1rem 1.3rem; margin-top: 0.6rem; border: 1.5px solid #a7f3d0; background: {'#162a1e' if dark_theme else '#f0fdf4'};">
+                    <div style="font-size: 1.1rem; font-weight: 800;">{st.session_state.user_mascot.split()[0]}'s Live Reaction:</div>
                     <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{st.session_state.mascot_message}"</div>
                 </div>
                 """,
@@ -360,21 +452,26 @@ else:
         with st.form("quick_log_form", clear_on_submit=True):
             f1, f2, f3 = st.columns([1.2, 1.2, 1.0])
             with f1:
-                item_name = st.text_input("Item Description", placeholder="e.g. Vintage Denim Jacket, USB Cable")
+                item_name = st.text_input("Item Description", placeholder="e.g. Vintage Denim Jacket, USB Charger")
                 cat_choice = st.selectbox("Product Category", options=list(CATEGORIES.keys()))
             with f2:
                 brand_val = st.text_input("Brand or Vendor", placeholder="e.g. Patagonia, Zara, Back Market")
                 price_val = st.number_input("Price ($)", min_value=1.0, max_value=5000.0, value=45.0, step=5.0)
             with f3:
                 date_val = st.date_input("Date", value=date.today())
-                is_eth = st.checkbox("🌱 Certified Circular / Thrift / Ethical", help="Applies a 30% carbon discount for green practices.")
+                is_eth = st.checkbox("🌱 Certified Circular / Thrift / Ethical", help="Applies a 30% footprint discount for verified reuse or certified clean logistics.")
 
             live_co2 = calculate_carbon(price_val, cat_choice, is_eth)
             equiv_msg = get_equivalency(live_co2)
+            c_info = CATEGORIES[cat_choice]
+            
+            # Transparent reality-oriented formula breakdown
+            discount_note = "30% Eco Discount applied" if is_eth else "Standard lifecycle factor"
             st.markdown(
                 f"""
                 <div class="preview-box">
-                    <strong>⚡ Live Preview:</strong> <code>{live_co2} kg CO₂e</code> ({CATEGORIES[cat_choice]['rating']}) • {equiv_msg}
+                    <strong>⚡ Live Lifecycle Calculation:</strong> <code>${price_val:.2f} × {c_info['multiplier']} kg/$ = {live_co2} kg CO₂e</code> ({discount_note})<br>
+                    <span style="font-size: 0.86rem;">📊 Impact Context: {equiv_msg} • <em>{c_info['fact']}</em></span>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -382,7 +479,7 @@ else:
 
             if st.form_submit_button("🌿 Record Purchase in Dashboard", use_container_width=True):
                 if not item_name.strip():
-                    st.error("Please enter an item name.")
+                    st.error("Please enter an item name before recording.")
                 else:
                     new_rec = {
                         "id": len(st.session_state.purchases) + 1,
@@ -395,101 +492,125 @@ else:
                         "is_ethical": is_eth,
                     }
                     st.session_state.purchases.append(new_rec)
+                    st.session_state.last_logged = new_rec
                     if is_eth or live_co2 < 4.0:
                         st.session_state.mascot_mood = "happy"
-                        st.session_state.mascot_message = f"Woohoo! Loving your choice of '{item_name}'! Shelly is smiling bright!"
+                        st.session_state.mascot_message = f"Woohoo! Loving your green choice of '{item_name}'! Shelly is waving happily!"
                         st.balloons()
                     else:
                         st.session_state.mascot_mood = "worried"
-                        st.session_state.mascot_message = f"That added {live_co2} kg CO₂e. Check the greener swaps below for next time!"
+                        st.session_state.mascot_message = f"Careful! '{item_name}' added {live_co2} kg CO₂e. Check the greener swaps below for your next purchase!"
                     st.rerun()
 
-        # Greener Swaps
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.subheader(f"🔄 Greener Swaps for {cat_choice}")
-        swaps = ETHICAL_ALTERNATIVES.get(cat_choice, [])
-        sw_cols = st.columns(len(swaps))
-        for idx, sw in enumerate(swaps):
-            with sw_cols[idx]:
-                st.markdown(
-                    f"""
-                    <div class="swap-card">
-                        <strong>{sw['brand']}</strong><br>
-                        <span style="font-size: 0.85rem; color: {sub_c};">{sw['perk']}</span><br>
-                        <span style="color: #10b981; font-weight: 700; font-size: 0.8rem;">Cut: {sw['saving']}</span>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-                b_name = sw['brand'].split('/')[0].strip()
-                if st.button(f"Adopt {b_name} 🌿", key=f"adopt_btn_{idx}"):
-                    st.session_state.purchases.append({
-                        "id": len(st.session_state.purchases) + 1,
-                        "item": f"Greener Swap: {b_name}",
-                        "category": cat_choice,
-                        "brand": b_name,
-                        "price": 30.0,
-                        "carbon_kg": calculate_carbon(30.0, cat_choice, True),
-                        "date": str(date.today()),
-                        "is_ethical": True,
-                    })
-                    st.session_state.mascot_mood = "happy"
-                    st.session_state.mascot_message = f"Awesome swap to {b_name}! That's how we heal the planet!"
-                    st.balloons()
-                    st.rerun()
+        # Contextual Greener Swaps: Appears right after a purchase is logged
+        if st.session_state.last_logged:
+            last = st.session_state.last_logged
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.subheader(f"🌱 Greener Alternatives for '{last['item']}' ({last['category']})")
+            
+            sc1, sc2 = st.columns([1.1, 2.0], gap="medium")
+            with sc1:
+                st.markdown(render_animated_turtle_svg("happy", 130, 130), unsafe_allow_html=True)
+                st.caption(f"💡 **Shelly's Tip**: You logged **{last['carbon_kg']} kg CO₂e**. Adopting a verified circular swap can reduce emissions by up to 92%!")
+            
+            with sc2:
+                swaps = ETHICAL_ALTERNATIVES.get(last["category"], [])
+                sw_cols = st.columns(len(swaps))
+                for idx, sw in enumerate(swaps):
+                    with sw_cols[idx]:
+                        st.markdown(
+                            f"""
+                            <div class="swap-card">
+                                <strong>{sw['brand']}</strong><br>
+                                <span style="font-size: 0.85rem;">{sw['perk']}</span><br>
+                                <span style="color: #10b981; font-weight: 700; font-size: 0.82rem;">⚡ Carbon Cut: {sw['saving']}</span>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+                        b_name = sw['brand'].split('/')[0].strip()
+                        if st.button(f"Adopt {b_name} 🌿", key=f"adopt_swap_{idx}"):
+                            st.session_state.purchases.append({
+                                "id": len(st.session_state.purchases) + 1,
+                                "item": f"Greener Swap: {b_name} ({last['category']})",
+                                "category": last['category'],
+                                "brand": b_name,
+                                "price": 35.0,
+                                "carbon_kg": calculate_carbon(35.0, last['category'], True),
+                                "date": str(date.today()),
+                                "is_ethical": True,
+                            })
+                            st.session_state.mascot_mood = "happy"
+                            st.session_state.mascot_message = f"Brilliant choice! You adopted {b_name} and protected the planet!"
+                            st.balloons()
+                            st.rerun()
 
         st.markdown("---")
 
-        # Monthly Metrics & Ledger
-        months = sorted(list({p["date"][:7] for p in st.session_state.purchases}), reverse=True) if st.session_state.purchases else [date.today().strftime("%Y-%m")]
-        sel_month = st.radio("Filter Month:", ["All Time"] + months, horizontal=True)
-
-        if sel_month == "All Time":
-            view_data = st.session_state.purchases
-            period_str = "All Time"
+        # Period Filter: Supports All Time, Filter by Year, and Filter by Month
+        if st.session_state.purchases:
+            all_years = sorted(list({p["date"][:4] for p in st.session_state.purchases}), reverse=True)
+            all_months = sorted(list({p["date"][:7] for p in st.session_state.purchases}), reverse=True)
+            filter_choices = ["All Time"] + [f"Year {y}" for y in all_years] + all_months
         else:
-            view_data = [p for p in st.session_state.purchases if p["date"].startswith(sel_month)]
-            period_str = sel_month
+            filter_choices = ["All Time"]
 
-        badges, spend_tot, co2_tot, avg_int, saved_tot, eth_cnt = evaluate_badges(view_data, st.session_state.badge_overrides)
+        st.markdown("##### 📅 Dashboard Timeline Filter:")
+        period_choice = st.radio("Period", filter_choices, horizontal=True, label_visibility="collapsed")
+
+        if period_choice == "All Time":
+            filtered_data = st.session_state.purchases
+            period_label = "All Time (Cumulative)"
+        elif period_choice.startswith("Year "):
+            sel_yr = period_choice.replace("Year ", "")
+            filtered_data = [p for p in st.session_state.purchases if p["date"].startswith(sel_yr)]
+            period_label = f"Year {sel_yr}"
+        else:
+            filtered_data = [p for p in st.session_state.purchases if p["date"].startswith(period_choice)]
+            period_label = period_choice
+
+        badges, spend_tot, co2_tot, avg_int, saved_tot, eth_cnt = evaluate_badges(filtered_data, st.session_state.badge_overrides)
         trees_tot = round(co2_tot / 21.0, 1)
 
+        # 4 Primary KPI Cards
+        st.markdown("<br>", unsafe_allow_html=True)
         m1, m2, m3, m4 = st.columns(4)
-        m1.markdown(f"<div class='kpi-box'><h4>Total Spend</h4><div class='val'>${spend_tot:,.2f}</div><span>{len(view_data)} items</span></div>", unsafe_allow_html=True)
-        m2.markdown(f"<div class='kpi-box'><h4>Carbon Footprint</h4><div class='val'>{co2_tot:.1f} kg</div><span>{avg_int:.2f} kg/$</span></div>", unsafe_allow_html=True)
-        m3.markdown(f"<div class='kpi-box'><h4>Carbon Saved</h4><div class='val'>{saved_tot:.1f} kg</div><span>Vs baseline</span></div>", unsafe_allow_html=True)
-        m4.markdown(f"<div class='kpi-box'><h4>Trees to Offset</h4><div class='val'>{trees_tot} Trees</div><span>21 kg/tree/yr</span></div>", unsafe_allow_html=True)
+        m1.markdown(f"<div class='kpi-box'><h4>Total Spend</h4><div class='val'>${spend_tot:,.2f}</div><span>{len(filtered_data)} items recorded</span></div>", unsafe_allow_html=True)
+        m2.markdown(f"<div class='kpi-box'><h4>Carbon Footprint</h4><div class='val'>{co2_tot:.1f} kg</div><span>{avg_int:.2f} kg/$ intensity</span></div>", unsafe_allow_html=True)
+        m3.markdown(f"<div class='kpi-box'><h4>Carbon Avoided</h4><div class='val'>{saved_tot:.1f} kg</div><span>Vs 0.45 kg/$ standard</span></div>", unsafe_allow_html=True)
+        m4.markdown(f"<div class='kpi-box'><h4>Trees to Offset</h4><div class='val'>{trees_tot} Trees</div><span>21 kg CO₂/tree/year</span></div>", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         b_lim = st.session_state.carbon_budget
         pct = min(100, int((co2_tot / b_lim) * 100)) if b_lim > 0 else 0
-        st.progress(pct / 100, text=f"Monthly Budget: {co2_tot:.1f} / {b_lim} kg CO₂e ({pct}% used)")
+        st.progress(pct / 100, text=f"Carbon Allowance Budget: {co2_tot:.1f} / {b_lim} kg CO₂e ({pct}% used — {period_label})")
 
+        # Category Chart & Ledger Table
         col_g1, col_g2 = st.columns([1.1, 1.3], gap="large")
         with col_g1:
-            st.markdown(f"**Emissions by Category ({period_str})**")
-            if view_data:
-                df = pd.DataFrame(view_data)
+            st.markdown(f"**Emissions by Category ({period_label})**")
+            if filtered_data:
+                df = pd.DataFrame(filtered_data)
                 st.bar_chart(df.groupby("category")["carbon_kg"].sum().sort_values(ascending=False), color="#2d6a4f")
             else:
-                st.caption("No data for this timeframe.")
+                st.info("No purchases recorded yet for this period. Plan and log your first purchase above!")
 
         with col_g2:
-            st.markdown(f"**Ledger ({len(view_data)} entries)**")
-            if view_data:
-                df = pd.DataFrame(view_data)[["date", "item", "category", "price", "carbon_kg", "is_ethical"]]
-                df.columns = ["Date", "Item", "Category", "Price ($)", "CO₂ (kg)", "Ethical?"]
-                st.dataframe(df, use_container_width=True, hide_index=True)
-                st.download_button("📥 Export CSV", df.to_csv(index=False).encode("utf-8"), f"shopimpact_{period_str}.csv", "text/csv")
+            st.markdown(f"**Transaction Ledger ({len(filtered_data)} records)**")
+            if filtered_data:
+                df_view = pd.DataFrame(filtered_data)[["date", "item", "category", "price", "carbon_kg", "is_ethical"]]
+                df_view.columns = ["Date", "Item", "Category", "Price ($)", "CO₂ (kg)", "Ethical?"]
+                st.dataframe(df_view, use_container_width=True, hide_index=True)
+                st.download_button("📥 Export CSV", df_view.to_csv(index=False).encode("utf-8"), f"shopimpact_{period_label.lower().replace(' ', '_')}.csv", "text/csv")
             else:
-                st.caption("No items recorded yet.")
+                st.caption("No records available to export. Your recorded purchases will appear here.")
 
     # --------------------------------------------------------------------------
-    # VIEW: 🏆 WALL OF BADGES (Unlocked = Colorful, Locked = Black/White)
+    # VIEW: 🏆 WALL OF BADGES
     # --------------------------------------------------------------------------
     elif st.session_state.nav_view == "🏆 Wall of Badges":
         st.title("🏆 Wall of Badges & Eco Fame")
-        st.caption("Achievements glow in full radiant color once unlocked. Locked badges stay in black & white until earned!")
+        st.caption("Unlocked achievements glow in full vibrant color. Locked badges stay in black & white until earned!")
 
         badges, _, _, _, _, _ = evaluate_badges(st.session_state.purchases, st.session_state.badge_overrides)
         unlocked_num = sum(1 for b in badges if b["unlocked"])
@@ -552,35 +673,35 @@ else:
     # --------------------------------------------------------------------------
     elif st.session_state.nav_view == "🎨 Turtle Studio":
         st.title("🎨 Turtle Vector Studio")
-        st.caption("Pure Python headless vector Turtle graphics drawn natively onto PIL canvases.")
+        st.caption("Live animated SVG mascot and pure Python vector Turtle graphics drawn natively onto PIL canvases.")
 
         a_col1, a_col2 = st.columns([1.0, 1.2], gap="large")
         with a_col1:
             u_init = st.session_state.user_name.strip()[0] if st.session_state.user_name.strip() else "P"
             opts = ["mascot_happy", "mascot_worried", "mascot_mindful", "leaf", "footprint", "badge", "seal"]
             labels = {
-                "mascot_happy": "🐢 Shelly Mascot (Happy / Celebrating)",
-                "mascot_worried": "💧 Shelly Mascot (Worried / High Carbon)",
-                "mascot_mindful": "🌱 Shelly Mascot (Calm / Mindful)",
+                "mascot_happy": "🐢 Shelly Animated (Happy & Celebrating)",
+                "mascot_worried": "💧 Shelly Animated (Worried & Sweating)",
+                "mascot_mindful": "🌱 Shelly Animated (Calm & Mindful)",
                 "leaf": "🌿 Procedural Eco Leaf",
                 "footprint": "👣 Low Carbon Footprint",
                 "badge": "⭐ Achievement Rosette",
                 "seal": f"🛡️ {u_init}'s Personal Avatar Seal",
             }
-            pick = st.radio("Choose artwork to draw:", opts, format_func=lambda x: labels[x])
+            pick = st.radio("Choose artwork:", opts, format_func=lambda x: labels[x])
 
         with a_col2:
             if pick.startswith("mascot_"):
                 mood = pick.replace("mascot_", "")
-                out_img = draw_turtle_mascot(mood)
+                st.markdown(render_animated_turtle_svg(mood, 220, 220), unsafe_allow_html=True)
+                st.caption(f"Live 60 FPS Animated Vector SVG: {labels[pick]}")
             else:
                 out_img = draw_vector_art(pick, u_init)
-
-            st.image(out_img, width=280, caption=f"Vector Turtle Path: {labels[pick]}")
-            import io
-            buf = io.BytesIO()
-            out_img.save(buf, format="PNG")
-            st.download_button("💾 Download Artwork (PNG)", buf.getvalue(), f"turtle_{pick}.png", "image/png")
+                st.image(out_img, width=260, caption=f"Headless Turtle Canvas: {labels[pick]}")
+                import io
+                buf = io.BytesIO()
+                out_img.save(buf, format="PNG")
+                st.download_button("💾 Download Artwork (PNG)", buf.getvalue(), f"turtle_{pick}.png", "image/png")
 
 st.divider()
 st.markdown(
