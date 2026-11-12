@@ -10,7 +10,7 @@
 > **Course Subject (CRS)**: Artificial Intelligence: Real-World Applications & Implications  
 > **Student Full Name**: Parth Pravinbhai Gajera  
 > **Candidate Registration Number**: 1000544  
-> **School / Institutional Partner**: Greenfield Academy / WACP International  
+> **School / Institutional Partner**: Aspee Nutan Academy / WACP International  
 > **Repository Name**: `IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA`  
 > **GitHub Repository URL**: [https://github.com/parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA](https://github.com/parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA)  
 > **Live Streamlit Web App Link**: [https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/](https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/)  
