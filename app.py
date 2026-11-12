@@ -1,3 +1,4 @@
+import html
 import math
 import random
 from datetime import date, datetime
@@ -336,7 +337,7 @@ if not st.session_state.onboarded:
 
         st.caption(f"✨ **{m_choice.split()[0]}**: {ECO_MASCOTS[m_choice]}")
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🚀 Enter ShopImpact Dashboard →", type="primary", use_container_width=True):
+        if st.button("🚀 Enter ShopImpact Dashboard →", type="primary", width="stretch"):
             st.session_state.user_name = u_name.strip() if u_name.strip() else "Shopper"
             st.session_state.user_mascot = m_choice
             st.session_state.carbon_budget = b_choice
@@ -364,7 +365,7 @@ else:
     # Sidebar
     st.sidebar.markdown(f"### 👤 {st.session_state.user_name}")
     st.sidebar.caption(f"{st.session_state.user_mascot} • Goal: {st.session_state.carbon_budget} kg")
-    if st.sidebar.button("⚙️ Edit Profile / Goals", use_container_width=True):
+    if st.sidebar.button("⚙️ Edit Profile / Goals", width="stretch"):
         st.session_state.onboarded = False
         st.rerun()
 
@@ -375,7 +376,7 @@ else:
     st.sidebar.markdown("---")
     st.sidebar.caption(f"💡 *{random.choice(ECO_TIPS)}*")
 
-    if st.sidebar.button("🗑️ Reset / Clear All Purchases", use_container_width=True):
+    if st.sidebar.button("🗑️ Reset / Clear All Purchases", width="stretch"):
         st.session_state.purchases = []
         st.session_state.last_logged = None
         st.session_state.recent_art = None
@@ -419,6 +420,7 @@ else:
     if st.session_state.nav_view == "📊 Dashboard":
         # Interactive Mascot Reaction & Optional Turtle Graphic Reward
         if st.session_state.recent_art:
+            msg_esc = html.escape(st.session_state.mascot_message)
             col_m1, col_m2, col_m3 = st.columns([0.65, 2.35, 1.0])
             with col_m1:
                 render_html(render_animated_turtle_svg(st.session_state.mascot_mood, 140, 140))
@@ -426,7 +428,7 @@ else:
                 render_html(f"""
                 <div class="reaction-bubble">
                     <div style="font-size: 1.1rem; font-weight: 800;">{st.session_state.user_mascot.split()[0]}'s Live Reaction:</div>
-                    <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{st.session_state.mascot_message}"</div>
+                    <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{msg_esc}"</div>
                 </div>
                 """)
             with col_m3:
@@ -434,6 +436,7 @@ else:
                 art_label = {"leaf": "Eco Leaf 🌿", "footprint": "Low Footprint 👣", "badge": "Eco Badge ⭐"}.get(st.session_state.recent_art, "Eco Choice")
                 st.image(art_img, width=130, caption=f"Shelly drew: {art_label}")
         else:
+            msg_esc = html.escape(st.session_state.mascot_message)
             col_m1, col_m2 = st.columns([0.65, 3.35])
             with col_m1:
                 render_html(render_animated_turtle_svg(st.session_state.mascot_mood, 140, 140))
@@ -441,7 +444,7 @@ else:
                 render_html(f"""
                 <div class="reaction-bubble">
                     <div style="font-size: 1.1rem; font-weight: 800;">{st.session_state.user_mascot.split()[0]}'s Live Reaction:</div>
-                    <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{st.session_state.mascot_message}"</div>
+                    <div style="font-size: 0.95rem; margin-top: 0.2rem;">"{msg_esc}"</div>
                 </div>
                 """)
 
@@ -476,7 +479,7 @@ else:
             </div>
             """)
 
-            if st.form_submit_button("🌿 Record Purchase in Active Ledger", use_container_width=True):
+            if st.form_submit_button("🌿 Record Purchase in Active Ledger", width="stretch"):
                 if not item_name.strip():
                     st.error("Please enter an item description before recording.")
                 else:
@@ -611,7 +614,7 @@ else:
 
         st.markdown("<br>", unsafe_allow_html=True)
         b_lim = st.session_state.carbon_budget
-        pct = min(100, int((co2_tot / b_lim) * 100)) if b_lim > 0 else 0
+        pct = min(100, max(0, int((co2_tot / b_lim) * 100))) if b_lim > 0 else 0
         st.progress(pct / 100, text=f"Carbon Allowance Budget: {co2_tot:.1f} / {b_lim} kg CO₂e ({pct}% used — {period_label})")
 
         # Category Chart & Ledger Table
@@ -629,7 +632,7 @@ else:
             if filtered_data:
                 df_view = pd.DataFrame(filtered_data)[["date", "item", "category", "price", "carbon_kg", "is_ethical"]]
                 df_view.columns = ["Date", "Item", "Category", "Price ($)", "CO₂ (kg)", "Ethical?"]
-                st.dataframe(df_view, use_container_width=True, hide_index=True)
+                st.dataframe(df_view, width="stretch", hide_index=True)
                 st.download_button("📥 Export CSV", df_view.to_csv(index=False).encode("utf-8"), f"shopimpact_{period_label.lower().replace(' ', '_')}.csv", "text/csv")
             else:
                 st.caption("No records available to export. Your recorded purchases will appear here.")

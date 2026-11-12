@@ -10,8 +10,9 @@
 > **Student Full Name**: Parth Pravinbhai Gajera  
 > **Candidate Registration Number**: 1000544  
 > **School / Institutional Partner**: Greenfield Academy / WACP International  
-> **Repository Name**: `IDAI102(1000544)-parthgajera`  
-> **Live Streamlit Web App Link**: [https://idai102-1000544-parthgajera.streamlit.app](https://share.streamlit.io/) *(also runs locally via `streamlit run app.py`)*  
+> **Repository Name**: `IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA`  
+> **GitHub Repository URL**: [https://github.com/parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA](https://github.com/parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA)  
+> **Live Streamlit Web App Link**: [https://share.streamlit.io/](https://share.streamlit.io/) *(also runs locally via `streamlit run app.py`)*  
 > **Evaluator Access Notification**: Access granted to `ai.assignments@wacpinternational.org`
 
 ---
@@ -211,8 +212,8 @@ To thoroughly verify usability, edge cases, and calculation integrity, test the 
 ### Running Locally
 ```bash
 # 1. Clone repository
-git clone https://github.com/parthibcpana/IDAI102-1000544-parthgajera.git
-cd IDAI102-1000544-parthgajera
+git clone https://github.com/parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA.git
+cd IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -223,11 +224,11 @@ streamlit run app.py
 The application will open automatically at `http://localhost:8501`.
 
 ### Deploying to Streamlit Community Cloud (Free Hosting)
-1. Push `app.py`, `requirements.txt`, and `README.md` to your GitHub repository named `IDAI102(1000544)-parthgajera`.
-2. Visit [share.streamlit.io](https://share.streamlit.io/) and log in with GitHub.
+1. Push `app.py`, `requirements.txt`, and `README.md` to your GitHub repository `IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA`.
+2. Visit [share.streamlit.io](https://share.streamlit.io/) and log in with your GitHub account.
 3. Click **"New app"**.
-4. Select the repository, set branch to `master` (or `main`), and specify `app.py` as the main file path.
-5. Click **"Deploy!"**. The live application will be available at a public HTTPS URL.
+4. Select repository `parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA`, branch `main`, and main file path `app.py`.
+5. Click **"Deploy!"**. The live application will be instantly hosted with a public HTTPS URL.
 
 ---
 
