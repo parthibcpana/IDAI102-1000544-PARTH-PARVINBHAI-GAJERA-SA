@@ -83,12 +83,12 @@ CATEGORIES = {
 }
 
 QUICK_PURCHASES = [
-    {"name": "Fair-Trade Coffee / Tea", "price": 4.50, "category": "Local / Organic Food", "is_ethical": True, "icon": "☕", "co2": 0.36},
-    {"name": "Local Organic Lunch", "price": 12.00, "category": "Local / Organic Food", "is_ethical": True, "icon": "🥗", "co2": 0.96},
-    {"name": "Thrifted Vintage Jacket", "price": 32.00, "category": "Second-Hand / Thrift", "is_ethical": True, "icon": "🧥", "co2": 1.60},
-    {"name": "Refurbished Tech Gadget", "price": 85.00, "category": "Refurbished Tech", "is_ethical": True, "icon": "📱", "co2": 9.35},
-    {"name": "Fast-Fashion Top", "price": 55.00, "category": "Fast Fashion Apparel", "is_ethical": False, "icon": "👗", "co2": 23.10},
-    {"name": "Leather Footwear", "price": 130.00, "category": "Footwear & Leather", "is_ethical": False, "icon": "👞", "co2": 84.50},
+    {"name": "Fair-Trade Coffee / Tea", "price": 4.50, "category": "Local / Organic Food", "brand": "Local Roaster", "is_ethical": True, "icon": "☕"},
+    {"name": "Local Organic Lunch", "price": 12.00, "category": "Local / Organic Food", "brand": "Farmers Co-op", "is_ethical": True, "icon": "🥗"},
+    {"name": "Thrifted Vintage Jacket", "price": 32.00, "category": "Second-Hand / Thrift", "brand": "Community Thrift", "is_ethical": True, "icon": "🧥"},
+    {"name": "Refurbished Tech Gadget", "price": 85.00, "category": "Refurbished Tech", "brand": "Back Market", "is_ethical": True, "icon": "📱"},
+    {"name": "Fast-Fashion Top", "price": 55.00, "category": "Fast Fashion Apparel", "brand": "High-Street Retail", "is_ethical": False, "icon": "👗"},
+    {"name": "Leather Footwear", "price": 130.00, "category": "Footwear & Leather", "brand": "City Leather Co.", "is_ethical": False, "icon": "👞"},
 ]
 
 ETHICAL_ALTERNATIVES = {
@@ -280,8 +280,8 @@ def render_animated_biosphere_svg(used_pct, co2_tot, budget_limit, width=210, he
     <ellipse cx="110" cy="238" rx="46" ry="13" fill="#0f172a" stroke="{glow_color}" stroke-width="2.5"/>
 
     <!-- Centerpiece Typography Badge Inside Base -->
-    <text x="110" y="235" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="900" font-family="sans-serif">{pct:.0f}% BUDGET</text>
-    <text x="110" y="248" text-anchor="middle" fill="{status_color}" font-size="8.0" font-weight="800" font-family="sans-serif" letter-spacing="0.5">{status_text}</text>
+    <text x="110" y="232" text-anchor="middle" fill="#ffffff" font-size="12.5" font-weight="900" font-family="sans-serif">{pct:.0f}% BUDGET</text>
+    <text x="110" y="249" text-anchor="middle" fill="{status_color}" font-size="7.5" font-weight="800" font-family="sans-serif" letter-spacing="0.5">{status_text}</text>
 
     <!-- Bottom Readout Caption -->
     <text x="110" y="275" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="700" font-family="sans-serif">{co2_tot:.1f} / {budget_limit} kg CO₂e</text>
@@ -694,36 +694,93 @@ def evaluate_badges(purchases):
     ]
     return badges, total_spend, total_co2, avg_intensity, co2_saved, ethical_count
 
+def evaluate_feedback_for_item(mascot_str, item_name, live_co2, is_ethical):
+    """Computes mascot mood, reaction message, and Turtle art trigger for a logged purchase."""
+    if is_ethical and live_co2 <= 3.0:
+        mood, art = "ecstatic", "badge"
+    elif is_ethical or live_co2 <= 10.0:
+        mood = "happy"
+        art = "leaf" if is_ethical else "footprint"
+    elif live_co2 <= 25.0:
+        mood, art = "mindful", None
+    elif live_co2 <= 50.0:
+        mood, art = "worried", None
+    else:
+        mood, art = "alarmed", None
+    msg = get_mascot_reaction(mascot_str, item_name, live_co2, mood, is_ethical)
+    return mood, msg, art
+
+def add_purchase(purchases_list, item_name, product_type, brand, price, purchase_date, is_ethical, mascot_str):
+    """Appends a new purchase dict to the purchases Python list and returns feedback state."""
+    live_co2 = calculate_carbon(float(price), product_type, bool(is_ethical))
+    record = {
+        "id": len(purchases_list) + 1,
+        "item": item_name.strip(),
+        "category": product_type,
+        "brand": brand.strip() if brand and brand.strip() else "Unspecified",
+        "price": round(float(price), 2),
+        "carbon_kg": float(live_co2),
+        "date": str(purchase_date),
+        "is_ethical": bool(is_ethical),
+    }
+    purchases_list.append(record)
+    mood, msg, art = evaluate_feedback_for_item(mascot_str, record["item"], live_co2, is_ethical)
+    return record, mood, msg, art
+
 # ------------------------------------------------------------------------------
-# SESSION STATE INITIALIZATION (Clean Defaults, 100% Local Volatile Memory)
+# SESSION STATE INITIALIZATION (Purchases stored in a Python list in session)
 # ------------------------------------------------------------------------------
 
 if "dark_theme" not in st.session_state: st.session_state.dark_theme = True
 if "onboarded" not in st.session_state:
-    if st.query_params.get("onboarded") in ["true", "1"]:
-        st.session_state.onboarded = True
-    else:
-        st.session_state.onboarded = False
+    st.session_state.onboarded = st.query_params.get("onboarded") in ["true", "1"]
 
 if "user_name" not in st.session_state: st.session_state.user_name = "Parth Gajera"
 if "user_mascot" not in st.session_state: st.session_state.user_mascot = "Pip the Forest Fox 🦊"
 if "carbon_budget" not in st.session_state: st.session_state.carbon_budget = 150
 if "recent_art" not in st.session_state: st.session_state.recent_art = None
-if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "ecstatic"
+if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "mindful"
 if "mascot_message" not in st.session_state:
-    st.session_state.mascot_message = "CLEVER THRIFT MASTER! Pip put on gold sunglasses! 'Vintage Denim Jacket' is a circular gem!"
-if "nav_view" not in st.session_state: st.session_state.nav_view = "📊 Dashboard"
+    st.session_state.mascot_message = "Ready when you are! Log a purchase above to see your live CO₂ footprint."
+if "nav_view" not in st.session_state:
+    st.session_state.nav_view = "🏆 Wall of Badges" if st.query_params.get("view") == "badges" else "📊 Dashboard"
 if "last_logged" not in st.session_state: st.session_state.last_logged = None
+
 if "purchases" not in st.session_state:
-    if st.query_params.get("demo") in ["true", "1"]:
-        st.session_state.purchases = [
-            {"id": 1, "time": "14:20", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Vintage Denim Jacket", "category": "Second-Hand / Thrift", "brand": "Community Thrift", "price": 35.0, "carbon_kg": 1.22, "co2": 1.22, "is_ethical": True, "ethical": True, "saved": 14.53},
-            {"id": 2, "time": "14:22", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Organic CSA Harvest Box", "category": "Local / Organic Food", "brand": "Local Farmers Market", "price": 42.0, "carbon_kg": 2.35, "co2": 2.35, "is_ethical": True, "ethical": True, "saved": 16.55},
-            {"id": 3, "time": "14:25", "date": "2026-11-12", "year": "2026", "month": "2026-11", "item": "Certified Renewed ThinkPad", "category": "Refurbished Tech", "brand": "Back Market Refurbished", "price": 280.0, "carbon_kg": 21.56, "co2": 21.56, "is_ethical": True, "ethical": True, "saved": 104.44},
+    # Core Python list storing every purchase dictionary (product type, price, brand, date)
+    st.session_state.purchases = []
+    demo_mode = st.query_params.get("demo")
+    if demo_mode in ["true", "1"]:
+        sample_items = [
+            ("Vintage Denim Jacket", "Second-Hand / Thrift", "Community Thrift", 35.0, "2026-11-12", True),
+            ("Organic CSA Harvest Box", "Local / Organic Food", "Local Farmers Market", 42.0, "2026-11-12", True),
+            ("Certified Renewed ThinkPad", "Refurbished Tech", "Back Market Refurbished", 280.0, "2026-11-12", True),
         ]
-        st.session_state.recent_art = "badge"
-    else:
-        st.session_state.purchases = []
+        for args in sample_items:
+            rec, mood, msg, art = add_purchase(st.session_state.purchases, *args, st.session_state.user_mascot)
+            st.session_state.last_logged = rec
+        st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = "ecstatic", "CLEVER THRIFT MASTER! Pip put on gold sunglasses! 'Vintage Denim Jacket' is a circular gem!", "badge"
+    elif demo_mode == "test12":
+        # 12 sample purchases covering expensive, cheap, eco, and non-eco items
+        test_12_items = [
+            ("Fair-Trade Coffee", "Local / Organic Food", "Local Roaster", 4.50, "2026-11-01", True),
+            ("Bamboo Water Bottle", "Zero-Waste Reusables", "Klean Kanteen", 24.00, "2026-11-02", True),
+            ("Vintage Denim Jacket", "Second-Hand / Thrift", "Goodwill Thrift", 32.00, "2026-11-03", True),
+            ("Plastic Storage Bin Set", "Home & Plastics", "MegaMart", 28.00, "2026-11-04", False),
+            ("Fast-Fashion Sweater", "Fast Fashion Apparel", "Urban Fast Retail", 45.00, "2026-11-05", False),
+            ("Organic Produce Box", "Local / Organic Food", "Farmers Co-op", 38.00, "2026-11-06", True),
+            ("Weekly Packaged Snacks", "Packaged Groceries", "SuperMart", 22.00, "2026-11-07", False),
+            ("Refurbished Laptop", "Refurbished Tech", "Back Market", 280.00, "2026-11-08", True),
+            ("Thrifted Wool Coat", "Second-Hand / Thrift", "Depop Thrift", 48.00, "2026-11-09", True),
+            ("Running Shoes (Leather)", "Footwear & Leather", "City Leather Co.", 130.00, "2026-11-10", False),
+            ("Modular Smartphone", "Consumer Electronics", "TechCorp", 320.00, "2026-11-11", False),
+            ("Glass Pantry Jar Pack", "Zero-Waste Reusables", "Refill Hub", 18.00, "2026-11-12", True),
+        ]
+        for args in test_12_items:
+            rec, mood, msg, art = add_purchase(st.session_state.purchases, *args, st.session_state.user_mascot)
+            st.session_state.last_logged = rec
+            st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
+
 if "confirm_reset" not in st.session_state: st.session_state.confirm_reset = False
 
 # ------------------------------------------------------------------------------
@@ -745,7 +802,7 @@ if st.session_state.dark_theme:
     .avatar-card { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 1.2rem; text-align: center; }
     .avatar-circle { width: 92px; height: 92px; border-radius: 50%; border: 3px solid #34d399; overflow: hidden; background: #13271c; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(52, 211, 153, 0.3); margin: 0 auto; }
     .rank-pill { font-size: 0.8rem; background: #064e3b; color: #34d399; border: 1px solid #059669; padding: 0.2rem 0.65rem; border-radius: 99px; font-weight: 700; display: inline-block; margin-top: 0.35rem; }
-    .vessel-chip { background: #162a1e; border: 1.5px solid #2d6a4f; border-radius: 12px; padding: 0.75rem; text-align: center; margin-bottom: 0.5rem; transition: transform 0.15s ease; }
+    .vessel-chip { background: #162a1e; border: 1.5px solid #2d6a4f; border-radius: 12px; padding: 0.75rem; text-align: center; margin-bottom: 0.5rem; min-height: 114px; display: flex; flex-direction: column; justify-content: center; transition: transform 0.15s ease; }
     .vessel-chip:hover { border-color: #34d399; transform: translateY(-2px); }
     .sim-card { background: #122017; border: 1.5px solid #2d6a4f; border-radius: 14px; padding: 1.2rem; margin: 1rem 0; box-shadow: 0 4px 18px rgba(0,0,0,0.25); }
     </style>
@@ -765,7 +822,7 @@ else:
     .avatar-card { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 1.2rem; text-align: center; }
     .avatar-circle { width: 92px; height: 92px; border-radius: 50%; border: 3px solid #10b981; overflow: hidden; background: #ecfdf5; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2); margin: 0 auto; }
     .rank-pill { font-size: 0.8rem; background: #ecfdf5; color: #047857; border: 1px solid #10b981; padding: 0.2rem 0.65rem; border-radius: 99px; font-weight: 700; display: inline-block; margin-top: 0.35rem; }
-    .vessel-chip { background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 0.75rem; text-align: center; margin-bottom: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.15s ease; }
+    .vessel-chip { background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 0.75rem; text-align: center; margin-bottom: 0.5rem; min-height: 114px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.15s ease; }
     .vessel-chip:hover { border-color: #10b981; transform: translateY(-2px); }
     .sim-card { background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 1.2rem; margin: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
     </style>
@@ -838,7 +895,11 @@ else:
             st.rerun()
 
         st.markdown("---")
-        st.session_state.nav_view = st.radio("Navigation:", ["📊 Dashboard", "🏆 Wall of Badges"])
+        st.session_state.nav_view = st.radio(
+            "Navigation:",
+            ["📊 Dashboard", "🏆 Wall of Badges"],
+            index=1 if st.session_state.nav_view == "🏆 Wall of Badges" else 0,
+        )
 
         dark_toggle = st.toggle("🌙 High-Contrast Dark Mode", value=st.session_state.dark_theme)
         if dark_toggle != st.session_state.dark_theme:
@@ -928,41 +989,24 @@ else:
 
         chip_cols = st.columns(6)
         for i, qp in enumerate(QUICK_PURCHASES):
+            chip_co2 = calculate_carbon(qp["price"], qp["category"], qp["is_ethical"])
             with chip_cols[i]:
                 render_html(f"""
                 <div class="vessel-chip">
                     <div style="font-size: 1.8rem;">{qp['icon']}</div>
                     <div style="font-weight: 800; font-size: 0.82rem; margin-top: 0.2rem;">{qp['name']}</div>
-                    <div style="color: #34d399; font-weight: 700; font-size: 0.78rem;">${qp['price']:.2f} • {qp['co2']:.1f} kg</div>
+                    <div style="color: #34d399; font-weight: 700; font-size: 0.78rem;">${qp['price']:.2f} • {chip_co2:.1f} kg</div>
                 </div>
                 """)
                 if st.button(f"+ Add {qp['name'].split()[0]}", key=f"chip_btn_{i}", width="stretch"):
-                    new_item = {
-                        "id": len(st.session_state.purchases) + 1,
-                        "item": qp["name"],
-                        "category": qp["category"],
-                        "brand": "Quick Log",
-                        "price": qp["price"],
-                        "carbon_kg": qp["co2"],
-                        "date": str(date.today()),
-                        "is_ethical": qp["is_ethical"],
-                    }
-                    st.session_state.purchases.append(new_item)
+                    new_item, mood, msg, art = add_purchase(
+                        st.session_state.purchases, qp["name"], qp["category"], qp["brand"],
+                        qp["price"], date.today(), qp["is_ethical"], st.session_state.user_mascot
+                    )
                     st.session_state.last_logged = new_item
-
-                    if qp["is_ethical"] and qp["co2"] <= 2.0:
-                        st.session_state.mascot_mood = "ecstatic"
-                        st.session_state.mascot_message = get_mascot_reaction(st.session_state.user_mascot, qp["name"], qp["co2"], "ecstatic", True)
-                        st.session_state.recent_art = "badge"
+                    st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
+                    if mood == "ecstatic":
                         st.balloons()
-                    elif qp["is_ethical"]:
-                        st.session_state.mascot_mood = "happy"
-                        st.session_state.mascot_message = get_mascot_reaction(st.session_state.user_mascot, qp["name"], qp["co2"], "happy", True)
-                        st.session_state.recent_art = "leaf"
-                    else:
-                        st.session_state.mascot_mood = "mindful" if qp["co2"] <= 25.0 else "worried"
-                        st.session_state.mascot_message = get_mascot_reaction(st.session_state.user_mascot, qp["name"], qp["co2"], st.session_state.mascot_mood, False)
-                        st.session_state.recent_art = None
                     st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
@@ -1002,45 +1046,17 @@ else:
                 if not item_name.strip():
                     st.error("Please enter an item description before recording.")
                 else:
-                    live_co2 = calculate_carbon(price_val, cat_choice, is_eth)
-                    new_rec = {
-                        "id": len(st.session_state.purchases) + 1,
-                        "item": item_name.strip(),
-                        "category": cat_choice,
-                        "brand": brand_val.strip() if brand_val.strip() else "Unspecified",
-                        "price": float(price_val),
-                        "carbon_kg": float(live_co2),
-                        "date": str(date_val),
-                        "is_ethical": is_eth,
-                    }
-                    st.session_state.purchases.append(new_rec)
+                    new_rec, mood, msg, art = add_purchase(
+                        st.session_state.purchases, item_name, cat_choice, brand_val,
+                        price_val, date_val, is_eth, st.session_state.user_mascot
+                    )
                     st.session_state.last_logged = new_rec
-                    
-                    if is_eth and live_co2 <= 3.0:
-                        st.session_state.mascot_mood = "ecstatic"
-                        st.session_state.mascot_message = get_mascot_reaction(st.session_state.user_mascot, item_name, live_co2, "ecstatic", is_eth)
-                        st.session_state.recent_art = "badge"
+                    st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
+                    if mood in ["ecstatic", "happy"]:
                         st.balloons()
-                    elif is_eth or live_co2 <= 10.0:
-                        st.session_state.mascot_mood = "happy"
-                        st.session_state.mascot_message = get_mascot_reaction(st.session_state.user_mascot, item_name, live_co2, "happy", is_eth)
-                        st.session_state.recent_art = "leaf" if is_eth else "footprint"
-                        st.balloons()
-                    elif live_co2 <= 25.0:
-                        st.session_state.mascot_mood = "mindful"
-                        st.session_state.mascot_message = get_mascot_reaction(st.session_state.user_mascot, item_name, live_co2, "mindful", is_eth)
-                        st.session_state.recent_art = None
-                    elif live_co2 <= 50.0:
-                        st.session_state.mascot_mood = "worried"
-                        st.session_state.mascot_message = get_mascot_reaction(st.session_state.user_mascot, item_name, live_co2, "worried", is_eth)
-                        st.session_state.recent_art = None
-                    else:
-                        st.session_state.mascot_mood = "alarmed"
-                        st.session_state.mascot_message = get_mascot_reaction(st.session_state.user_mascot, item_name, live_co2, "alarmed", is_eth)
-                        st.session_state.recent_art = None
                     st.rerun()
 
-        # INTERACTIVE CARBON IMPACT & TREE OFFSET SIMULATOR (Analogous to Cup Converter in FA2)
+        # INTERACTIVE CARBON IMPACT & TREE OFFSET SIMULATOR
         with st.expander("🌲 Interactive Carbon & Tree Offset Simulator", expanded=False):
             render_html("""
             <div class="sim-card">
@@ -1068,20 +1084,12 @@ else:
                 </div>
                 """)
                 if st.button("➕ Add Simulated Item to Tracker", width="stretch"):
-                    sim_item = {
-                        "id": len(st.session_state.purchases) + 1,
-                        "item": f"Simulated: {sim_cat_choice.split()[0]} (${sim_dollars:.0f})",
-                        "category": sim_cat_choice,
-                        "brand": "Simulation Tool",
-                        "price": float(sim_dollars),
-                        "carbon_kg": float(sim_co2),
-                        "date": str(date.today()),
-                        "is_ethical": sim_is_eth,
-                    }
-                    st.session_state.purchases.append(sim_item)
+                    sim_item, mood, msg, art = add_purchase(
+                        st.session_state.purchases, f"Simulated: {sim_cat_choice.split()[0]} (${sim_dollars:.0f})",
+                        sim_cat_choice, "Simulation Tool", sim_dollars, date.today(), sim_is_eth, st.session_state.user_mascot
+                    )
                     st.session_state.last_logged = sim_item
-                    st.session_state.mascot_mood = "happy" if sim_is_eth else "mindful"
-                    st.session_state.mascot_message = f"Simulated purchase recorded! {sim_dollars:.0f}$ logged at {sim_co2:.1f} kg CO₂e."
+                    st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
                     st.rerun()
 
         # CONTEXTUAL GREENER SWAPS (Appears reactively right after a purchase is logged)
@@ -1110,17 +1118,11 @@ else:
                         """)
                         b_name = sw['brand'].split('/')[0].strip()
                         if st.button(f"Adopt {b_name} 🌿", key=f"adopt_swap_{idx}", width="stretch"):
-                            swap_co2 = calculate_carbon(35.0, last['category'], True)
-                            st.session_state.purchases.append({
-                                "id": len(st.session_state.purchases) + 1,
-                                "item": f"Greener Swap: {b_name} ({last['category']})",
-                                "category": last['category'],
-                                "brand": b_name,
-                                "price": 35.0,
-                                "carbon_kg": swap_co2,
-                                "date": str(date.today()),
-                                "is_ethical": True,
-                            })
+                            swap_rec, _, _, _ = add_purchase(
+                                st.session_state.purchases, f"Greener Swap: {b_name} ({last['category']})",
+                                last['category'], b_name, 35.0, date.today(), True, st.session_state.user_mascot
+                            )
+                            st.session_state.last_logged = swap_rec
                             st.session_state.mascot_mood = "ecstatic"
                             st.session_state.mascot_message = f"LEGENDARY CHOICE! You adopted {b_name}! {c_name} celebrates your active biosphere restoration!"
                             st.session_state.recent_art = "badge"
@@ -1172,9 +1174,10 @@ else:
                     if "carbon_kg" not in p and "co2" in p: p["carbon_kg"] = p["co2"]
                     if "is_ethical" not in p and "ethical" in p: p["is_ethical"] = p["ethical"]
                     if "item" not in p: p["item"] = "Purchase"
+                    if "brand" not in p: p["brand"] = "Unspecified"
                     if "date" not in p: p["date"] = str(date.today())
-                df_view = pd.DataFrame(filtered_data)[["date", "item", "category", "price", "carbon_kg", "is_ethical"]]
-                df_view.columns = ["Date", "Item", "Category", "Price ($)", "CO₂ (kg)", "Ethical?"]
+                df_view = pd.DataFrame(filtered_data)[["date", "item", "category", "brand", "price", "carbon_kg", "is_ethical"]]
+                df_view.columns = ["Date", "Item", "Product Type", "Brand", "Price ($)", "CO₂ (kg)", "Ethical?"]
                 st.dataframe(df_view, width="stretch", hide_index=True)
                 
                 # Undo Last Purchase and CSV Download row
@@ -1182,7 +1185,17 @@ else:
                 with u_col1:
                     if st.button("↩️ Undo Last Purchase", width="stretch", help="Roll back the most recent logged purchase"):
                         popped = st.session_state.purchases.pop()
-                        st.session_state.last_logged = st.session_state.purchases[-1] if st.session_state.purchases else None
+                        prev = st.session_state.purchases[-1] if st.session_state.purchases else None
+                        st.session_state.last_logged = prev
+                        if prev:
+                            mood, msg, art = evaluate_feedback_for_item(
+                                st.session_state.user_mascot, prev["item"], prev["carbon_kg"], prev["is_ethical"]
+                            )
+                            st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
+                        else:
+                            st.session_state.mascot_mood = "mindful"
+                            st.session_state.mascot_message = f"Removed '{popped['item']}'. Log your next purchase above!"
+                            st.session_state.recent_art = None
                         st.toast(f"Removed '{popped['item']}' from ledger", icon="↩️")
                         st.rerun()
                 with u_col2:
