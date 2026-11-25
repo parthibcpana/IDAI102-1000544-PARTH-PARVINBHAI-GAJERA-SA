@@ -260,40 +260,58 @@ For each product type, `ETHICAL_ALTERNATIVES` stores a Python `list` of greener 
 - **Footwear & Leather** -> *Allbirds / Veja* (`52%` cut) or *Will's Vegan Store* (`70%` cut)
 
 ### Integration details
-We split the code into small, single-job functions (`add_purchase()`, `calculate_carbon()`, `evaluate_badges()`, `get_equivalency()`, `draw_vector_art()`) inside [`app.py`](app.py) and connected them with 4 Python libraries:
+We organized the codebase into small, single-job functions (`add_purchase()`, `calculate_carbon()`, `evaluate_badges()`, `get_equivalency()`, `find_top_swap_opportunity()`, `draw_vector_art()`) inside [`app.py`](app.py) and connected 5 core libraries:
 - **`datetime`:** Stamps `date.today()` onto every purchase and powers *All Time / Year / Month* dashboard filtering.
-- **`pandas`:** Groups category totals (`groupby("category")["carbon_kg"].sum()`) for bar charts and exports clean CSV tables.
-- **`Pillow` (`ImageDraw`):** Drives our custom `HeadlessTurtle` engine so Turtle vector graphics work safely in the cloud.
-- **`streamlit`:** Connects forms, session lists, quick chips, metrics, sidebar cards, and dark/light themes smoothly.
+- **`pandas`:** Aggregates category spend and carbon sums (`groupby("category")["carbon_kg"].sum()`) for visualizations, progress bars, and CSV downloads.
+- **`altair`:** Renders interactive horizontal category bars (color-coded emerald vs. amber) and an ethical-vs.-conventional donut chart with hover tooltips.
+- **`Pillow` (`ImageDraw`):** Drives our upgraded `HeadlessTurtle` vector engine (`280x280` layered botanical graphics) and PNG art exports safely on Linux cloud servers.
+- **`streamlit`:** Connects forms, session lists, quick chips, top studio navigation, sortable/searchable ledger tables (`ProgressColumn`), and dual themes cleanly.
 
 ---
 
 ## Stage 3: Interactive Streamlit cloud interface
 
 ### Layout
-- **Welcome & Onboarding Screen:** Captures shopper name, companion mascot, and monthly CO₂ target cleanly first.
-- **Main Dashboard Layout:** Places Quick-Log chips and the Custom Purchase form at the top, KPI metrics + Category Bar Chart + Transaction Ledger in the center, and **Wall of Badges + Biosphere Globe + Mascot & Turtle Drawings** visibly alongside in the hero panel and sidebar.
+- **Welcome & Onboarding Screen:** Captures shopper name, companion mascot, and monthly CO2 target with a clear preview of in-app studio tools.
+- **Top Command Studio & 3-Panel Hero:** Syncs quick *Dashboard / Badges* switching right at the top (accessible even with the sidebar collapsed) above a balanced 3-card hero row: **Living Biosphere Globe**, **Companion Studio + Directional Speech Cloud**, and **Turtle Art Collector Vault** (`Leaf`, `Step`, `Medal` unlock strip + PNG download).
+- **Analytics & Ledger Section:** Displays 4 KPI metrics, real-world impact comparisons (petrol car miles + phone charges avoided), the **What-If Carbon Optimizer**, **6 Quick-Log Chips**, the Custom Purchase form, interactive Altair bar/donut charts, and a searchable/filterable ledger.
 
 ### Interactivity
 - **6 Quick-Log Chips:** Log routine purchases (*Coffee, Organic Lunch, Thrift Jacket, Refurb Tech, Fast Fashion, Leather Shoes*) in 1 click.
-- **Custom Form & Controls:** Category dropdown, price input, date picker, ethical/circular checkbox, timeline filter radio (*All Time / Year / Month*), **Tree Offset Simulator** slider, **Undo Last Purchase**, guarded Reset dialog, CSV export, and celebration balloons.
+- **What-If Carbon Optimizer:** Detects your highest-carbon conventional item (such as leather shoes or electronics), previews the exact kg CO2 reduction of a circular swap, and swaps it in 1 click.
+- **Searchable Ledger, Optimizer & Exports:** Live keyword search, *Eco picks only* toggle, *All Time / Year / Month* timeline radio, **Tree Offset Simulator** slider, **Undo Last Purchase**, guarded Reset confirmation, **Export CSV**, and downloadable **Eco Scorecard (`.md`)**.
 
 ### Visual hierarchy
-Large, bold headers and oversized KPI metric readouts (`Total Spend`, `Carbon Footprint`, `Carbon Avoided`, `Trees to Offset`) put your monthly numbers front and center, with generous spacing separating input forms from charts and history tables.
+Large KPI metrics (`Total Spend`, `Carbon Footprint`, `Carbon Avoided`, `Trees to Offset`), pill badges (`Card Kicker`, `Eco Streak`, `Next Milestone` progress bar), and generous card spacing guide the eye immediately from live impact at the top to actionable swaps and analytics below.
 
 ### Color palette
-Designed with calm, earthy colors matching eco-friendly habits: **Obsidian Emerald** Dark Mode (`#0c120e` backdrop, `#34d399` emerald highlights, warm amber warnings) by default, plus a toggleable **Warm Linen** Light Mode (`#fcfbf9` paper tone) in the sidebar.
+Designed around calm, earthy tones with layered gradients across cards and sidebars: **Obsidian Emerald** Dark Mode (`#143322` to `#050a07` layered backdrop, `#34d399` emerald accents, amber/crimson alerts) and a **Creamy Botanical** Light Mode (`#FDF9EE` to `#EAE0C8` warm parchment backdrop, sage-tinted `#FFFDF7` to `#EDF5E7` cards, and `#143D2B` dark-forest ink).
 
 ### Live App Screenshots
 
 <div align="center">
-<img src="assets/screenshots/onboarding.png" alt="Screen 1: Onboarding Screen" width="820" style="border-radius: 12px; border: 1.5px solid #059669;"/>
-<p><em>Screen 1 (Welcome & Onboarding): Choosing your shopper name, companion mascot, and monthly carbon budget.</em></p>
+<img src="assets/screenshots/onboarding_v2.png" alt="Screen 1: Onboarding Screen" width="840" style="border-radius: 12px; border: 1.5px solid #059669;"/>
+<p><em>Screen 1 (Welcome & Onboarding): Choosing your shopper name, companion mascot, and monthly carbon target.</em></p>
 </div>
 
 <div align="center">
-<img src="assets/screenshots/dashboard_v2.png" alt="Screen 2: Live Dashboard" width="820" style="border-radius: 12px; border: 1.5px solid #059669;"/>
-<p><em>Screen 2 (Main Dashboard): Animated Biosphere globe, reactive mascot reaction, Turtle reward art, KPI totals, chips, and ledger.</em></p>
+<img src="assets/screenshots/dashboard_v3.png" alt="Screen 2: Dark Obsidian Emerald Dashboard" width="840" style="border-radius: 12px; border: 1.5px solid #059669;"/>
+<p><em>Screen 2A (Obsidian Emerald Studio Dashboard): 3-card Hero row with Living Biosphere, Mascot Speech Cloud, Turtle Rosette Vault (2/3 collected), KPIs, and Quick-Log chips.</em></p>
+</div>
+
+<div align="center">
+<img src="assets/screenshots/dashboard_light_v1.png" alt="Screen 2B: Creamy Botanical Light Mode Dashboard" width="840" style="border-radius: 12px; border: 1.5px solid #2D6A4F;"/>
+<p><em>Screen 2B (Creamy Botanical Light Mode): Warm parchment gradients, earthy sage borders, sharp delta pills, and full contrast across buttons and inputs.</em></p>
+</div>
+
+<div align="center">
+<img src="assets/screenshots/analytics_v1.png" alt="Interactive Optimizer, Altair Charts, and Searchable Progress Ledger" width="840" style="border-radius: 12px; border: 1.5px solid #059669;"/>
+<p><em>Screen 2C (Interactive Analytics & Action): What-If Carbon Optimizer swap suggestion, color-coded Altair Category Bar + Ethical Split Donut charts, and searchable Progress Ledger with Eco Scorecard download.</em></p>
+</div>
+
+<div align="center">
+<img src="assets/screenshots/wall_of_badges_v2.png" alt="Screen 3: Wall of Badges and Procedural Turtle Art Vault" width="840" style="border-radius: 12px; border: 1.5px solid #059669;"/>
+<p><em>Screen 3 (Wall of Badges & Procedural Turtle Art Vault): 4 of 5 live badges unlocked alongside the complete 3-piece botanical Turtle vector art collection.</em></p>
 </div>
 
 ---
@@ -301,36 +319,37 @@ Designed with calm, earthy colors matching eco-friendly habits: **Obsidian Emera
 ## Stage 4: Testing & creative features
 
 ### Testing with 10 to 15 purchases
-As suggested in the brief, I tested ShopImpact by acting as a first-time user and entering **12 mixed purchases** spanning expensive, cheap, eco, and non-eco items (plus adopting a greener swap as item #13 and testing **Undo** back to 12):
+As suggested in the brief, I tested ShopImpact by acting as a first-time user and entering **12 mixed purchases** spanning expensive, cheap, eco, and non-eco items (plus adopting a greener swap as item #13, exercising the What-If Optimizer drop from `523.34 kg` to `215.89 kg`, toggling Creamy Light Mode, and testing **Undo** back to 12):
 
 | Test Group | Sample Purchases Entered (12 Total) | Prices Tested | Observed Result |
 | :--- | :--- | :---: | :--- |
-| **Cheap Eco** | Fair-Trade Coffee, Glass Pantry Jar Pack, Bamboo Water Bottle | `$4.50 to $24` | Totals updated live (`0.25 to 1.18 kg`); Pip put on gold sunglasses; Turtle drew Gold Badge & Leaf. |
+| **Cheap Eco** | Fair-Trade Coffee, Glass Pantry Jar Pack, Bamboo Water Bottle | `$4.50 to $24` | Totals updated live (`0.25 to 1.18 kg`); Pip put on gold sunglasses; Turtle drew Gold Rosette & Leaf. |
 | **Mid-Range Eco** | Vintage Denim Jacket, Organic Produce Box, Thrifted Wool Coat | `$32 to $48` | Applied 30% eco discount; unlocked *Seed Starter*, *Conscious Pioneer*, and *Zero-Waste Hero*. |
-| **Expensive Eco** | Refurbished Laptop (`Back Market`) | `$280` | Logged just `21.56 kg` CO₂ (vs `154 kg` new); raised Carbon Saved past `100 kg` and unlocked *Eco Saver*. |
+| **Expensive Eco** | Refurbished Laptop (`Back Market`) | `$280` | Logged just `21.56 kg` CO2 (vs `154 kg` new); raised Carbon Saved past `100 kg` and unlocked *Eco Saver*. |
 | **Non-Eco (Cheap & Expensive)** | Plastic Bins, Fast-Fashion Sweater, Packaged Snacks, Leather Shoes (`$130`), Smartphone (`$320`) | `$22 to $320` | Intensity rose to `0.33 kg/$`; Biosphere switched to red Overload and *Low Impact Shopper* stayed locked (`> 0.25 kg/$`). |
 
 **Verification checks from testing:**
-- **Do totals update immediately?** Yes. All 4 KPIs (`$989.50` spend, `329.4 kg` CO₂, `115.8 kg` avoided, `15.7 Trees`), charts, and the ledger update right away on every submit.
-- **Are badges awarded correctly?** Yes. All 4 earned badges unlocked at the exact thresholds while *Low Impact Shopper* stayed locked until intensity drops below `0.25 kg/$`.
-- **Does Turtle drawing appear at the right time?** Yes. Eco Leaf, Low Footprint, and Gold Rosette appear right beside the mascot on low-carbon/ethical picks and clear cleanly on heavy purchases or Undo.
+- **Do totals update immediately?** Yes. All 4 KPIs (`$989.50` spend, `329.4 kg` CO2, `115.8 kg` avoided, `15.7 Trees`), Altair charts, and the ledger update right away on every submit and optimizer swap.
+- **Are badges awarded correctly?** Yes. All 4 earned badges unlocked at exact thresholds while *Low Impact Shopper* stayed locked until carbon intensity dropped below `0.25 kg/$`.
+- **Does Turtle drawing appear at the right time?** Yes. Eco Leaf, Earth Step Medallion, and Championship Rosette unlock beside the mascot on low-carbon/ethical picks and can be exported as `.png` files.
 
 ### Proof of tests (3 sample screenshots collage)
 
 <div align="center">
-<img src="assets/screenshots/test_proof_collage.png" alt="Collage of 3 test screenshots showing eco rewards, 12-purchase mix, and unlocked badges" width="900" style="border-radius: 12px; border: 1.5px solid #059669;"/>
-<p><em>3-Panel Test Proof Collage: (1) Eco purchase KPIs, Pristine Biosphere & Turtle Rosette reward; (2) 12-purchase test showing Category Chart, Greener Swaps & Ledger with Brand column; (3) Wall of Badges unlocking dynamically (4 of 5 earned).</em></p>
+<img src="assets/screenshots/test_proof_collage_v2.png" alt="Collage of 3 test screenshots showing Studio Hero, 12-purchase Altair analytics, and Wall of Badges" width="900" style="border-radius: 12px; border: 1.5px solid #059669;"/>
+<p><em>3-Panel Test Proof Collage: (1) Eco studio hero, Living Biosphere & Turtle Rosette reward; (2) 12-purchase mix showing What-If Optimizer, Altair bar/donut charts & searchable ledger; (3) Wall of Badges unlocking dynamically (4 of 5 earned).</em></p>
 </div>
 
 ### Feedback & refinements we made
-After running tests and letting classmates and family try the app, we spotted 4 issues and fixed all of them:
+After running tests and letting classmates and family try the app, we spotted 5 friction points and fixed all of them:
 1. **Slow repetitive entry:** Friends found typing out small coffees or meals tedious, so we added the **6 one-click Quick-Log chips** right above the form.
-2. **Missing brand visibility in ledger:** A tester asked why the brand wasn't shown in the purchase history table, so we added the **Brand** column directly into both the ledger view and CSV export.
-3. **Stale mood after Undo:** Undoing the newest item previously left the mascot ecstatic from the removed item. We updated **Undo Last Purchase** to recalculate mascot mood and Turtle artwork cleanly from the remaining items.
-4. **Cloud Turtle crash & chip alignment:** Standard Python `turtle` uses `tkinter`, which fails on Linux cloud servers (`_tkinter.TclError`). We replaced it with our Pillow-based `HeadlessTurtle` engine and matched card heights (`min-height: 114px`) so all 6 Quick-Log buttons line up cleanly.
+2. **Missing brand visibility & search:** Testers asked for the vendor name and an easier way to scan 12+ purchases, so we added the **Brand column**, inline **CO2 ProgressColumn**, live **search box**, and **Eco picks only** filter.
+3. **High-impact blind spot:** Users wanted help spotting which single past purchase hurt their footprint most, so we built the **What-If Carbon Optimizer** to preview and apply the top swap in 1 click.
+4. **Stale mood & badge hunting:** Undoing an item now recomputes mascot mood and Turtle unlocks cleanly, and a **Next Milestone progress bar + Top Command switcher** keep goals visible even with the sidebar closed.
+5. **Cloud Turtle & Light Mode contrast:** Replacing desktop `tkinter` turtle with Pillow `HeadlessTurtle` eliminated cloud crashes, and custom Creamy Botanical styling fixed button and delta-pill contrast in Light Mode.
 
 ### Creative features added
-- **60 FPS Animated Living Biosphere Globe:** Custom SVG terrarium with swaying foliage and floating particles whose sky color and health status shift smoothly with monthly budget usage:
+- **60 FPS Animated Living Biosphere Globe:** Custom SVG terrarium with swaying foliage, glowing plaque base, and floating particles whose sky color shifts with monthly budget health:
   ```mermaid
   flowchart LR
       P["Monthly Budget %"] --> S1["<= 50%: Pristine Biosphere (Emerald)"]
@@ -339,25 +358,26 @@ After running tests and letting classmates and family try the app, we spotted 4 
       P --> S4["> 100%: Carbon Overload (Crimson)"]
   ```
 
-- **Cloud-Safe Headless Turtle Graphics (`HeadlessTurtle`):** Procedurally draws an **Eco Leaf 🌿** (for green food/circular buys), **Low Footprint 👣** (for low-CO₂ picks `<= 10 kg`), and a **32-Point Gold Rosette Medallion 🏆** (for ultra-green choices `<= 3 kg` or circular swaps):
+- **Cloud-Safe Headless Turtle Art Vault (`HeadlessTurtle`):** Procedurally draws multi-layered botanical artworks using trigonometric paths on Pillow RGBA canvases with 1-click `.png` download: **Eco Leaf** (green/circular picks), **Earth Step Medallion** (low-CO2 picks `<= 10 kg`), and **Championship Eco Rosette** (`<= 3 kg` or circular swaps):
   ```mermaid
   flowchart LR
-      T["Turtle State (x, y, heading)"] --> M["Trigonometric Steps<br>forward / left / arc"]
-      M --> IMG["Pillow RGBA Canvas"]
-      IMG --> ART["Eco Leaf • Footprint • Gold Rosette"]
+      T["Turtle State (x, y, heading)"] --> M["Trigonometric Steps<br>forward / left / petal mandala"]
+      M --> IMG["Pillow RGBA 280x280 Canvas"]
+      IMG --> ART["Eco Leaf • Earth Step • Gold Rosette"]
   ```
 
-- **Tree Offset Simulator, Eco Tips & Quotes:** Interactive `$5 to $500` budget simulator, 8 rotating eco facts, and 5 sustainability quotes.
+- **Eco Streaks, Daily Missions & What-If Carbon Optimizer:** Live ethical buying streak counter (`Current / Best`), daily eco mission completion pill, and 1-click optimization of your highest-emitting conventional item.
+- **Tree Offset Simulator & Downloadable Eco Scorecard:** Interactive `$5 to $500` pre-purchase impact slider alongside downloadable `.csv` transaction logs and `.md` Eco Scorecard summaries.
 
 ---
 
 ## Stage 5: Deploy & document our project
 
 ### Files uploaded to GitHub
-- `app.py` (Main Python & Streamlit application)
-- `requirements.txt` (Pinned packages: `streamlit>=1.35.0`, `pandas>=2.0.0`, `pillow>=10.0.0`)
+- `app.py` (Main Python & Streamlit studio application)
+- `requirements.txt` (Pinned packages: `streamlit>=1.35.0`, `pandas>=2.0.0`, `pillow>=10.0.0`, `altair>=5.0.0`)
 - `README.md` (Full project guide, logic breakdown, testing proof, and live link)
-- `assets/` (Design wireframe sketch at `/assets/sketch.png` and app screenshots inside `assets/screenshots/`)
+- `assets/` (Design wireframe sketch at `/assets/sketch.png` and verified app screenshots inside `assets/screenshots/`)
 
 ### Deployment instructions
 
