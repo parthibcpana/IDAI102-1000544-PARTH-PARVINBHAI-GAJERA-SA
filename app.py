@@ -1,8 +1,9 @@
+import base64
 import html
 import io
 import math
 import random
-from datetime import date, datetime
+from datetime import date
 import pandas as pd
 from PIL import Image, ImageDraw
 import streamlit as st
@@ -17,7 +18,7 @@ st.set_page_config(
     page_title="ShopImpact — Conscious Shopping Companion",
     page_icon="🌱",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 def render_html(html_str: str):
@@ -29,69 +30,15 @@ def render_html(html_str: str):
 # ------------------------------------------------------------------------------
 
 CATEGORIES = {
-    "Fast Fashion Apparel": {
-        "multiplier": 0.42,
-        "rating": "High Carbon",
-        "tier": "⚠️ High",
-        "icon": "👗",
-        "fact": "Synthetic polyester spinning and chemical dyeing create heavy industrial greenhouse footprints."
-    },
-    "Footwear & Leather": {
-        "multiplier": 0.65,
-        "rating": "Very High",
-        "tier": "🚨 Heavy",
-        "icon": "👞",
-        "fact": "Bovine cattle methane and chromium tanning drive intense greenhouse gas emissions."
-    },
-    "Consumer Electronics": {
-        "multiplier": 0.55,
-        "rating": "High Carbon",
-        "tier": "🚨 Heavy",
-        "icon": "📱",
-        "fact": "Silicon semiconductor fabrication and rare-earth mining account for ~80% of lifecycle CO₂."
-    },
-    "Refurbished Tech": {
-        "multiplier": 0.11,
-        "rating": "Low Carbon",
-        "tier": "🌾 Conscious",
-        "icon": "♻️",
-        "fact": "Eliminates virgin mineral extraction; accounts only for diagnostics, clean transport, and testing."
-    },
-    "Second-Hand / Thrift": {
-        "multiplier": 0.05,
-        "rating": "Minimal Impact",
-        "tier": "🌿 Ultra-Green",
-        "icon": "🧥",
-        "fact": "Pure circular economy; original manufacturing emissions are 100% amortized."
-    },
-    "Packaged Groceries": {
-        "multiplier": 0.38,
-        "rating": "Medium-High",
-        "tier": "⚠️ High",
-        "icon": "🛒",
-        "fact": "Industrial food processing and multi-layer plastic packaging add embodied supply-chain carbon."
-    },
-    "Local / Organic Food": {
-        "multiplier": 0.08,
-        "rating": "Low Carbon",
-        "tier": "🌿 Ultra-Green",
-        "icon": "🥗",
-        "fact": "Zero long-haul cold-chain freight and regenerative organic soil practices without synthetic nitrates."
-    },
-    "Home & Plastics": {
-        "multiplier": 0.46,
-        "rating": "High Carbon",
-        "tier": "⚠️ High",
-        "icon": "📦",
-        "fact": "Virgin petroleum feedstocks and high-temperature polymer molding drive heavy footprint."
-    },
-    "Zero-Waste Reusables": {
-        "multiplier": 0.07,
-        "rating": "Minimal Impact",
-        "tier": "🌿 Ultra-Green",
-        "icon": "🌿",
-        "fact": "Durable steel and bamboo displace hundreds of single-use disposable plastics across their lifespan."
-    },
+    "Fast Fashion Apparel": {"multiplier": 0.42, "rating": "High Carbon", "tier": "⚠️ High", "icon": "👗", "fact": "Synthetic polyester spinning and chemical dyeing create heavy industrial greenhouse footprints."},
+    "Footwear & Leather": {"multiplier": 0.65, "rating": "Very High", "tier": "🚨 Heavy", "icon": "👞", "fact": "Bovine cattle methane and chromium tanning drive intense greenhouse gas emissions."},
+    "Consumer Electronics": {"multiplier": 0.55, "rating": "High Carbon", "tier": "🚨 Heavy", "icon": "📱", "fact": "Silicon semiconductor fabrication and rare-earth mining account for ~80% of lifecycle CO₂."},
+    "Refurbished Tech": {"multiplier": 0.11, "rating": "Low Carbon", "tier": "🌾 Conscious", "icon": "♻️", "fact": "Eliminates virgin mineral extraction; accounts only for diagnostics, clean transport, and testing."},
+    "Second-Hand / Thrift": {"multiplier": 0.05, "rating": "Minimal Impact", "tier": "🌿 Ultra-Green", "icon": "🧥", "fact": "Pure circular economy; original manufacturing emissions are 100% amortized."},
+    "Packaged Groceries": {"multiplier": 0.38, "rating": "Medium-High", "tier": "⚠️ High", "icon": "🛒", "fact": "Industrial food processing and multi-layer plastic packaging add embodied supply-chain carbon."},
+    "Local / Organic Food": {"multiplier": 0.08, "rating": "Low Carbon", "tier": "🌿 Ultra-Green", "icon": "🥗", "fact": "Zero long-haul cold-chain freight and regenerative organic soil practices without synthetic nitrates."},
+    "Home & Plastics": {"multiplier": 0.46, "rating": "High Carbon", "tier": "⚠️ High", "icon": "📦", "fact": "Virgin petroleum feedstocks and high-temperature polymer molding drive heavy footprint."},
+    "Zero-Waste Reusables": {"multiplier": 0.07, "rating": "Minimal Impact", "tier": "🌿 Ultra-Green", "icon": "🌿", "fact": "Durable steel and bamboo displace hundreds of single-use disposable plastics across their lifespan."},
 }
 
 QUICK_PURCHASES = [
@@ -116,26 +63,18 @@ ETHICAL_ALTERNATIVES = {
         {"brand": "Back Market Refurbished", "perk": "Certified renew tech avoids toxic raw mineral mining", "saving": "82%"},
         {"brand": "Fairphone Modular", "perk": "Repairable modular build with 5-year guaranteed spare parts", "saving": "60%"},
     ],
-    "Refurbished Tech": [
-        {"brand": "Certified Renewed Hub", "perk": "Optimal circular loop! Extends hardware life by 3+ years", "saving": "Optimal"},
-    ],
-    "Second-Hand / Thrift": [
-        {"brand": "Community Thrift Center", "perk": "Top-tier circular reuse; zero new factory footprint", "saving": "Optimal"},
-    ],
+    "Refurbished Tech": [{"brand": "Certified Renewed Hub", "perk": "Optimal circular loop! Extends hardware life by 3+ years", "saving": "Optimal"}],
+    "Second-Hand / Thrift": [{"brand": "Community Thrift Center", "perk": "Top-tier circular reuse; zero new factory footprint", "saving": "Optimal"}],
     "Packaged Groceries": [
         {"brand": "Local Farmers Market", "perk": "Seasonal crops, zero air-miles & plastic-free baskets", "saving": "58%"},
         {"brand": "Bulk Food Co-op", "perk": "Bring-your-own container pantry essentials with zero waste", "saving": "45%"},
     ],
-    "Local / Organic Food": [
-        {"brand": "Community CSA Farm", "perk": "Regenerative soil farming preserving local groundwater", "saving": "Optimal"},
-    ],
+    "Local / Organic Food": [{"brand": "Community CSA Farm", "perk": "Regenerative soil farming preserving local groundwater", "saving": "Optimal"}],
     "Home & Plastics": [
         {"brand": "Zero-Waste Refill Station", "perk": "Refill bulk cleaners in reusable glass jars", "saving": "75%"},
         {"brand": "Bamboo & Steel Essentials", "perk": "Fast-growing renewable bamboo; fully biodegradable", "saving": "68%"},
     ],
-    "Zero-Waste Reusables": [
-        {"brand": "Circular Home Refill", "perk": "Gold standard zero-waste; keeps oceans and landfills clean", "saving": "Optimal"},
-    ],
+    "Zero-Waste Reusables": [{"brand": "Circular Home Refill", "perk": "Gold standard zero-waste; keeps oceans and landfills clean", "saving": "Optimal"}],
 }
 
 ECO_MASCOTS = {
@@ -166,385 +105,292 @@ SUSTAINABILITY_QUOTES = [
 ]
 
 # ------------------------------------------------------------------------------
-# 60 FPS ANIMATED SVG LIVING BIOSPHERE / CARBON GLOBE ENGINE
+# BOTANICAL SVG HERO LANDSCAPE (Ecovista-Inspired Welcome Artwork + Man & Turtle)
 # ------------------------------------------------------------------------------
 
-def render_animated_biosphere_svg(used_pct, co2_tot, budget_limit, width=210, height=300):
-    """Renders a living glass terrarium globe reflecting live carbon budget health."""
+def render_welcome_landscape_svg(dark=False):
+    """Layered flat-botanical SVG horizon with wind turbines, sunlit trees, cottages, shopper & turtle."""
+    sky_top = "#18271E" if dark else "#FAFCE8"
+    sky_bot = "#1F3325" if dark else "#E1F1DB"
+    sun_ray = "#2E4632" if dark else "#F6EEBA"
+    hill1 = "#294630" if dark else "#CDE3BA"
+    hill2 = "#213D27" if dark else "#A7CE84"
+    hill3 = "#1B3321" if dark else "#6A9E4B"
+    hill4 = "#142719" if dark else "#3C6B32"
+    path_col = "#364B2C" if dark else "#EDE197"
+    house_wall = "#D9E5D6" if dark else "#FFFDF8"
+    house_roof = "#A95043"
+    tree_gold = "#CCA845" if dark else "#DCC150"
+    tree_pine = "#112217" if dark else "#224628"
+    card_stroke = "#364F3B" if dark else "#FFFFFF"
+    win_fill = "rgba(19,28,23,0.62)" if dark else "rgba(255,255,255,0.62)"
+    win_kicker = "#8DC06F" if dark else "#4E7E36"
+    win_title = "#ECF3EA" if dark else "#13261B"
+    win_sub = "#B7CCBC" if dark else "#46604E"
+
+    svg_str = f"""
+    <svg viewBox="0 0 1120 330" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="eco-sky" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="{sky_top}"/>
+          <stop offset="100%" stop-color="{sky_bot}"/>
+        </linearGradient>
+      </defs>
+      <style>
+        @keyframes spin-turb {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
+        @keyframes balloon-drift {{ 0%, 100% {{ transform: translateY(0px); }} 50% {{ transform: translateY(-7px); }} }}
+        .turb-a {{ animation: spin-turb 14s linear infinite; transform-origin: 410px 186px; }}
+        .turb-b {{ animation: spin-turb 19s linear infinite; transform-origin: 270px 218px; }}
+        .balloon {{ animation: balloon-drift 4.5s ease-in-out infinite; }}
+      </style>
+
+      <!-- Morning Botanical Sky & Soft Solar Beams -->
+      <rect width="1120" height="330" fill="url(#eco-sky)"/>
+      <polygon points="1030,0 1120,0 1120,165 650,330 430,330" fill="{sun_ray}" opacity="0.42"/>
+      <circle cx="1015" cy="48" r="34" fill="#F2DC78" opacity="0.65"/>
+
+      <!-- Drifting Hot Air Balloon & Silhouette Birds -->
+      <g class="balloon">
+        <ellipse cx="1062" cy="82" rx="11" ry="14" fill="#A66BB0" stroke="#743E7D" stroke-width="1"/>
+        <path d="M 1054 88 L 1058 100 M 1070 88 L 1066 100" stroke="#4D6655" stroke-width="1"/>
+        <rect x="1057" y="99" width="10" height="6" rx="1.5" fill="#7D5A44"/>
+      </g>
+      <path d="M 140 62 Q 146 56 152 62 Q 158 56 164 62 M 185 78 Q 190 73 195 78 Q 200 73 205 78" fill="none" stroke="#5A7A63" stroke-width="1.6" stroke-linecap="round"/>
+
+      <!-- Layered Flat Rolling Botanical Hills -->
+      <path d="M 0 218 Q 190 175 430 205 T 890 185 T 1120 198 L 1120 330 L 0 330 Z" fill="{hill1}"/>
+      <path d="M 0 238 Q 260 202 520 226 T 1120 196 L 1120 330 L 0 330 Z" fill="{hill2}"/>
+
+      <!-- Far Horizon Windmills -->
+      <line x1="150" y1="215" x2="150" y2="256" stroke="#224428" stroke-width="2"/>
+      <path d="M 150 215 L 138 202 M 150 215 L 164 214 M 150 215 L 146 229" stroke="#224428" stroke-width="2" stroke-linecap="round"/>
+      <line x1="270" y1="218" x2="270" y2="262" stroke="#1E3C24" stroke-width="2.5"/>
+      <g class="turb-b">
+        <path d="M 270 218 L 270 193 M 270 218 L 292 229 M 270 218 L 250 232" stroke="#1E3C24" stroke-width="2.4" stroke-linecap="round"/>
+      </g>
+
+      <!-- Main Foreground Meadow & Golden Sunlit Field -->
+      <path d="M 0 264 Q 360 250 740 258 T 1120 242 L 1120 330 L 0 330 Z" fill="{hill3}"/>
+      <polygon points="460,295 860,275 880,298 465,310" fill="{path_col}" opacity="0.88"/>
+      <path d="M 0 294 Q 440 278 780 288 T 1120 262 L 1120 330 L 0 330 Z" fill="{hill4}"/>
+
+      <!-- Valley Cottages on Left Horizon -->
+      <g>
+        <rect x="48" y="246" width="24" height="16" fill="{house_wall}"/>
+        <polygon points="45,246 60,237 75,246" fill="{house_roof}"/>
+        <rect x="82" y="240" width="38" height="22" fill="{house_wall}"/>
+        <polygon points="79,240 101,228 123,240" fill="{house_roof}"/>
+        <rect x="130" y="242" width="44" height="20" fill="{house_wall}"/>
+        <polygon points="127,242 152,231 177,242" fill="{house_roof}"/>
+        <rect x="92" y="248" width="6" height="8" fill="#5B6E61"/>
+        <rect x="142" y="248" width="6" height="7" fill="#5B6E61"/>
+      </g>
+
+      <!-- Hero Wind Turbine -->
+      <polygon points="407,186 413,186 416,282 404,282" fill="#183020"/>
+      <ellipse cx="416" cy="282" rx="20" ry="4" fill="#183020" opacity="0.55"/>
+      <g class="turb-a">
+        <path d="M 410 186 L 434 152 L 414 188 Z" fill="#1D3A26"/>
+        <path d="M 410 186 L 368 179 L 408 189 Z" fill="#1D3A26"/>
+        <path d="M 410 186 L 424 226 L 408 188 Z" fill="#1D3A26"/>
+        <circle cx="410" cy="186" r="4" fill="#3B6239"/>
+      </g>
+
+      <!-- Mindful Shopper Man + Companion Sea Turtle on Sunlit Eco Path -->
+      <g transform="translate(540, 224)">
+        <!-- Man's soft shadow -->
+        <ellipse cx="22" cy="70" rx="18" ry="4.5" fill="#13261B" opacity="0.28"/>
+        <!-- Legs walking -->
+        <line x1="17" y1="45" x2="12" y2="68" stroke="#233A2D" stroke-width="5" stroke-linecap="round"/>
+        <line x1="25" y1="45" x2="31" y2="68" stroke="#2F4E3C" stroke-width="5" stroke-linecap="round"/>
+        <!-- Olive Coat / Torso -->
+        <path d="M 10 22 Q 21 17 32 22 L 34 48 L 10 48 Z" fill="#4E7E36"/>
+        <!-- Canvas Reusable Eco Tote Bag -->
+        <rect x="28" y="34" width="14" height="17" rx="2.5" fill="#F2E4B5" stroke="#8C7343" stroke-width="1.3"/>
+        <path d="M 31 34 Q 35 27 39 34" fill="none" stroke="#8C7343" stroke-width="1.4"/>
+        <circle cx="35" cy="43" r="2.8" fill="#4E7E36"/>
+        <!-- Head + Friendly Hair -->
+        <circle cx="21" cy="11" r="7.5" fill="#E8B892"/>
+        <path d="M 14 9 Q 21 1 28 9 Z" fill="#2A2623"/>
+        <line x1="28" y1="25" x2="35" y2="35" stroke="#4E7E36" stroke-width="4" stroke-linecap="round"/>
+
+        <!-- Companion Turtle walking beside him -->
+        <g transform="translate(52, 50)">
+          <ellipse cx="14" cy="20" rx="14" ry="3.5" fill="#13261B" opacity="0.25"/>
+          <ellipse cx="6" cy="18" rx="3" ry="4" fill="#6DA452"/>
+          <ellipse cx="21" cy="18" rx="3" ry="4" fill="#6DA452"/>
+          <path d="M 2 15 Q 14 0 26 15 Z" fill="#3D6B35" stroke="#1E3C24" stroke-width="1.5"/>
+          <ellipse cx="14" cy="15" rx="12" ry="3.5" fill="#D9B44A"/>
+          <circle cx="29" cy="12" r="5" fill="#77B15A" stroke="#1E3C24" stroke-width="1.3"/>
+          <circle cx="31" cy="11" r="1.2" fill="#13261B"/>
+        </g>
+      </g>
+
+      <!-- Right Botanical Grove (Autumn Birch & Deep Pine) -->
+      <g>
+        <ellipse cx="860" cy="230" rx="36" ry="32" fill="#D1B24C" opacity="0.92"/>
+        <ellipse cx="888" cy="212" rx="32" ry="34" fill="{tree_gold}" opacity="0.92"/>
+        <path d="M 862 285 L 862 225 M 862 246 L 882 226 M 862 252 L 844 236" stroke="#2B2118" stroke-width="3" stroke-linecap="round"/>
+        <!-- Slender Golden Conifer -->
+        <polygon points="942,102 918,248 966,248" fill="{tree_gold}" opacity="0.95"/>
+        <rect x="940" y="102" width="4" height="186" fill="#291E15"/>
+        <!-- Tall Deep Evergreen Fir -->
+        <polygon points="1010,126 968,266 1052,266" fill="{tree_pine}"/>
+        <polygon points="1010,104 978,195 1042,195" fill="#2B5530"/>
+        <ellipse cx="972" cy="266" rx="75" ry="20" fill="#234227"/>
+      </g>
+
+      <!-- Crisp Editorial Inner Window Border Like Reference Hero -->
+      <rect x="74" y="22" width="972" height="196" rx="18" fill="{win_fill}" stroke="{card_stroke}" stroke-width="1.6"/>
+      <text x="560" y="64" text-anchor="middle" fill="{win_kicker}" font-size="13" font-weight="800" letter-spacing="1.4" font-family="sans-serif">CONSCIOUS SHOPPING COMPANION • ECO STUDIO</text>
+      <text x="560" y="108" text-anchor="middle" fill="{win_title}" font-size="34" font-weight="900" font-family="sans-serif">Illuminating Everyday Choices</text>
+      <text x="560" y="148" text-anchor="middle" fill="{win_title}" font-size="34" font-weight="900" font-family="sans-serif">with Sustainable Action</text>
+      <text x="560" y="182" text-anchor="middle" fill="{win_sub}" font-size="15" font-weight="600" font-family="sans-serif">Track real CO₂e footprints, meet your animated companion, and turn low-waste picks into collectible Turtle art.</text>
+    </svg>
+    """.strip()
+    b64 = base64.b64encode(svg_str.encode("utf-8")).decode("ascii")
+    return f'<img src="data:image/svg+xml;base64,{b64}" alt="ShopImpact Botanical Horizon" style="width:100%; height:auto; display:block; border-radius:22px; border:1px solid rgba(78,126,54,0.14); box-shadow:0 12px 36px rgba(24,48,30,0.08);"/>'
+
+# ------------------------------------------------------------------------------
+# ANIMATED SVG LIVING BIOSPHERE & 5 MASCOT ENGINE (Ecovista Palette)
+# ------------------------------------------------------------------------------
+
+def render_animated_biosphere_svg(used_pct, co2_tot, budget_limit, width=185, height=238):
     pct = min(150.0, max(0.0, float(used_pct)))
-    
     if pct <= 50.0:
-        sky_top, sky_bot = "#064e3b", "#022c22"
-        glow_color = "#34d399"
-        canopy_color = "#10b981"
-        terrain_color = "#047857"
-        status_text = "PRISTINE BIOSPHERE"
-        status_color = "#34d399"
+        sky_top, sky_bot = "#F2F9EC", "#D4E9C9"
+        ring_col, canopy_col, hill_col = "#4E7E36", "#6DA452", "#92C273"
+        status_text, status_col = "PRISTINE BIOSPHERE", "#3F6E2C"
     elif pct <= 85.0:
-        sky_top, sky_bot = "#1e3a1e", "#0f2014"
-        glow_color = "#10b981"
-        canopy_color = "#22c55e"
-        terrain_color = "#15803d"
-        status_text = "BALANCED ECOSYSTEM"
-        status_color = "#4ade80"
+        sky_top, sky_bot = "#EDF6E6", "#CCE2BE"
+        ring_col, canopy_col, hill_col = "#5E9143", "#7FB462", "#A4CD88"
+        status_text, status_col = "BALANCED ECOSYSTEM", "#4E7E36"
     elif pct <= 100.0:
-        sky_top, sky_bot = "#3b2606", "#201402"
-        glow_color = "#f59e0b"
-        canopy_color = "#d97706"
-        terrain_color = "#92400e"
-        status_text = "BUDGET WARNING"
-        status_color = "#fbbf24"
+        sky_top, sky_bot = "#FCF6E6", "#F2DFB4"
+        ring_col, canopy_col, hill_col = "#C88C28", "#DCA746", "#BFA054"
+        status_text, status_col = "BUDGET WARNING", "#B07514"
     else:
-        sky_top, sky_bot = "#450a0a", "#1c0404"
-        glow_color = "#ef4444"
-        canopy_color = "#b91c1c"
-        terrain_color = "#7f1d1d"
-        status_text = "CARBON OVERLOAD"
-        status_color = "#f87171"
+        sky_top, sky_bot = "#FBECE9", "#EFC5BD"
+        ring_col, canopy_col, hill_col = "#C45B4D", "#B84C3F", "#9E463B"
+        status_text, status_col = "CARBON OVERLOAD", "#B24436"
 
     return f"""
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 310" width="{width}" height="{height}" style="display: block; margin: 0 auto; filter: drop-shadow(0 8px 24px rgba(16, 185, 129, 0.25));">
-    <defs>
-        <radialGradient id="bio-sky" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="{sky_top}"/>
-            <stop offset="100%" stop-color="{sky_bot}"/>
-        </radialGradient>
-        <linearGradient id="bio-glass" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
-            <stop offset="25%" stop-color="#34d399" stop-opacity="0.10"/>
-            <stop offset="70%" stop-color="#ffffff" stop-opacity="0.05"/>
-            <stop offset="100%" stop-color="{glow_color}" stop-opacity="0.25"/>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 278" width="{width}" height="{height}" style="display:block; margin:0 auto;">
+      <defs>
+        <linearGradient id="bs-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="{sky_top}"/><stop offset="100%" stop-color="{sky_bot}"/>
         </linearGradient>
-        <linearGradient id="bio-pedestal" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#1e293b"/>
-            <stop offset="50%" stop-color="#0f172a"/>
-            <stop offset="100%" stop-color="#020617"/>
-        </linearGradient>
-        <clipPath id="globe-clip">
-            <circle cx="110" cy="115" r="85"/>
-        </clipPath>
-    </defs>
-    <style>
-        @keyframes canopy-sway {{
-            0%, 100% {{ transform: rotate(0deg); }}
-            50% {{ transform: rotate(2.5deg); }}
-        }}
-        @keyframes spore-float {{
-            0% {{ transform: translateY(0px) translateX(0px); opacity: 0.8; }}
-            50% {{ transform: translateY(-30px) translateX(10px); opacity: 0.3; }}
-            100% {{ transform: translateY(-55px) translateX(-5px); opacity: 0; }}
-        }}
-        @keyframes sun-pulse {{
-            0%, 100% {{ transform: scale(1); opacity: 0.85; }}
-            50% {{ transform: scale(1.15); opacity: 1.0; }}
-        }}
-        .sway {{ animation: canopy-sway 4s ease-in-out infinite; transform-origin: 110px 145px; }}
-        .spore-1 {{ animation: spore-float 3.5s infinite; }}
-        .spore-2 {{ animation: spore-float 2.8s infinite 1.2s; }}
-        .sun {{ animation: sun-pulse 3s ease-in-out infinite; transform-origin: 145px 70px; }}
-    </style>
-
-    <!-- Globe Interior (Clipped to Spherical Circle) -->
-    <g clip-path="url(#globe-clip)">
-        <!-- Atmospheric Sky -->
-        <rect x="25" y="30" width="170" height="170" fill="url(#bio-sky)"/>
-
-        <!-- Radiant Celestial Sun / Eco Beacon -->
-        <circle class="sun" cx="145" cy="70" r="16" fill="{glow_color}" opacity="0.85"/>
-        <circle cx="145" cy="70" r="9" fill="#ffffff" opacity="0.95"/>
-
-        <!-- Ambient Rolling Terrarium Hills -->
-        <path d="M 25 170 Q 65 140 110 152 T 195 148 L 195 205 L 25 205 Z" fill="{terrain_color}" opacity="0.6"/>
-        <path d="M 25 175 Q 85 152 130 164 T 195 160 L 195 205 L 25 205 Z" fill="{terrain_color}"/>
-
-        <!-- Ancient Living Tree of Biosphere -->
-        <path d="M 105 178 C 106 155 103 140 107 132 C 109 128 111 128 113 132 C 117 140 114 155 115 178 Z" fill="#78350f"/>
-        <!-- Swaying Canopy Foliage -->
-        <g class="sway">
-            <ellipse cx="110" cy="114" rx="32" ry="24" fill="{canopy_color}" opacity="0.9"/>
-            <ellipse cx="94" cy="108" rx="20" ry="16" fill="{canopy_color}"/>
-            <ellipse cx="126" cy="108" rx="20" ry="16" fill="{canopy_color}"/>
-            <circle cx="110" cy="94" r="16" fill="#34d399" opacity="0.85"/>
-            <!-- Blossom Spores -->
-            <circle cx="98" cy="102" r="2.8" fill="#fef08a"/>
-            <circle cx="122" cy="102" r="2.8" fill="#fef08a"/>
-            <circle cx="110" cy="114" r="2.8" fill="#fef08a"/>
+        <clipPath id="bs-clip"><circle cx="110" cy="96" r="78"/></clipPath>
+      </defs>
+      <style>
+        @keyframes b-sway {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(2.4deg); }} }}
+        @keyframes b-spore {{ 0% {{ transform: translateY(0); opacity: 0.8; }} 100% {{ transform: translateY(-38px); opacity: 0; }} }}
+        .b-sway {{ animation: b-sway 4s ease-in-out infinite; transform-origin: 110px 132px; }}
+        .b-sp1 {{ animation: b-spore 3.6s infinite; }}
+        .b-sp2 {{ animation: b-spore 2.9s infinite 1.2s; }}
+      </style>
+      <g clip-path="url(#bs-clip)">
+        <rect x="30" y="16" width="160" height="160" fill="url(#bs-sky)"/>
+        <circle cx="144" cy="56" r="14" fill="#E8CA5B" opacity="0.85"/>
+        <path d="M 30 144 Q 75 118 118 128 T 190 124 L 190 180 L 30 180 Z" fill="{hill_col}" opacity="0.7"/>
+        <path d="M 30 150 Q 95 130 140 140 T 190 138 L 190 180 L 30 180 Z" fill="{ring_col}" opacity="0.9"/>
+        <rect x="106" y="108" width="8" height="44" rx="3" fill="#6F4B2C"/>
+        <g class="b-sway">
+          <ellipse cx="110" cy="96" rx="28" ry="21" fill="{canopy_col}"/>
+          <ellipse cx="94" cy="90" rx="18" ry="14" fill="{ring_col}" opacity="0.9"/>
+          <ellipse cx="125" cy="90" rx="17" ry="13" fill="{canopy_col}"/>
+          <circle cx="101" cy="86" r="2.6" fill="#FAF0B5"/>
+          <circle cx="120" cy="89" r="2.4" fill="#FAF0B5"/>
         </g>
+        <circle class="b-sp1" cx="84" cy="126" r="2.5" fill="{ring_col}"/>
+        <circle class="b-sp2" cx="136" cy="132" r="2.2" fill="#E8CA5B"/>
+      </g>
+      <circle cx="110" cy="96" r="78" fill="none" stroke="{ring_col}" stroke-width="2.6"/>
+      <path d="M 54 62 A 72 72 0 0 1 98 28" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" opacity="0.65"/>
 
-        <!-- Floating Life Spores / Bio-particles -->
-        <circle class="spore-1" cx="85" cy="145" r="2.8" fill="{glow_color}"/>
-        <circle class="spore-2" cx="135" cy="155" r="2.4" fill="#fef08a"/>
-
-        <!-- Glass Shadow Inner Curvature -->
-        <circle cx="110" cy="115" r="83" fill="none" stroke="{glow_color}" stroke-width="2.5" opacity="0.3"/>
-    </g>
-
-    <!-- Outer Glass Globe Orb -->
-    <circle cx="110" cy="115" r="85" fill="url(#bio-glass)" stroke="{glow_color}" stroke-width="3"/>
-
-    <!-- Specular Highlight Sheen (Simulating 3D Curved Glass Reflections) -->
-    <path d="M 50 75 A 80 80 0 0 1 100 38" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" opacity="0.55"/>
-    <circle cx="150" cy="155" r="4.0" fill="#ffffff" opacity="0.35"/>
-
-    <!-- Brass / Obsidian Pedestal Base -->
-    <ellipse cx="110" cy="208" rx="42" ry="11" fill="url(#bio-pedestal)" stroke="{glow_color}" stroke-width="2"/>
-    <path d="M 80 210 L 66 238 C 66 244 154 244 154 238 L 140 210 Z" fill="url(#bio-pedestal)" stroke="#0f172a" stroke-width="2"/>
-    <rect x="60" y="220" width="100" height="26" rx="13" fill="#0f172a" stroke="{glow_color}" stroke-width="2.2"/>
-
-    <!-- Centerpiece Typography Badge Inside Base -->
-    <text x="110" y="237" text-anchor="middle" fill="#ffffff" font-size="11.5" font-weight="900" font-family="sans-serif">{pct:.0f}% BUDGET</text>
-    <text x="110" y="264" text-anchor="middle" fill="{status_color}" font-size="8.2" font-weight="800" font-family="sans-serif" letter-spacing="0.6">{status_text}</text>
-
-    <!-- Bottom Readout Caption -->
-    <text x="110" y="283" text-anchor="middle" fill="#64748b" font-size="10.8" font-weight="700" font-family="sans-serif">{co2_tot:.1f} / {budget_limit} kg CO₂e</text>
-    <text x="110" y="299" text-anchor="middle" fill="{status_color}" font-size="9.5" font-weight="700" font-family="sans-serif">Remaining: {max(0.0, budget_limit - co2_tot):.1f} kg</text>
+      <!-- Clean Matte Botanical Base & Unobstructed Pill Plaque -->
+      <path d="M 80 174 L 68 198 L 152 198 L 140 174 Z" fill="#233829"/>
+      <rect x="58" y="188" width="104" height="24" rx="12" fill="#18281D" stroke="{ring_col}" stroke-width="2"/>
+      <text x="110" y="204" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800" font-family="sans-serif">{pct:.0f}% BUDGET</text>
+      <text x="110" y="232" text-anchor="middle" fill="{status_col}" font-size="8.6" font-weight="800" font-family="sans-serif" letter-spacing="0.6">{status_text}</text>
+      <text x="110" y="250" text-anchor="middle" fill="#647869" font-size="10.8" font-weight="700" font-family="sans-serif">{co2_tot:.1f} / {budget_limit} kg CO₂e</text>
+      <text x="110" y="266" text-anchor="middle" fill="{status_col}" font-size="9.5" font-weight="700" font-family="sans-serif">Remaining: {max(0.0, budget_limit - co2_tot):.1f} kg</text>
     </svg>
     """
 
-# ------------------------------------------------------------------------------
-# 5-CHARACTER ANIMATED SVG MASCOT AVATAR ENGINE
-# ------------------------------------------------------------------------------
-
-def render_animated_avatar_svg(character="turtle", mood="happy", width=180, height=180):
+def render_animated_avatar_svg(character="turtle", mood="happy", width=155, height=155):
     if character in ["ecstatic", "happy", "mindful", "worried", "alarmed"]:
-        mood = character
-        character = "turtle"
+        mood, character = character, "turtle"
+    ck = str(character).lower()
+    c_type = "fox" if "fox" in ck else "owl" if "owl" in ck else "bee" if ("bee" in ck or "pollinator" in ck) else "panda" if "panda" in ck else "turtle"
+    shiver = "shiver" if mood in ["worried", "alarmed"] else "bob"
 
-    char_key = str(character).lower()
-    if "fox" in char_key: c_type = "fox"
-    elif "owl" in char_key: c_type = "owl"
-    elif "bee" in char_key or "pollinator" in char_key: c_type = "bee"
-    elif "panda" in char_key: c_type = "panda"
-    else: c_type = "turtle"
-
-    shiver_class = "shiver" if mood in ["worried", "alarmed"] else "bob"
-    
-    svg = f"""<svg width="{width}" height="{height}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto; filter: drop-shadow(0 6px 16px rgba(0,0,0,0.25));">
+    svg = f"""<svg width="{width}" height="{height}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
     <style>
-    @keyframes avatar-bob {{ 0%, 100% {{ transform: translateY(0px); }} 50% {{ transform: translateY(-7px); }} }}
-    @keyframes flipper-wave-l {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(24deg); }} }}
-    @keyframes flipper-wave-r {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(-24deg); }} }}
-    @keyframes sprout-sway {{ 0%, 100% {{ transform: rotate(-8deg); }} 50% {{ transform: rotate(8deg); }} }}
-    @keyframes eye-blink {{ 0%, 90%, 100% {{ transform: scaleY(1); }} 95% {{ transform: scaleY(0.1); }} }}
-    @keyframes sweat-drip {{ 0% {{ opacity: 0; transform: translateY(-4px); }} 40% {{ opacity: 1; transform: translateY(0px); }} 80% {{ opacity: 0; transform: translateY(7px); }} 100% {{ opacity: 0; transform: translateY(7px); }} }}
-    @keyframes avatar-shiver {{ 0%, 100% {{ transform: translate(0, 0); }} 25% {{ transform: translate(-2.5px, 1.5px); }} 75% {{ transform: translate(2.5px, -1.5px); }} }}
-    @keyframes wing-buzz {{ 0%, 100% {{ transform: scaleY(1); }} 50% {{ transform: scaleY(0.7) skewX(4deg); }} }}
-    .bob {{ animation: avatar-bob 2.2s ease-in-out infinite; transform-origin: center; }}
-    .shiver {{ animation: avatar-shiver 0.2s infinite; }}
-    .wave-l {{ animation: flipper-wave-l 1.3s ease-in-out infinite; transform-origin: 50px 85px; }}
-    .wave-r {{ animation: flipper-wave-r 1.3s ease-in-out infinite; transform-origin: 150px 85px; }}
-    .sprout {{ animation: sprout-sway 1.8s ease-in-out infinite; transform-origin: 100px 30px; }}
-    .blink {{ animation: eye-blink 3.8s infinite; transform-origin: 100px 50px; }}
-    .sweat {{ animation: sweat-drip 1.2s infinite; }}
-    .wings {{ animation: wing-buzz 0.15s ease-in-out infinite; transform-origin: 100px 90px; }}
-    </style>
-    <g class="{shiver_class}">"""
+      @keyframes av-bob {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-6px); }} }}
+      @keyframes av-shv {{ 0%, 100% {{ transform: translate(0,0); }} 25% {{ transform: translate(-2px,1px); }} 75% {{ transform: translate(2px,-1px); }} }}
+      @keyframes wv-l {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(22deg); }} }}
+      @keyframes wv-r {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(-22deg); }} }}
+      @keyframes sp-s {{ 0%, 100% {{ transform: rotate(-8deg); }} 50% {{ transform: rotate(8deg); }} }}
+      .bob {{ animation: av-bob 2.3s ease-in-out infinite; }}
+      .shiver {{ animation: av-shv 0.22s infinite; }}
+      .wave-l {{ animation: wv-l 1.4s ease-in-out infinite; transform-origin: 50px 85px; }}
+      .wave-r {{ animation: wv-r 1.4s ease-in-out infinite; transform-origin: 150px 85px; }}
+      .sprout {{ animation: sp-s 1.9s ease-in-out infinite; transform-origin: 100px 30px; }}
+    </style><g class="{shiver}">"""
 
     if c_type == "fox":
-        svg += """
-        <path d="M 140 145 C 185 155 190 105 160 85 C 145 95 135 125 140 145 Z" fill="#ea580c" stroke="#9a3412" stroke-width="2.5"/>
-        <path d="M 175 95 C 190 105 178 120 160 115 Z" fill="#ffffff"/>
-        <ellipse cx="100" cy="130" rx="46" ry="42" fill="#ea580c" stroke="#9a3412" stroke-width="3"/>
-        <ellipse cx="100" cy="136" rx="28" ry="26" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
-        <ellipse cx="70" cy="165" rx="14" ry="10" fill="#ea580c" stroke="#9a3412" stroke-width="2"/>
-        <ellipse cx="130" cy="165" rx="14" ry="10" fill="#ea580c" stroke="#9a3412" stroke-width="2"/>
-        <polygon points="55,42 75,18 85,46" fill="#ea580c" stroke="#9a3412" stroke-width="2.5"/>
-        <polygon points="62,38 75,24 80,44" fill="#fbcfe8"/>
-        <polygon points="145,42 125,18 115,46" fill="#ea580c" stroke="#9a3412" stroke-width="2.5"/>
-        <polygon points="138,38 125,24 120,44" fill="#fbcfe8"/>
-        <ellipse cx="100" cy="62" rx="34" ry="30" fill="#ea580c" stroke="#9a3412" stroke-width="2.5"/>
-        <ellipse cx="82" cy="72" rx="16" ry="14" fill="#ffffff"/>
-        <ellipse cx="118" cy="72" rx="16" ry="14" fill="#ffffff"/>
-        <polygon points="96,72 104,72 100,78" fill="#1e293b"/>
-        """
+        svg += """<path d="M 140 145 C 185 155 190 105 160 85 C 145 95 135 125 140 145 Z" fill="#D97336" stroke="#8E421B" stroke-width="2.4"/><path d="M 175 95 C 190 105 178 120 160 115 Z" fill="#FFFDF8"/><ellipse cx="100" cy="130" rx="46" ry="42" fill="#D97336" stroke="#8E421B" stroke-width="2.8"/><ellipse cx="100" cy="136" rx="28" ry="26" fill="#FDF2E6" stroke="#D97336" stroke-width="1.8"/><ellipse cx="70" cy="165" rx="14" ry="10" fill="#D97336" stroke="#8E421B" stroke-width="2"/><ellipse cx="130" cy="165" rx="14" ry="10" fill="#D97336" stroke="#8E421B" stroke-width="2"/><polygon points="55,42 75,18 85,46" fill="#D97336" stroke="#8E421B" stroke-width="2.4"/><polygon points="62,38 75,24 80,44" fill="#F4C7D2"/><polygon points="145,42 125,18 115,46" fill="#D97336" stroke="#8E421B" stroke-width="2.4"/><polygon points="138,38 125,24 120,44" fill="#F4C7D2"/><ellipse cx="100" cy="62" rx="34" ry="30" fill="#D97336" stroke="#8E421B" stroke-width="2.4"/><ellipse cx="82" cy="72" rx="16" ry="14" fill="#FFFDF8"/><ellipse cx="118" cy="72" rx="16" ry="14" fill="#FFFDF8"/><polygon points="96,72 104,72 100,78" fill="#1F2E24"/>"""
     elif c_type == "owl":
-        svg += """
-        <ellipse cx="100" cy="120" rx="50" ry="46" fill="#78350f" stroke="#451a03" stroke-width="3"/>
-        <ellipse cx="100" cy="126" rx="34" ry="32" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
-        <path d="M 90 120 Q 100 128 110 120 M 85 135 Q 100 145 115 135" fill="none" stroke="#b45309" stroke-width="2"/>
-        <g class="wave-l">
-        <ellipse cx="54" cy="120" rx="14" ry="34" fill="#92400e" stroke="#451a03" stroke-width="2" transform="rotate(15 54 120)"/>
-        </g>
-        <g class="wave-r">
-        <ellipse cx="146" cy="120" rx="14" ry="34" fill="#92400e" stroke="#451a03" stroke-width="2" transform="rotate(-15 146 120)"/>
-        </g>
-        <ellipse cx="78" cy="165" rx="12" ry="7" fill="#d97706"/>
-        <ellipse cx="122" cy="165" rx="12" ry="7" fill="#d97706"/>
-        <polygon points="70,36 60,16 80,30" fill="#78350f" stroke="#451a03" stroke-width="2"/>
-        <polygon points="130,36 140,16 120,30" fill="#78350f" stroke="#451a03" stroke-width="2"/>
-        <ellipse cx="100" cy="58" rx="36" ry="32" fill="#78350f" stroke="#451a03" stroke-width="2.5"/>
-        <circle cx="85" cy="56" r="16" fill="#fef3c7" stroke="#d97706" stroke-width="2.5"/>
-        <circle cx="115" cy="56" r="16" fill="#fef3c7" stroke="#d97706" stroke-width="2.5"/>
-        <line x1="99" y1="56" x2="101" y2="56" stroke="#d97706" stroke-width="2.5"/>
-        <polygon points="96,65 104,65 100,75" fill="#f59e0b"/>
-        """
+        svg += """<ellipse cx="100" cy="120" rx="50" ry="46" fill="#7D502D" stroke="#4D2F18" stroke-width="2.8"/><ellipse cx="100" cy="126" rx="34" ry="32" fill="#FAF0D2" stroke="#AD783B" stroke-width="2"/><path d="M 90 120 Q 100 128 110 120 M 85 135 Q 100 145 115 135" fill="none" stroke="#AD783B" stroke-width="2"/><g class="wave-l"><ellipse cx="54" cy="120" rx="14" ry="34" fill="#91603A" stroke="#4D2F18" stroke-width="2" transform="rotate(15 54 120)"/></g><g class="wave-r"><ellipse cx="146" cy="120" rx="14" ry="34" fill="#91603A" stroke="#4D2F18" stroke-width="2" transform="rotate(-15 146 120)"/></g><ellipse cx="78" cy="165" rx="12" ry="7" fill="#CE933A"/><ellipse cx="122" cy="165" rx="12" ry="7" fill="#CE933A"/><polygon points="70,36 60,16 80,30" fill="#7D502D" stroke="#4D2F18" stroke-width="2"/><polygon points="130,36 140,16 120,30" fill="#7D502D" stroke="#4D2F18" stroke-width="2"/><ellipse cx="100" cy="58" rx="36" ry="32" fill="#7D502D" stroke="#4D2F18" stroke-width="2.4"/><circle cx="85" cy="56" r="16" fill="#FAF0D2" stroke="#C98A32" stroke-width="2.4"/><circle cx="115" cy="56" r="16" fill="#FAF0D2" stroke="#C98A32" stroke-width="2.4"/><polygon points="96,65 104,65 100,75" fill="#DF9E34"/>"""
     elif c_type == "bee":
-        svg += """
-        <g class="wings">
-        <ellipse cx="72" cy="72" rx="28" ry="16" fill="#bae6fd" opacity="0.8" stroke="#0284c7" stroke-width="1.5" transform="rotate(-35 72 72)"/>
-        <ellipse cx="128" cy="72" rx="28" ry="16" fill="#bae6fd" opacity="0.8" stroke="#0284c7" stroke-width="1.5" transform="rotate(35 128 72)"/>
-        </g>
-        <ellipse cx="100" cy="115" rx="46" ry="54" fill="#fbbf24" stroke="#78350f" stroke-width="3"/>
-        <path d="M 60 98 Q 100 110 140 98" fill="none" stroke="#1e293b" stroke-width="11" stroke-linecap="round"/>
-        <path d="M 64 125 Q 100 137 136 125" fill="none" stroke="#1e293b" stroke-width="11" stroke-linecap="round"/>
-        <polygon points="96,168 104,168 100,182" fill="#1e293b"/>
-        <path d="M 90 40 Q 80 20 70 24" fill="none" stroke="#1e293b" stroke-width="2.5"/>
-        <circle cx="68" cy="24" r="4.5" fill="#f59e0b"/>
-        <path d="M 110 40 Q 120 20 130 24" fill="none" stroke="#1e293b" stroke-width="2.5"/>
-        <circle cx="132" cy="24" r="4.5" fill="#f59e0b"/>
-        <ellipse cx="100" cy="58" rx="28" ry="24" fill="#fbbf24" stroke="#78350f" stroke-width="2.5"/>
-        """
+        svg += """<ellipse cx="72" cy="72" rx="28" ry="16" fill="#DCEEF7" opacity="0.85" stroke="#6B98B3" stroke-width="1.5" transform="rotate(-35 72 72)"/><ellipse cx="128" cy="72" rx="28" ry="16" fill="#DCEEF7" opacity="0.85" stroke="#6B98B3" stroke-width="1.5" transform="rotate(35 128 72)"/><ellipse cx="100" cy="115" rx="46" ry="54" fill="#E5B946" stroke="#6F4B2C" stroke-width="2.8"/><path d="M 60 98 Q 100 110 140 98" fill="none" stroke="#1F2E24" stroke-width="11" stroke-linecap="round"/><path d="M 64 125 Q 100 137 136 125" fill="none" stroke="#1F2E24" stroke-width="11" stroke-linecap="round"/><polygon points="96,168 104,168 100,182" fill="#1F2E24"/><path d="M 90 40 Q 80 20 70 24 M 110 40 Q 120 20 130 24" fill="none" stroke="#1F2E24" stroke-width="2.5"/><circle cx="68" cy="24" r="4.5" fill="#D69838"/><circle cx="132" cy="24" r="4.5" fill="#D69838"/><ellipse cx="100" cy="58" rx="28" ry="24" fill="#E5B946" stroke="#6F4B2C" stroke-width="2.4"/>"""
     elif c_type == "panda":
-        svg += """
-        <ellipse cx="100" cy="130" rx="48" ry="44" fill="#ffffff" stroke="#1e293b" stroke-width="3"/>
-        <path d="M 54 115 Q 100 135 146 115 L 142 155 Q 100 170 58 155 Z" fill="#1e293b"/>
-        <g class="wave-l">
-        <ellipse cx="50" cy="98" rx="14" ry="26" fill="#1e293b" transform="rotate(-30 50 98)"/>
-        </g>
-        <g class="wave-r">
-        <ellipse cx="150" cy="98" rx="14" ry="26" fill="#1e293b" transform="rotate(30 150 98)"/>
-        </g>
-        <ellipse cx="60" cy="165" rx="14" ry="10" fill="#1e293b"/>
-        <ellipse cx="140" cy="165" rx="14" ry="10" fill="#1e293b"/>
-        <circle cx="68" cy="38" r="15" fill="#1e293b"/>
-        <circle cx="132" cy="38" r="15" fill="#1e293b"/>
-        <ellipse cx="100" cy="62" rx="36" ry="32" fill="#ffffff" stroke="#1e293b" stroke-width="2.5"/>
-        <ellipse cx="84" cy="58" rx="11" ry="14" fill="#1e293b" transform="rotate(-15 84 58)"/>
-        <ellipse cx="116" cy="58" rx="11" ry="14" fill="#1e293b" transform="rotate(15 116 58)"/>
-        <ellipse cx="100" cy="72" rx="5" ry="3.5" fill="#1e293b"/>
-        <line x1="104" y1="74" x2="135" y2="82" stroke="#16a34a" stroke-width="3"/>
-        <ellipse cx="132" cy="78" rx="6" ry="3" fill="#22c55e" transform="rotate(-20 132 78)"/>
-        """
-    else:  # turtle
-        svg += """
-        <ellipse cx="60" cy="155" rx="15" ry="22" fill="#40916c" stroke="#1b4332" stroke-width="2.5" transform="rotate(-25 60 155)"/>
-        <ellipse cx="140" cy="155" rx="15" ry="22" fill="#40916c" stroke="#1b4332" stroke-width="2.5" transform="rotate(25 140 155)"/>
-        <polygon points="95,160 105,160 100,180" fill="#40916c" stroke="#1b4332" stroke-width="2"/>
-        <g class="wave-l">
-        <ellipse cx="48" cy="88" rx="17" ry="28" fill="#52b788" stroke="#1b4332" stroke-width="2.5" transform="rotate(-35 48 88)"/>
-        </g>
-        <g class="wave-r">
-        <ellipse cx="152" cy="88" rx="17" ry="28" fill="#52b788" stroke="#1b4332" stroke-width="2.5" transform="rotate(35 152 88)"/>
-        </g>
-        <ellipse cx="100" cy="120" rx="54" ry="48" fill="#2d6a4f" stroke="#1b4332" stroke-width="3"/>
-        <ellipse cx="100" cy="120" rx="42" ry="36" fill="#40916c" stroke="#1b4332" stroke-width="2"/>
-        <ellipse cx="100" cy="120" rx="26" ry="22" fill="#74c69d" stroke="#2d6a4f" stroke-width="2"/>
-        <ellipse cx="100" cy="55" rx="28" ry="26" fill="#74c69d" stroke="#1b4332" stroke-width="2.5"/>
-        """
+        svg += """<ellipse cx="100" cy="130" rx="48" ry="44" fill="#FFFDF8" stroke="#1F2E24" stroke-width="2.8"/><path d="M 54 115 Q 100 135 146 115 L 142 155 Q 100 170 58 155 Z" fill="#1F2E24"/><g class="wave-l"><ellipse cx="50" cy="98" rx="14" ry="26" fill="#1F2E24" transform="rotate(-30 50 98)"/></g><g class="wave-r"><ellipse cx="150" cy="98" rx="14" ry="26" fill="#1F2E24" transform="rotate(30 150 98)"/></g><ellipse cx="60" cy="165" rx="14" ry="10" fill="#1F2E24"/><ellipse cx="140" cy="165" rx="14" ry="10" fill="#1F2E24"/><circle cx="68" cy="38" r="15" fill="#1F2E24"/><circle cx="132" cy="38" r="15" fill="#1F2E24"/><ellipse cx="100" cy="62" rx="36" ry="32" fill="#FFFDF8" stroke="#1F2E24" stroke-width="2.5"/><ellipse cx="84" cy="58" rx="11" ry="14" fill="#1F2E24" transform="rotate(-15 84 58)"/><ellipse cx="116" cy="58" rx="11" ry="14" fill="#1F2E24" transform="rotate(15 116 58)"/><ellipse cx="100" cy="72" rx="5" ry="3.5" fill="#1F2E24"/><line x1="104" y1="74" x2="135" y2="82" stroke="#4E7E36" stroke-width="3"/><ellipse cx="132" cy="78" rx="6" ry="3" fill="#6DA452" transform="rotate(-20 132 78)"/>"""
+    else:
+        svg += """<ellipse cx="60" cy="155" rx="15" ry="22" fill="#5A8F44" stroke="#264729" stroke-width="2.4" transform="rotate(-25 60 155)"/><ellipse cx="140" cy="155" rx="15" ry="22" fill="#5A8F44" stroke="#264729" stroke-width="2.4" transform="rotate(25 140 155)"/><polygon points="95,160 105,160 100,180" fill="#5A8F44" stroke="#264729" stroke-width="2"/><g class="wave-l"><ellipse cx="48" cy="88" rx="17" ry="28" fill="#77AD5C" stroke="#264729" stroke-width="2.4" transform="rotate(-35 48 88)"/></g><g class="wave-r"><ellipse cx="152" cy="88" rx="17" ry="28" fill="#77AD5C" stroke="#264729" stroke-width="2.4" transform="rotate(35 152 88)"/></g><ellipse cx="100" cy="120" rx="54" ry="48" fill="#3D6B35" stroke="#264729" stroke-width="2.8"/><ellipse cx="100" cy="120" rx="42" ry="36" fill="#5A8F44" stroke="#264729" stroke-width="2"/><ellipse cx="100" cy="120" rx="26" ry="22" fill="#95C47A" stroke="#3D6B35" stroke-width="2"/><ellipse cx="100" cy="55" rx="28" ry="26" fill="#95C47A" stroke="#264729" stroke-width="2.4"/>"""
 
     if mood == "ecstatic":
-        svg += """
-        <g class="sprout">
-        <line x1="100" y1="28" x2="100" y2="10" stroke="#d97706" stroke-width="3"/>
-        <polygon points="100,4 103,11 110,11 105,15 107,22 100,18 93,22 95,15 90,11 97,11" fill="#f59e0b"/>
-        </g>
-        <path d="M 81 48 L 96 48 Q 96 58 88 58 Q 81 58 81 48 Z" fill="#1e293b"/>
-        <path d="M 104 48 L 119 48 Q 119 58 112 58 Q 104 58 104 48 Z" fill="#1e293b"/>
-        <line x1="96" y1="50" x2="104" y2="50" stroke="#1e293b" stroke-width="2.5"/>
-        <line x1="84" y1="51" x2="93" y2="51" stroke="#94a3b8" stroke-width="1.2"/>
-        <line x1="107" y1="51" x2="116" y2="51" stroke="#94a3b8" stroke-width="1.2"/>
-        <ellipse cx="79" cy="64" rx="6" ry="3.5" fill="#f43f5e" opacity="0.6"/>
-        <ellipse cx="121" cy="64" rx="6" ry="3.5" fill="#f43f5e" opacity="0.6"/>
-        <path d="M 88 63 Q 100 77 112 63" fill="#f43f5e" stroke="#1b4332" stroke-width="2.5" stroke-linecap="round"/>
-        """
+        svg += """<g class="sprout"><line x1="100" y1="28" x2="100" y2="10" stroke="#C88C28" stroke-width="3"/><polygon points="100,4 103,11 110,11 105,15 107,22 100,18 93,22 95,15 90,11 97,11" fill="#E6B33A"/></g><path d="M 81 48 L 96 48 Q 96 58 88 58 Q 81 58 81 48 Z" fill="#18281D"/><path d="M 104 48 L 119 48 Q 119 58 112 58 Q 104 58 104 48 Z" fill="#18281D"/><line x1="96" y1="50" x2="104" y2="50" stroke="#18281D" stroke-width="2.5"/><path d="M 88 63 Q 100 76 112 63" fill="#C45B4D" stroke="#264729" stroke-width="2.2" stroke-linecap="round"/>"""
     elif mood == "happy":
-        svg += """
-        <g class="sprout">
-        <line x1="100" y1="28" x2="100" y2="12" stroke="#1b4332" stroke-width="2.5"/>
-        <ellipse cx="94" cy="10" rx="7" ry="4.5" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(-30 94 10)"/>
-        <ellipse cx="106" cy="10" rx="7" ry="4.5" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(30 106 10)"/>
-        </g>
-        <g class="blink">
-        <circle cx="89" cy="51" r="5" fill="#1b4332"/>
-        <circle cx="87" cy="49" r="1.8" fill="#ffffff"/>
-        <circle cx="111" cy="51" r="5" fill="#1b4332"/>
-        <circle cx="109" cy="49" r="1.8" fill="#ffffff"/>
-        </g>
-        <ellipse cx="81" cy="63" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.6"/>
-        <ellipse cx="119" cy="63" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.6"/>
-        <path d="M 88 63 Q 100 75 112 63" fill="none" stroke="#1b4332" stroke-width="3" stroke-linecap="round"/>
-        """
+        svg += """<g class="sprout"><line x1="100" y1="28" x2="100" y2="12" stroke="#264729" stroke-width="2.5"/><ellipse cx="94" cy="10" rx="7" ry="4.5" fill="#6DA452" stroke="#264729" stroke-width="1.5" transform="rotate(-30 94 10)"/><ellipse cx="106" cy="10" rx="7" ry="4.5" fill="#6DA452" stroke="#264729" stroke-width="1.5" transform="rotate(30 106 10)"/></g><circle cx="89" cy="51" r="4.8" fill="#18281D"/><circle cx="87" cy="49" r="1.6" fill="#FFF"/><circle cx="111" cy="51" r="4.8" fill="#18281D"/><circle cx="109" cy="49" r="1.6" fill="#FFF"/><path d="M 88 63 Q 100 74 112 63" fill="none" stroke="#18281D" stroke-width="2.8" stroke-linecap="round"/>"""
     elif mood == "alarmed":
-        svg += """
-        <polygon points="100,8 107,22 93,22" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/>
-        <text x="98" y="20" font-size="9" font-weight="bold" fill="#ffffff">!</text>
-        <circle cx="89" cy="52" r="7" fill="#ffffff" stroke="#1b4332" stroke-width="2"/>
-        <circle cx="89" cy="52" r="3" fill="#1b4332"/>
-        <circle cx="111" cy="52" r="7" fill="#ffffff" stroke="#1b4332" stroke-width="2"/>
-        <circle cx="111" cy="52" r="3" fill="#1b4332"/>
-        <ellipse cx="100" cy="69" rx="6" ry="8" fill="#1b4332"/>
-        <g class="sweat">
-        <path d="M 125 36 Q 130 45 125 50 Q 120 45 125 36" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
-        <path d="M 75 36 Q 80 45 75 50 Q 70 45 75 36" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
-        </g>
-        """
+        svg += """<polygon points="100,8 107,22 93,22" fill="#C45B4D" stroke="#852E24" stroke-width="1.5"/><circle cx="89" cy="52" r="6.5" fill="#FFF" stroke="#18281D" stroke-width="2"/><circle cx="89" cy="52" r="2.8" fill="#18281D"/><circle cx="111" cy="52" r="6.5" fill="#FFF" stroke="#18281D" stroke-width="2"/><circle cx="111" cy="52" r="2.8" fill="#18281D"/><ellipse cx="100" cy="69" rx="5.5" ry="7.5" fill="#18281D"/>"""
     elif mood == "worried":
-        svg += """
-        <circle cx="89" cy="53" r="5.5" fill="#1b4332"/>
-        <circle cx="111" cy="53" r="5.5" fill="#1b4332"/>
-        <path d="M 89 68 Q 100 59 111 68" fill="none" stroke="#1b4332" stroke-width="2.8" stroke-linecap="round"/>
-        <g class="sweat">
-        <path d="M 124 38 Q 128 47 124 51 Q 120 47 124 38" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
-        </g>
-        """
-    else:  # mindful
-        svg += """
-        <g class="sprout">
-        <line x1="100" y1="28" x2="100" y2="14" stroke="#1b4332" stroke-width="2"/>
-        <ellipse cx="94" cy="12" rx="6" ry="4" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(-30 94 12)"/>
-        <ellipse cx="106" cy="12" rx="6" ry="4" fill="#52b788" stroke="#1b4332" stroke-width="1.5" transform="rotate(30 106 12)"/>
-        </g>
-        <path d="M 84 52 Q 89 46 94 52" fill="none" stroke="#1b4332" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M 106 52 Q 111 46 116 52" fill="none" stroke="#1b4332" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M 91 65 Q 100 71 109 65" fill="none" stroke="#1b4332" stroke-width="2.2" stroke-linecap="round"/>
-        """
+        svg += """<circle cx="89" cy="53" r="5" fill="#18281D"/><circle cx="111" cy="53" r="5" fill="#18281D"/><path d="M 89 68 Q 100 59 111 68" fill="none" stroke="#18281D" stroke-width="2.6" stroke-linecap="round"/>"""
+    else:
+        svg += """<g class="sprout"><line x1="100" y1="28" x2="100" y2="14" stroke="#264729" stroke-width="2"/><ellipse cx="94" cy="12" rx="6" ry="4" fill="#6DA452" stroke="#264729" stroke-width="1.5" transform="rotate(-30 94 12)"/><ellipse cx="106" cy="12" rx="6" ry="4" fill="#6DA452" stroke="#264729" stroke-width="1.5" transform="rotate(30 106 12)"/></g><path d="M 84 52 Q 89 46 94 52 M 106 52 Q 111 46 116 52" fill="none" stroke="#18281D" stroke-width="2.4" stroke-linecap="round"/><path d="M 91 65 Q 100 71 109 65" fill="none" stroke="#18281D" stroke-width="2.2" stroke-linecap="round"/>"""
 
-    svg += "</g></svg>"
-    return svg
+    return svg + "</g></svg>"
 
 def get_mascot_reaction(mascot_str, item_name, live_co2, mood, is_eth):
     name = mascot_str.split()[0]
-    m = mascot_str.lower()
     if mood == "ecstatic":
-        if "fox" in m:
-            return f"CLEVER THRIFT MASTER! {name} put on gold sunglasses! '{item_name}' is a legendary circular treasure!"
-        elif "owl" in m:
-            return f"SCHOLARLY PRECISION! {name} adjusted golden spectacles! '{item_name}' has an optimal low footprint!"
-        elif "bee" in m:
-            return f"POLLINATOR HARVEST! {name} is buzzing with joy in gold sunglasses! '{item_name}' restores the biosphere!"
-        elif "panda" in m:
-            return f"ULTIMATE ZERO-WASTE! {name} put on gold sunglasses! '{item_name}' preserves our bamboo forests!"
-        else:
-            return f"LEGENDARY ECO-CHOICE! {name} put on gold sunglasses! '{item_name}' has virtually zero factory emissions!"
-    elif mood == "happy":
-        return f"Wonderful green purchase! '{item_name}' logged at only {live_co2} kg CO₂e! {name} is waving happily!"
-    elif mood == "mindful":
-        return f"Recorded '{item_name}' ({live_co2} kg CO₂e). {name} notes a balanced choice. Explore greener swaps below!"
-    elif mood == "worried":
-        return f"Whew, getting heavy! '{item_name}' generated {live_co2} kg CO₂e. {name} feels the carbon heat!"
-    else:  # alarmed
-        return f"🚨 CARBON SPIKE ALERT! That item created {live_co2} kg CO₂e! {name} is shivering! Adopt a greener swap below to balance your budget!"
+        return f"CLEVER ECO PICK! {name} put on gold sunglasses — '{item_name}' is a circular win!"
+    if mood == "happy":
+        return f"Wonderful green choice! '{item_name}' adds just {live_co2} kg CO₂e. {name} cheers you on!"
+    if mood == "mindful":
+        return f"Recorded '{item_name}' ({live_co2} kg CO₂e). Check smarter swaps below to lighten your total."
+    if mood == "worried":
+        return f"Getting heavy! '{item_name}' emitted {live_co2} kg CO₂e. Try a swap below to rebalance."
+    return f"CARBON SPIKE ALERT: '{item_name}' created {live_co2} kg CO₂e! Swap one item to stay green."
 
 # ------------------------------------------------------------------------------
-# IN-MEMORY PROCEDURAL HEADLESS TURTLE VECTOR ENGINE
+# CLOUD-SAFE HEADLESS TURTLE PILLOW GRAPHICS ENGINE (Harmonious Ecovista Tones)
 # ------------------------------------------------------------------------------
 
 class HeadlessTurtle:
     """Pure Python Turtle vector engine executing on Pillow canvases without Tkinter dependencies."""
-    def __init__(self, w=220, h=220):
+    def __init__(self, w=280, h=280):
         self.w, self.h = w, h
         self.img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         self.draw = ImageDraw.Draw(self.img)
-        self.x, self.y = w / 2, h / 2
-        self.heading = 90
-        self.down = True
-        self.color = (45, 106, 79, 255)
-        self.width = 3
+        self.x, self.y, self.heading = w / 2, h / 2, 90
+        self.down, self.color, self.width = True, (78, 126, 54, 255), 3
 
     def forward(self, d):
         rad = math.radians(self.heading)
-        nx = self.x + d * math.cos(rad)
-        ny = self.y - d * math.sin(rad)
+        nx, ny = self.x + d * math.cos(rad), self.y - d * math.sin(rad)
         if self.down:
             self.draw.line([(self.x, self.y), (nx, ny)], fill=self.color, width=self.width)
         self.x, self.y = nx, ny
@@ -558,144 +404,82 @@ class HeadlessTurtle:
             self.draw.line([(self.x, self.y), (x, y)], fill=self.color, width=self.width)
         self.x, self.y = x, y
 
-    def arc(self, r, ext, steps=14):
-        step_len = (2 * math.pi * r * (abs(ext) / 360.0)) / steps
-        for _ in range(steps):
-            self.forward(step_len)
-            self.left(ext / steps)
-
 def draw_vector_art(art_type="leaf"):
-    """Generates layered 280x280 RGBA botanical vector artworks via HeadlessTurtle & Pillow."""
+    """Draws soft organic 280x280 botanical art (Leaf, Step, Rosette, Traveler Man & Turtle) via HeadlessTurtle."""
     w, h = 280, 280
     t = HeadlessTurtle(w, h)
-    cx, cy = 140, 134
+    cx, cy = 140, 136
 
     if art_type == "preview":
-        # Gentle muted botanical emblem for initial empty session
-        t.draw.ellipse([(cx - 88, cy - 88), (cx + 88, cy + 88)], fill=(16, 48, 32, 95), outline=(52, 211, 153, 90), width=2)
+        t.draw.ellipse([(cx - 88, cy - 88), (cx + 88, cy + 88)], fill=(224, 238, 214, 170), outline=(109, 164, 82, 160), width=2)
         for deg in range(0, 360, 30):
             rad = math.radians(deg)
-            x1, y1 = cx + 96 * math.cos(rad), cy + 96 * math.sin(rad)
-            x2, y2 = cx + 104 * math.cos(rad), cy + 104 * math.sin(rad)
-            t.draw.line([(x1, y1), (x2, y2)], fill=(52, 211, 153, 80), width=2)
-        t.draw.ellipse([(cx - 32, cy - 32), (cx + 32, cy + 32)], fill=(16, 185, 129, 70), outline=(52, 211, 153, 120), width=2)
-        seed_pts = [(cx, cy - 42), (cx + 22, cy - 10), (cx + 16, cy + 28), (cx, cy + 38), (cx - 16, cy + 28), (cx - 22, cy - 10)]
-        t.draw.polygon(seed_pts, fill=(52, 211, 153, 110), outline=(167, 243, 208, 160))
+            t.draw.line([(cx + 94 * math.cos(rad), cy + 94 * math.sin(rad)), (cx + 102 * math.cos(rad), cy + 102 * math.sin(rad))], fill=(109, 164, 82, 120), width=2)
+        seed = [(cx, cy - 38), (cx + 20, cy - 8), (cx + 14, cy + 26), (cx, cy + 34), (cx - 14, cy + 26), (cx - 20, cy - 8)]
+        t.draw.polygon(seed, fill=(109, 164, 82, 190), outline=(62, 107, 53, 210))
         return t.img
 
     if art_type == "leaf":
-        # Warm solar botanical shield + orbital turtle ticks + shaded twin leaf sprout + dew droplets
-        t.draw.ellipse([(cx - 106, cy - 106), (cx + 106, cy + 106)], fill=(16, 62, 38, 175), outline=(52, 211, 153, 200), width=3)
-        t.draw.ellipse([(cx - 94, cy - 94), (cx + 94, cy + 94)], fill=(20, 83, 45, 145), outline=(110, 231, 183, 130), width=2)
-        for deg in range(0, 360, 15):
-            rad = math.radians(deg)
-            r1 = 100
-            r2 = 109 if deg % 45 == 0 else 104
-            col = (251, 191, 36, 220) if deg % 45 == 0 else (52, 211, 153, 140)
-            t.draw.line([(cx + r1 * math.cos(rad), cy + r1 * math.sin(rad)), (cx + r2 * math.cos(rad), cy + r2 * math.sin(rad))], fill=col, width=3 if deg % 45 == 0 else 2)
-
-        # Warm glowing sun behind leaf
-        t.draw.ellipse([(cx - 56, cy - 72), (cx + 18, cy + 2)], fill=(251, 191, 36, 55))
-        t.draw.ellipse([(cx - 46, cy - 62), (cx + 8, cy - 8)], fill=(253, 224, 71, 80))
-
-        # Main Turtle curved stem
-        t.penup(); t.goto(cx - 4, cy + 88); t.heading = 84; t.color = (167, 243, 208, 255); t.width = 5; t.pendown()
-        t.forward(55)
-
-        # Main primary right/center sculptural leaf
+        t.draw.ellipse([(cx - 102, cy - 102), (cx + 102, cy + 102)], fill=(232, 243, 224, 240), outline=(78, 126, 54, 220), width=3)
+        t.draw.ellipse([(cx - 52, cy - 68), (cx + 20, cy + 4)], fill=(235, 206, 98, 135))
+        t.penup(); t.goto(cx - 4, cy + 84); t.heading = 84; t.color = (45, 84, 38, 255); t.width = 4; t.pendown(); t.forward(50)
         leaf_r, leaf_l = [], []
-        for step in range(25):
-            frac = step / 24.0
-            y = (cy + 58) - frac * 124
-            curve = math.sin(frac * math.pi) * 44
-            lean = math.sin(frac * math.pi * 0.7) * 14
-            leaf_r.append((cx + lean + curve, y))
-            leaf_l.append((cx + lean - curve * 0.9, y))
-        main_poly = leaf_r + list(reversed(leaf_l))
-        t.draw.polygon(main_poly, fill=(16, 185, 129, 245), outline=(5, 150, 105, 255))
-        # Lighter sun-lit left facet shading inside leaf
-        highlight_poly = [(cx + math.sin((s/24.0)*math.pi*0.7)*14, (cy+58)-(s/24.0)*124) for s in range(25)] + list(reversed(leaf_l))
-        t.draw.polygon(highlight_poly, fill=(52, 211, 153, 210))
-
-        # Secondary smaller sprout leaf angled left
-        t.draw.polygon([(cx - 2, cy + 44), (cx - 42, cy + 24), (cx - 60, cy + 4), (cx - 28, cy + 10), (cx - 4, cy + 32)], fill=(110, 231, 183, 235), outline=(16, 185, 129, 255))
-
-        # Midrib and curved veins via Turtle steps
-        t.penup(); t.goto(cx, cy + 56); t.heading = 84; t.color = (6, 78, 59, 240); t.width = 3; t.pendown()
-        t.forward(116)
-        for idx_y in [cy + 30, cy + 6, cy - 18, cy - 40]:
-            x_off = 8 if idx_y < cy + 10 else 3
-            t.penup(); t.goto(cx + x_off, idx_y); t.heading = 38; t.width = 2; t.pendown(); t.forward(24)
-            t.penup(); t.goto(cx + x_off, idx_y); t.heading = 140; t.pendown(); t.forward(22)
-
-        # Specular shimmering dew droplets
-        for dx, dy, dr in [(cx - 16, cy - 16, 5), (cx + 18, cy + 10, 4), (cx - 38, cy + 16, 3.5)]:
-            t.draw.ellipse([(dx - dr, dy - dr), (dx + dr, dy + dr)], fill=(236, 253, 245, 240), outline=(52, 211, 153, 255), width=1)
-            t.draw.ellipse([(dx - dr * 0.4, dy - dr * 0.5), (dx + 0.5, dy - 0.5)], fill=(255, 255, 255, 255))
+        for s in range(25):
+            f = s / 24.0
+            y = (cy + 56) - f * 120
+            c, ln = math.sin(f * math.pi) * 42, math.sin(f * math.pi * 0.7) * 14
+            leaf_r.append((cx + ln + c, y))
+            leaf_l.append((cx + ln - c * 0.9, y))
+        t.draw.polygon(leaf_r + list(reversed(leaf_l)), fill=(78, 126, 54, 245), outline=(45, 84, 38, 255))
+        lit = [(cx + math.sin((s/24.0)*math.pi*0.7)*14, (cy+56)-(s/24.0)*120) for s in range(25)] + list(reversed(leaf_l))
+        t.draw.polygon(lit, fill=(133, 180, 108, 220))
+        t.draw.polygon([(cx - 2, cy + 42), (cx - 42, cy + 22), (cx - 58, cy + 4), (cx - 28, cy + 10), (cx - 4, cy + 30)], fill=(156, 198, 126, 240), outline=(62, 107, 53, 255))
+        t.penup(); t.goto(cx, cy + 54); t.heading = 84; t.color = (245, 250, 240, 220); t.width = 2; t.pendown(); t.forward(112)
+        for iy in [cy + 28, cy + 4, cy - 20]:
+            xo = 8 if iy < cy + 10 else 3
+            t.penup(); t.goto(cx + xo, iy); t.heading = 40; t.pendown(); t.forward(22)
+            t.penup(); t.goto(cx + xo, iy); t.heading = 140; t.pendown(); t.forward(20)
 
     elif art_type == "footprint":
-        # Concentric circular nature medallion with 8 radial petals drawn by Turtle
-        t.draw.ellipse([(cx - 108, cy - 108), (cx + 108, cy + 108)], fill=(6, 78, 59, 190), outline=(52, 211, 153, 220), width=3)
-        t.draw.ellipse([(cx - 94, cy - 94), (cx + 94, cy + 94)], fill=(17, 56, 38, 210), outline=(16, 185, 129, 160), width=2)
+        t.draw.ellipse([(cx - 102, cy - 102), (cx + 102, cy + 102)], fill=(235, 243, 226, 240), outline=(78, 126, 54, 220), width=3)
         for deg in range(0, 360, 45):
             rad = math.radians(deg)
-            px, py = cx + 99 * math.cos(rad), cy + 99 * math.sin(rad)
-            t.draw.ellipse([(px - 7, py - 7), (px + 7, py + 7)], fill=(52, 211, 153, 210), outline=(254, 240, 138, 190), width=1)
+            px, py = cx + 96 * math.cos(rad), cy + 96 * math.sin(rad)
+            t.draw.ellipse([(px - 6, py - 6), (px + 6, py + 6)], fill=(133, 180, 108, 240), outline=(62, 107, 53, 210))
+        t.draw.ellipse([(cx - 24, cy + 20), (cx + 20, cy + 68)], fill=(78, 126, 54, 245))
+        foot = [(cx - 20, cy + 32), (cx - 12, cy - 4), (cx - 28, cy - 32), (cx - 14, cy - 60), (cx + 16, cy - 60), (cx + 28, cy - 32), (cx + 14, cy - 4), (cx + 16, cy + 32)]
+        t.draw.polygon(foot, fill=(78, 126, 54, 245))
+        t.draw.ellipse([(cx - 28, cy - 62), (cx + 28, cy - 16)], fill=(95, 146, 70, 245))
+        for tx, ty, tr in [(-20, -76, 9.5), (-1, -83, 8.2), (14, -79, 7.2), (25, -71, 6.2), (34, -60, 5.2)]:
+            t.draw.ellipse([(cx + tx - tr, cy + ty - tr), (cx + tx + tr, cy + ty + tr)], fill=(109, 164, 82, 245), outline=(255, 253, 245, 220), width=2)
 
-        # Anatomical eco-footprint centered cleanly
-        t.draw.ellipse([(cx - 26, cy + 20), (cx + 22, cy + 72)], fill=(16, 185, 129, 240), outline=(167, 243, 208, 220), width=2)
-        foot_pts = [
-            (cx - 22, cy + 32), (cx - 14, cy - 6), (cx - 30, cy - 34), (cx - 16, cy - 62),
-            (cx + 18, cy - 62), (cx + 30, cy - 34), (cx + 16, cy - 6), (cx + 18, cy + 32)
-        ]
-        t.draw.polygon(foot_pts, fill=(16, 185, 129, 240), outline=(167, 243, 208, 220))
-        t.draw.ellipse([(cx - 30, cy - 64), (cx + 30, cy - 16)], fill=(16, 185, 129, 240), outline=(167, 243, 208, 220), width=2)
-        # Inner emerald highlight arch
-        t.draw.ellipse([(cx - 15, cy - 48), (cx + 16, cy - 22)], fill=(52, 211, 153, 180))
-        for tx, ty, tr in [(-20, -78, 10.5), (-1, -85, 9.0), (14, -81, 8.0), (26, -73, 7.0), (36, -62, 5.8)]:
-            t.draw.ellipse([(cx + tx - tr, cy + ty - tr), (cx + tx + tr, cy + ty + tr)], fill=(52, 211, 153, 245), outline=(236, 253, 245, 220), width=2)
+    elif art_type == "traveler":
+        # Mindful Shopper Man walking with Reusable Tote & Baby Turtle inside Morning Botanical Horizon
+        t.draw.ellipse([(cx - 102, cy - 102), (cx + 102, cy + 102)], fill=(238, 246, 232, 245), outline=(78, 126, 54, 220), width=3)
+        t.draw.pieslice([(cx - 98, cy + 18), (cx + 98, cy + 108)], 0, 180, fill=(167, 206, 132, 220))
+        t.draw.ellipse([(cx + 18, cy - 72), (cx + 62, cy - 28)], fill=(232, 200, 92, 170))
+        # Shopper Man (Left-Center)
+        t.draw.line([(cx - 18, cy + 20), (cx - 28, cy + 62)], fill=(36, 58, 44, 255), width=7)
+        t.draw.line([(cx - 6, cy + 20), (cx + 6, cy + 62)], fill=(48, 76, 58, 255), width=7)
+        t.draw.polygon([(cx - 30, cy - 24), (cx + 4, cy - 24), (cx + 8, cy + 22), (cx - 32, cy + 22)], fill=(78, 126, 54, 255))
+        t.draw.ellipse([(cx - 25, cy - 54), (cx - 1, cy - 30)], fill=(232, 184, 146, 255))
+        t.draw.pieslice([(cx - 26, cy - 56), (cx, cy - 38)], 180, 360, fill=(42, 38, 35, 255))
+        t.draw.rectangle([(cx + 4, cy - 4), (cx + 26, cy + 22)], fill=(242, 228, 181, 255), outline=(140, 115, 67, 255), width=2)
+        # Turtle Companion (Right)
+        t.draw.pieslice([(cx + 26, cy + 36), (cx + 70, cy + 72)], 180, 360, fill=(61, 107, 53, 255))
+        t.draw.ellipse([(cx + 66, cy + 44), (cx + 80, cy + 58)], fill=(119, 177, 90, 255))
 
-    else:  # Grand 32-Point Gold-Emerald Scalloped Rosette Championship Medallion
-        cy_m = 114
-        # Soft radial starburst rays behind ribbon & rosette
-        for deg in range(0, 360, 20):
-            rad = math.radians(deg)
-            rx, ry = cx + 114 * math.cos(rad), cy_m + 114 * math.sin(rad)
-            t.draw.line([(cx, cy_m), (rx, ry)], fill=(251, 191, 36, 55), width=3)
-
-        # Twin Swallowtail Ribbons
-        r_pts_l = [(cx - 26, cy_m + 28), (cx - 56, cy_m + 142), (cx - 34, cy_m + 124), (cx - 12, cy_m + 134), (cx - 6, cy_m + 30)]
-        t.draw.polygon(r_pts_l, fill=(5, 150, 105, 255), outline=(16, 185, 129, 255))
-        t.draw.line([(cx - 24, cy_m + 32), (cx - 34, cy_m + 124)], fill=(110, 231, 183, 220), width=2)
-
-        r_pts_r = [(cx + 6, cy_m + 30), (cx + 12, cy_m + 134), (cx + 34, cy_m + 124), (cx + 56, cy_m + 142), (cx + 26, cy_m + 28)]
-        t.draw.polygon(r_pts_r, fill=(4, 120, 87, 255), outline=(16, 185, 129, 255))
-        t.draw.line([(cx + 24, cy_m + 32), (cx + 34, cy_m + 124)], fill=(110, 231, 183, 220), width=2)
-
-        # 64-vertex Scalloped Gold Starburst Gear
-        rosette_pts = []
-        for i in range(64):
-            ang = i * (math.pi / 32)
-            r = 68 if i % 2 == 0 else 58
-            rosette_pts.append((cx + r * math.cos(ang), cy_m + r * math.sin(ang)))
-        t.draw.polygon(rosette_pts, fill=(245, 158, 11, 255), outline=(253, 224, 71, 255))
-        t.draw.ellipse([(cx - 56, cy_m - 56), (cx + 56, cy_m + 56)], fill=(251, 191, 36, 255), outline=(180, 83, 9, 255), width=2)
-        t.draw.ellipse([(cx - 47, cy_m - 47), (cx + 47, cy_m + 47)], fill=(6, 78, 59, 255), outline=(52, 211, 153, 230), width=2)
-        for j in range(16):
-            s_ang = j * (2 * math.pi / 16)
-            sx, sy = cx + 41 * math.cos(s_ang), cy_m + 41 * math.sin(s_ang)
-            t.draw.ellipse([(sx - 2.3, sy - 2.3), (sx + 2.3, sy + 2.3)], fill=(254, 240, 138, 255))
-        t.draw.ellipse([(cx - 33, cy_m - 33), (cx + 33, cy_m + 33)], fill=(254, 249, 195, 255), outline=(217, 119, 6, 255), width=2)
-
-        star_pts, star_inner = [], []
-        for k in range(10):
-            ang = -math.pi / 2 + k * (math.pi / 5)
-            sr = 22 if k % 2 == 0 else 9.0
-            si = 16 if k % 2 == 0 else 6.5
-            star_pts.append((cx + sr * math.cos(ang), cy_m + sr * math.sin(ang)))
-            star_inner.append((cx + si * math.cos(ang), cy_m + si * math.sin(ang)))
-        t.draw.polygon(star_pts, fill=(217, 119, 6, 255), outline=(146, 64, 14, 255))
-        t.draw.polygon(star_inner, fill=(251, 191, 36, 255))
+    else:  # Warm Botanical Wheat-Gold & Olive Rosette
+        cm = 114
+        t.draw.polygon([(cx - 24, cm + 26), (cx - 52, cm + 136), (cx - 30, cm + 118), (cx - 10, cm + 128), (cx - 4, cm + 28)], fill=(78, 126, 54, 255))
+        t.draw.polygon([(cx + 4, cm + 28), (cx + 10, cm + 128), (cx + 30, cm + 118), (cx + 52, cm + 136), (cx + 24, cm + 26)], fill=(61, 107, 53, 255))
+        r_pts = [(cx + (64 if i % 2 == 0 else 54) * math.cos(i * math.pi / 32), cm + (64 if i % 2 == 0 else 54) * math.sin(i * math.pi / 32)) for i in range(64)]
+        t.draw.polygon(r_pts, fill=(214, 152, 56, 255), outline=(235, 194, 96, 255))
+        t.draw.ellipse([(cx - 52, cm - 52), (cx + 52, cm + 52)], fill=(228, 172, 72, 255), outline=(168, 110, 30, 255), width=2)
+        t.draw.ellipse([(cx - 42, cm - 42), (cx + 42, cm + 42)], fill=(45, 84, 38, 255), outline=(149, 196, 122, 240), width=2)
+        t.draw.ellipse([(cx - 30, cm - 30), (cx + 30, cm + 30)], fill=(250, 244, 212, 255), outline=(196, 136, 40, 255), width=2)
+        sp = [(cx + (20 if k % 2 == 0 else 8) * math.cos(-math.pi / 2 + k * math.pi / 5), cm + (20 if k % 2 == 0 else 8) * math.sin(-math.pi / 2 + k * math.pi / 5)) for k in range(10)]
+        t.draw.polygon(sp, fill=(200, 140, 40, 255), outline=(138, 86, 20, 255))
 
     return t.img
 
@@ -704,210 +488,133 @@ def image_to_png_bytes(img):
     img.save(buf, format="PNG")
     return buf.getvalue()
 
+def image_to_data_uri(img):
+    return "data:image/png;base64," + base64.b64encode(image_to_png_bytes(img)).decode("ascii")
+
+# ------------------------------------------------------------------------------
+# DOMAIN LOGIC, STREAK, BADGE & OPTIMIZER HELPERS
+# ------------------------------------------------------------------------------
+
 def calculate_carbon(price, category, is_ethical):
     rate = CATEGORIES.get(category, {"multiplier": 0.35})["multiplier"]
     base = price * rate
     return round(base * 0.70 if is_ethical else base, 2)
 
 def get_equivalency(carbon_kg):
-    miles = int(carbon_kg * 2.4)
-    charges = int(carbon_kg * 121)
-    tree_months = round((carbon_kg / 21.0) * 12, 1)
-    return miles, charges, tree_months
+    return int(carbon_kg * 2.4), int(carbon_kg * 121), round((carbon_kg / 21.0) * 12, 1)
 
 def compute_eco_streak(purchases):
-    """Returns consecutive recent ethical purchases ending at latest entry, plus overall max streak."""
-    cur_streak = 0
+    cur = 0
     for p in reversed(purchases):
-        if p.get("is_ethical", p.get("ethical", False)):
-            cur_streak += 1
-        else:
-            break
+        if p.get("is_ethical", False): cur += 1
+        else: break
     best, run = 0, 0
     for p in purchases:
-        if p.get("is_ethical", p.get("ethical", False)):
-            run += 1
-            best = max(best, run)
-        else:
-            run = 0
-    return cur_streak, best
+        run = (run + 1) if p.get("is_ethical", False) else 0
+        best = max(best, run)
+    return cur, best
 
 def get_collected_arts(purchases):
-    """Deterministically identifies which Turtle artworks (leaf, footprint, badge) are earned in session."""
     earned = set()
+    if len(purchases) >= 2:
+        earned.add("traveler")
     for p in purchases:
-        eth = p.get("is_ethical", p.get("ethical", False))
-        co2 = p.get("carbon_kg", p.get("co2", 0.0))
-        if eth and co2 <= 3.0:
-            earned.add("badge")
-        elif eth:
-            earned.add("leaf")
-        elif co2 <= 10.0:
-            earned.add("footprint")
+        eth, co2 = p.get("is_ethical", False), p.get("carbon_kg", 0.0)
+        if eth and co2 <= 3.0: earned.add("badge")
+        elif eth: earned.add("leaf")
+        elif co2 <= 10.0: earned.add("footprint")
     return earned
 
 def get_user_eco_rank(purchases):
-    count = len(purchases)
-    ethical = sum(1 for p in purchases if p.get("is_ethical", False))
-    if count == 0:
-        return "🌱 Eco Novice"
-    elif ethical >= 5 or (count >= 5 and ethical >= 3):
-        return "👑 Biosphere Master"
-    elif ethical >= 2 or count >= 3:
-        return "🌿 Conscious Pioneer"
-    else:
-        return "🌾 Mindful Forager"
+    n, eth = len(purchases), sum(1 for p in purchases if p.get("is_ethical", False))
+    if n == 0: return "🌱 Eco Novice"
+    if eth >= 5 or (n >= 5 and eth >= 3): return "👑 Biosphere Master"
+    if eth >= 2 or n >= 3: return "🌿 Conscious Pioneer"
+    return "🌾 Mindful Forager"
 
 def evaluate_badges(purchases):
     total_items = len(purchases)
     total_spend = sum(p.get("price", 0.0) for p in purchases)
-    total_co2 = sum(p.get("carbon_kg", p.get("co2", 0.0)) for p in purchases)
-    ethical_count = sum(1 for p in purchases if p.get("is_ethical", p.get("ethical", False)))
-    avg_intensity = (total_co2 / total_spend) if total_spend > 0 else 0.0
+    total_co2 = sum(p.get("carbon_kg", 0.0) for p in purchases)
+    ethical_count = sum(1 for p in purchases if p.get("is_ethical", False))
+    avg_int = (total_co2 / total_spend) if total_spend > 0 else 0.0
     co2_saved = max(0.0, round(total_spend * 0.45 - total_co2, 1))
-    zero_waste_count = sum(1 for p in purchases if "Zero-Waste" in p.get("category", "") or "Thrift" in p.get("category", ""))
+    zw_cnt = sum(1 for p in purchases if "Zero-Waste" in p.get("category", "") or "Thrift" in p.get("category", ""))
 
     badges = [
-        {
-            "id": "starter",
-            "name": "Seed Starter",
-            "icon": "🌱",
-            "desc": "Log your 1st conscious purchase in the dashboard",
-            "unlocked": total_items >= 1,
-            "progress": f"{min(total_items, 1)}/1 item",
-            "pct": 100 if total_items >= 1 else 0,
-        },
-        {
-            "id": "low_impact",
-            "name": "Low Impact Shopper",
-            "icon": "🍃",
-            "desc": "Maintain carbon intensity ≤ 0.25 kg/$ (min 2 items)",
-            "unlocked": total_items >= 2 and avg_intensity <= 0.25,
-            "progress": f"{avg_intensity:.2f} kg/$ (Goal ≤ 0.25)" if total_items >= 2 else f"{total_items}/2 items required",
-            "pct": 100 if (total_items >= 2 and avg_intensity <= 0.25) else (max(10, min(95, int((0.25 / max(avg_intensity, 0.26)) * 100))) if total_items >= 2 else int((total_items / 2) * 100)),
-        },
-        {
-            "id": "ethical_pioneer",
-            "name": "Conscious Pioneer",
-            "icon": "♻️",
-            "desc": "Choose 3+ verified circular, thrift, or ethical items",
-            "unlocked": ethical_count >= 3,
-            "progress": f"{ethical_count}/3 ethical items",
-            "pct": min(100, int((ethical_count / 3.0) * 100)),
-        },
-        {
-            "id": "eco_saver",
-            "name": "Eco Saver of the Month",
-            "icon": "🌟",
-            "desc": "Save 10+ kg CO₂ vs standard retail baseline",
-            "unlocked": co2_saved >= 10.0 and total_items >= 1,
-            "progress": f"{co2_saved:.1f}/10.0 kg CO₂ saved",
-            "pct": min(100, int((co2_saved / 10.0) * 100)) if total_items >= 1 else 0,
-        },
-        {
-            "id": "zero_waste",
-            "name": "Zero-Waste Hero",
-            "icon": "🏆",
-            "desc": "Log 2+ zero-waste or second-hand thrift items",
-            "unlocked": zero_waste_count >= 2,
-            "progress": f"{zero_waste_count}/2 items",
-            "pct": min(100, int((zero_waste_count / 2.0) * 100)),
-        },
+        {"id": "starter", "name": "Seed Starter", "icon": "🌱", "desc": "Log your 1st conscious purchase in the dashboard", "unlocked": total_items >= 1, "progress": f"{min(total_items, 1)}/1 item", "pct": 100 if total_items >= 1 else 0},
+        {"id": "low_impact", "name": "Low Impact Shopper", "icon": "🍃", "desc": "Maintain carbon intensity ≤ 0.25 kg/$ (min 2 items)", "unlocked": total_items >= 2 and avg_int <= 0.25, "progress": f"{avg_int:.2f} kg/$ (Goal ≤ 0.25)" if total_items >= 2 else f"{total_items}/2 items required", "pct": 100 if (total_items >= 2 and avg_int <= 0.25) else (max(10, min(95, int((0.25 / max(avg_int, 0.26)) * 100))) if total_items >= 2 else int((total_items / 2) * 100))},
+        {"id": "ethical_pioneer", "name": "Conscious Pioneer", "icon": "♻️", "desc": "Choose 3+ verified circular, thrift, or ethical items", "unlocked": ethical_count >= 3, "progress": f"{ethical_count}/3 ethical items", "pct": min(100, int((ethical_count / 3.0) * 100))},
+        {"id": "eco_saver", "name": "Eco Saver of the Month", "icon": "🌟", "desc": "Save 10+ kg CO₂ vs standard retail baseline", "unlocked": co2_saved >= 10.0 and total_items >= 1, "progress": f"{co2_saved:.1f}/10.0 kg CO₂ saved", "pct": min(100, int((co2_saved / 10.0) * 100)) if total_items >= 1 else 0},
+        {"id": "zero_waste", "name": "Zero-Waste Hero", "icon": "🏆", "desc": "Log 2+ zero-waste or second-hand thrift items", "unlocked": zw_cnt >= 2, "progress": f"{zw_cnt}/2 items", "pct": min(100, int((zw_cnt / 2.0) * 100))},
     ]
-    return badges, total_spend, total_co2, avg_intensity, co2_saved, ethical_count
+    return badges, total_spend, total_co2, avg_int, co2_saved, ethical_count
 
 def get_next_badge_nudge(badges):
-    """Returns encouraging progress label and completion % for the next locked badge."""
     locked = [b for b in badges if not b["unlocked"]]
     if not locked:
-        return "🏆 All 5 Milestone Badges Unlocked! You are a Biosphere Legend!", 100
+        return "🏆 All 5 Milestone Badges Unlocked!", 100
     best = max(locked, key=lambda b: b["pct"])
-    return f"🎯 Next Milestone: {best['icon']} {best['name']} ({best['progress']})", best["pct"]
+    return f"Next: {best['icon']} {best['name']} ({best['progress']})", best["pct"]
 
 def find_top_swap_opportunity(purchases):
-    """Finds the single highest-CO2 non-ethical item to offer a live 1-click Green Switch."""
-    non_eth = [
-        (idx, p) for idx, p in enumerate(purchases)
-        if not p.get("is_ethical", p.get("ethical", False)) and p.get("carbon_kg", p.get("co2", 0.0)) > 0
-    ]
+    non_eth = [(i, p) for i, p in enumerate(purchases) if not p.get("is_ethical", False) and p.get("carbon_kg", 0.0) > 0]
     if not non_eth:
         return None
-    idx, item = max(non_eth, key=lambda pair: pair[1].get("carbon_kg", pair[1].get("co2", 0.0)))
-    cur_co2 = item.get("carbon_kg", item.get("co2", 0.0))
-    cat = item.get("category", "Fast Fashion Apparel")
-    # Suggest greener category target
-    alt_cat_map = {
+    idx, item = max(non_eth, key=lambda pair: pair[1].get("carbon_kg", 0.0))
+    cur_co2, cat = item.get("carbon_kg", 0.0), item.get("category", "Fast Fashion Apparel")
+    alt_map = {
         "Consumer Electronics": "Refurbished Tech",
         "Fast Fashion Apparel": "Second-Hand / Thrift",
         "Footwear & Leather": "Second-Hand / Thrift",
         "Packaged Groceries": "Local / Organic Food",
         "Home & Plastics": "Zero-Waste Reusables",
     }
-    target_cat = alt_cat_map.get(cat, "Second-Hand / Thrift")
+    target_cat = alt_map.get(cat, "Second-Hand / Thrift")
     alt_co2 = calculate_carbon(item.get("price", 30.0), target_cat, True)
-    saved_diff = max(0.0, round(cur_co2 - alt_co2, 2))
-    pct_drop = int(round((saved_diff / cur_co2) * 100)) if cur_co2 > 0 else 0
-    swaps = ETHICAL_ALTERNATIVES.get(cat, [{"brand": "Local Circular Hub", "saving": "70%"}])
-    return {
-        "index": idx,
-        "item": item,
-        "target_cat": target_cat,
-        "brand_suggestion": swaps[0]["brand"],
-        "cur_co2": cur_co2,
-        "alt_co2": alt_co2,
-        "saved_diff": saved_diff,
-        "pct_drop": pct_drop,
-    }
+    saved = max(0.0, round(cur_co2 - alt_co2, 2))
+    swaps = ETHICAL_ALTERNATIVES.get(cat, [{"brand": "Local Circular Hub"}])
+    return {"index": idx, "item": item, "target_cat": target_cat, "brand_suggestion": swaps[0]["brand"], "cur_co2": cur_co2, "alt_co2": alt_co2, "saved_diff": saved, "pct_drop": int(round((saved / cur_co2) * 100)) if cur_co2 > 0 else 0}
 
 def build_eco_scorecard_markdown(user_name, eco_rank, budget, spend_tot, co2_tot, saved_tot, badges, streak, top_cat):
-    unlocked_names = [b["name"] for b in badges if b["unlocked"]]
-    return f"""# ShopImpact Personal Conscious Shopping Scorecard
+    unlocked = [b["name"] for b in badges if b["unlocked"]]
+    return f"""# ShopImpact Conscious Shopping Scorecard
 
 - **Shopper:** {user_name} ({eco_rank})
-- **Report Generated:** {date.today()}
-- **Monthly Carbon Target:** {budget} kg CO2e
+- **Report Date:** {date.today()}
+- **Monthly Target:** {budget} kg CO2e
 
 ## Summary Metrics
-- **Total Logged Spend:** ${spend_tot:,.2f}
-- **Total Carbon Footprint:** {co2_tot:.1f} kg CO2e
-- **Carbon Avoided vs Normal Average:** {saved_tot:.1f} kg CO2e (~{round(saved_tot / 1.75, 1)} tree-months saved)
-- **Current Green Choice Streak:** {streak}x in a row
-- **Highest Impact Category:** {top_cat}
+- **Total Spend:** ${spend_tot:,.2f}
+- **Carbon Footprint:** {co2_tot:.1f} kg CO2e
+- **Carbon Avoided:** {saved_tot:.1f} kg CO2e
+- **Eco Streak:** {streak}x
+- **Top Impact Category:** {top_cat}
 
-## Unlocked Achievement Badges ({len(unlocked_names)} of {len(badges)})
-{chr(10).join('- ' + n for n in unlocked_names) if unlocked_names else '- Ready for your first milestone!'}
-
-*Generated locally by ShopImpact Conscious Shopping Companion (IDAI 102).*
+## Unlocked Badges ({len(unlocked)} of {len(badges)})
+{chr(10).join('- ' + n for n in unlocked) if unlocked else '- Log purchases to unlock milestones!'}
 """
 
 def evaluate_feedback_for_item(mascot_str, item_name, live_co2, is_ethical):
-    """Computes mascot mood, reaction message, and Turtle art trigger for a logged purchase."""
     if is_ethical and live_co2 <= 3.0:
         mood, art = "ecstatic", "badge"
     elif is_ethical or live_co2 <= 10.0:
-        mood = "happy"
-        art = "leaf" if is_ethical else "footprint"
+        mood, art = "happy", ("leaf" if is_ethical else "footprint")
     elif live_co2 <= 25.0:
         mood, art = "mindful", None
     elif live_co2 <= 50.0:
         mood, art = "worried", None
     else:
         mood, art = "alarmed", None
-    msg = get_mascot_reaction(mascot_str, item_name, live_co2, mood, is_ethical)
-    return mood, msg, art
+    return mood, get_mascot_reaction(mascot_str, item_name, live_co2, mood, is_ethical), art
 
 def add_purchase(purchases_list, item_name, product_type, brand, price, purchase_date, is_ethical, mascot_str):
-    """Appends a new purchase dict to the purchases Python list and returns feedback state."""
     live_co2 = calculate_carbon(float(price), product_type, bool(is_ethical))
     record = {
-        "id": len(purchases_list) + 1,
-        "item": item_name.strip(),
-        "category": product_type,
+        "id": len(purchases_list) + 1, "item": item_name.strip(), "category": product_type,
         "brand": brand.strip() if brand and brand.strip() else "Unspecified",
-        "price": round(float(price), 2),
-        "carbon_kg": float(live_co2),
-        "date": str(purchase_date),
-        "is_ethical": bool(is_ethical),
+        "price": round(float(price), 2), "carbon_kg": float(live_co2),
+        "date": str(purchase_date), "is_ethical": bool(is_ethical),
     }
     purchases_list.append(record)
     mood, msg, art = evaluate_feedback_for_item(mascot_str, record["item"], live_co2, is_ethical)
@@ -918,38 +625,34 @@ def add_purchase(purchases_list, item_name, product_type, brand, price, purchase
 # ------------------------------------------------------------------------------
 
 if "dark_theme" not in st.session_state:
-    st.session_state.dark_theme = False if st.query_params.get("theme") == "light" else True
+    st.session_state.dark_theme = st.query_params.get("theme") == "dark"
 if "onboarded" not in st.session_state:
     st.session_state.onboarded = st.query_params.get("onboarded") in ["true", "1"]
-
 if "user_name" not in st.session_state: st.session_state.user_name = "Parth Gajera"
 if "user_mascot" not in st.session_state: st.session_state.user_mascot = "Pip the Forest Fox 🦊"
 if "carbon_budget" not in st.session_state: st.session_state.carbon_budget = 150
 if "recent_art" not in st.session_state: st.session_state.recent_art = None
 if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "mindful"
 if "mascot_message" not in st.session_state:
-    st.session_state.mascot_message = "Ready when you are! Log a purchase below to see your live CO₂ footprint and earn Turtle art."
+    st.session_state.mascot_message = "Ready when you are! Log a purchase below to track CO₂ and unlock botanical art."
 if "nav_view" not in st.session_state:
     st.session_state.nav_view = "🏆 Wall of Badges" if st.query_params.get("view") == "badges" else "📊 Dashboard"
 if "last_logged" not in st.session_state: st.session_state.last_logged = None
+if "confirm_reset" not in st.session_state: st.session_state.confirm_reset = False
 
 if "purchases" not in st.session_state:
-    # Core Python list storing every purchase dictionary (product type, price, brand, date)
     st.session_state.purchases = []
-    demo_mode = st.query_params.get("demo")
-    if demo_mode in ["true", "1"]:
-        sample_items = [
+    dm = st.query_params.get("demo")
+    if dm in ["true", "1"]:
+        for args in [
             ("Vintage Denim Jacket", "Second-Hand / Thrift", "Community Thrift", 35.0, "2026-11-12", True),
             ("Organic CSA Harvest Box", "Local / Organic Food", "Local Farmers Market", 42.0, "2026-11-12", True),
             ("Certified Renewed ThinkPad", "Refurbished Tech", "Back Market Refurbished", 280.0, "2026-11-12", True),
-        ]
-        for args in sample_items:
-            rec, mood, msg, art = add_purchase(st.session_state.purchases, *args, st.session_state.user_mascot)
-            st.session_state.last_logged = rec
-        st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = "ecstatic", "CLEVER THRIFT MASTER! Pip put on gold sunglasses! 'Vintage Denim Jacket' is a circular gem!", "badge"
-    elif demo_mode == "test12":
-        # 12 sample purchases covering expensive, cheap, eco, and non-eco items
-        test_12_items = [
+        ]:
+            st.session_state.last_logged, *_ = add_purchase(st.session_state.purchases, *args, st.session_state.user_mascot)
+        st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = "ecstatic", "CLEVER ECO PICK! Pip put on gold sunglasses — 'Vintage Denim Jacket' is a circular win!", "badge"
+    elif dm == "test12":
+        for args in [
             ("Fair-Trade Coffee", "Local / Organic Food", "Local Roaster", 4.50, "2026-11-01", True),
             ("Bamboo Water Bottle", "Zero-Waste Reusables", "Klean Kanteen", 24.00, "2026-11-02", True),
             ("Vintage Denim Jacket", "Second-Hand / Thrift", "Goodwill Thrift", 32.00, "2026-11-03", True),
@@ -962,470 +665,187 @@ if "purchases" not in st.session_state:
             ("Running Shoes (Leather)", "Footwear & Leather", "City Leather Co.", 130.00, "2026-11-10", False),
             ("Modular Smartphone", "Consumer Electronics", "TechCorp", 320.00, "2026-11-11", False),
             ("Glass Pantry Jar Pack", "Zero-Waste Reusables", "Refill Hub", 18.00, "2026-11-12", True),
-        ]
-        for args in test_12_items:
-            rec, mood, msg, art = add_purchase(st.session_state.purchases, *args, st.session_state.user_mascot)
-            st.session_state.last_logged = rec
-            st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
-
-if "confirm_reset" not in st.session_state: st.session_state.confirm_reset = False
+        ]:
+            rec, m, msg, art = add_purchase(st.session_state.purchases, *args, st.session_state.user_mascot)
+            st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = rec, m, msg, art
 
 # ------------------------------------------------------------------------------
-# DUAL-THEME BOTANICAL GRADIENT CSS ENGINE (Dark Emerald & Creamy Light Mode)
+# UNIFIED TOKENIZED CSS (Airy Flat Botanical Palette, Zero Harsh Boxes, Mobile-Ready)
 # ------------------------------------------------------------------------------
 
-if st.session_state.dark_theme:
-    render_html("""
-    <style>
-    .stApp {
-        background: radial-gradient(circle at 18% 10%, #143322 0%, #09130d 52%, #050a07 100%) !important;
-        color: #f8fafc !important;
-    }
-    [data-testid="stHeader"] {
-        background: rgba(8, 20, 13, 0.85) !important;
-        backdrop-filter: blur(8px);
-        border-bottom: 1px solid rgba(52, 211, 153, 0.16) !important;
-    }
-    h1, h2, h3, h4, h5, p, span, label { color: #f1f5f9 !important; }
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0d2217 0%, #07100b 100%) !important;
-        border-right: 1.5px solid rgba(52, 211, 153, 0.25) !important;
-    }
-    [data-testid="stSidebar"] * { color: #f1f5f9 !important; }
-    [data-testid="stSidebarCollapseButton"] button, [data-testid="collapsedControl"] button {
-        background: linear-gradient(135deg, #133623, #0b2216) !important;
-        border: 1.5px solid #34d399 !important;
-        border-radius: 10px !important;
-        color: #34d399 !important;
-        box-shadow: 0 2px 10px rgba(52, 211, 153, 0.22) !important;
-    }
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        background: linear-gradient(155deg, rgba(19, 54, 35, 0.56), rgba(9, 24, 15, 0.72)) !important;
-        border: 1.5px solid rgba(52, 211, 153, 0.28) !important;
-        border-radius: 16px !important;
-        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.24) !important;
-    }
-    [data-testid="stBaseButton-primary"], button[kind="primary"] {
-        background: linear-gradient(135deg, #059669, #10b981) !important;
-        border: 1.5px solid #34d399 !important;
-        border-radius: 10px !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28) !important;
-    }
-    [data-testid="stBaseButton-primary"] *, button[kind="primary"] * { color: #ffffff !important; }
-    [data-testid="stBaseButton-secondary"], button[kind="secondary"],
-    [data-testid="stDownloadButton"] button, [data-testid="stFormSubmitButton"] button {
-        background: linear-gradient(135deg, #133120, #0c2015) !important;
-        border: 1.5px solid rgba(52, 211, 153, 0.36) !important;
-        border-radius: 10px !important;
-        color: #ecfdf5 !important;
-        font-weight: 600 !important;
-    }
-    [data-testid="stBaseButton-secondary"]:hover, button[kind="secondary"]:hover,
-    [data-testid="stDownloadButton"] button:hover, [data-testid="stFormSubmitButton"] button:hover {
-        background: linear-gradient(135deg, #19422b, #102b1c) !important;
-        border-color: #34d399 !important;
-    }
-    [data-testid="stExpander"] {
-        background: linear-gradient(145deg, rgba(17, 46, 30, 0.65), rgba(10, 26, 17, 0.78)) !important;
-        border: 1.5px solid rgba(52, 211, 153, 0.26) !important;
-        border-radius: 14px !important;
-    }
-    .top-banner {
-        background: linear-gradient(135deg, rgba(19, 54, 35, 0.92), rgba(10, 29, 19, 0.96));
-        border: 1.5px solid rgba(52, 211, 153, 0.35);
-        border-radius: 16px;
-        padding: 0.9rem 1.3rem;
-        margin-bottom: 1.1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
-    }
-    .hero-card {
-        background: linear-gradient(145deg, rgba(20, 56, 37, 0.92), rgba(9, 25, 16, 0.96));
-        border: 1.5px solid rgba(52, 211, 153, 0.34);
-        border-radius: 18px;
-        padding: 1.1rem 1.2rem;
-        min-height: 365px;
-        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.32);
-        margin-bottom: 0.6rem;
-    }
-    .card-kicker {
-        display: inline-block;
-        white-space: nowrap;
-        font-size: 0.68rem;
-        font-weight: 800;
-        letter-spacing: 0.7px;
-        text-transform: uppercase;
-        color: #34d399 !important;
-        background: rgba(6, 78, 59, 0.78);
-        border: 1px solid rgba(52, 211, 153, 0.42);
-        padding: 0.18rem 0.56rem;
-        border-radius: 99px;
-    }
-    .streak-pill {
-        display: inline-block;
-        white-space: nowrap;
-        font-size: 0.74rem;
-        font-weight: 800;
-        color: #fef08a !important;
-        background: rgba(146, 64, 14, 0.45);
-        border: 1px solid rgba(251, 191, 36, 0.45);
-        padding: 0.2rem 0.65rem;
-        border-radius: 99px;
-    }
-    .speech-cloud {
-        position: relative;
-        background: linear-gradient(145deg, #163d28, #102a1c);
-        border: 1.5px solid #34d399;
-        border-radius: 16px;
-        padding: 0.95rem 1.1rem;
-        color: #f8fafc !important;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
-        flex: 1;
-    }
-    .speech-cloud::before {
-        content: "";
-        position: absolute;
-        left: -10px;
-        top: 28px;
-        border-width: 9px 10px 9px 0;
-        border-style: solid;
-        border-color: transparent #34d399 transparent transparent;
-    }
-    .speech-cloud::after {
-        content: "";
-        position: absolute;
-        left: -8px;
-        top: 29px;
-        border-width: 8px 9px 8px 0;
-        border-style: solid;
-        border-color: transparent #163d28 transparent transparent;
-    }
-    .prog-track {
-        width: 100%;
-        height: 9px;
-        background: rgba(15, 23, 42, 0.75);
-        border-radius: 99px;
-        overflow: hidden;
-        border: 1px solid rgba(52, 211, 153, 0.28);
-        margin-top: 0.35rem;
-    }
-    .prog-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #10b981, #34d399, #fde047);
-        border-radius: 99px;
-        transition: width 0.4s ease;
-    }
-    .art-slot-on {
-        background: rgba(6, 78, 59, 0.85);
-        border: 1px solid #34d399;
-        color: #ecfdf5 !important;
-        border-radius: 10px;
-        padding: 0.24rem 0.25rem;
-        font-size: 0.69rem;
-        font-weight: 700;
-        text-align: center;
-        white-space: nowrap;
-    }
-    .art-slot-off {
-        background: rgba(15, 23, 42, 0.55);
-        border: 1px dashed #475569;
-        color: #94a3b8 !important;
-        border-radius: 10px;
-        padding: 0.24rem 0.25rem;
-        font-size: 0.69rem;
-        font-weight: 600;
-        text-align: center;
-        white-space: nowrap;
-        opacity: 0.65;
-    }
-    [data-testid="stMetric"] {
-        background: linear-gradient(145deg, rgba(20, 56, 37, 0.88), rgba(10, 28, 18, 0.94)) !important;
-        border: 1.5px solid rgba(52, 211, 153, 0.28) !important;
-        border-radius: 14px !important;
-        padding: 0.9rem 1rem !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24) !important;
-    }
-    .tip-box { background: linear-gradient(135deg, #143723, #0f291a) !important; border: 1.5px solid #34d399 !important; border-radius: 14px; padding: 1.05rem 1.25rem; color: #f8fafc !important; margin: 0.8rem 0; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
-    .swap-card { background: linear-gradient(145deg, #173a26, #0f2519) !important; border: 1.5px solid rgba(52, 211, 153, 0.32) !important; border-radius: 14px; padding: 1rem; color: #f8fafc !important; margin-bottom: 0.5rem; }
-    .badge-on { background: linear-gradient(135deg, #065f46, #047857) !important; border: 2px solid #34d399 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; margin-bottom: 0.8rem; box-shadow: 0 4px 16px rgba(52, 211, 153, 0.22); }
-    .badge-off { background: linear-gradient(145deg, #1a241e, #111814) !important; border: 2px dashed #475569 !important; border-radius: 14px; padding: 1rem; color: #94a3b8 !important; filter: grayscale(100%); opacity: 0.65; margin-bottom: 0.8rem; }
-    .avatar-card { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 1rem; text-align: center; }
-    .avatar-circle { width: 92px; height: 92px; border-radius: 50%; border: 3px solid #34d399; overflow: hidden; background: radial-gradient(circle, #17452c, #0a2015); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(52, 211, 153, 0.35); margin: 0 auto; }
-    .rank-pill { font-size: 0.8rem; background: #064e3b; color: #34d399 !important; border: 1px solid #10b981; padding: 0.22rem 0.7rem; border-radius: 99px; font-weight: 700; display: inline-block; margin-top: 0.35rem; }
-    .vessel-chip { background: linear-gradient(145deg, #173a26, #0f2619); border: 1.5px solid rgba(52, 211, 153, 0.35); border-radius: 14px; padding: 0.75rem; text-align: center; margin-bottom: 0.5rem; min-height: 114px; display: flex; flex-direction: column; justify-content: center; transition: transform 0.18s ease, border-color 0.18s ease; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22); }
-    .vessel-chip:hover { border-color: #34d399; transform: translateY(-3px); }
-    .sim-card { background: linear-gradient(145deg, #153523, #0d2116); border: 1.5px solid rgba(52, 211, 153, 0.32); border-radius: 14px; padding: 1.15rem; margin: 0.6rem 0 1rem 0; box-shadow: 0 4px 18px rgba(0,0,0,0.25); }
-    .optimizer-box { background: linear-gradient(135deg, rgba(20, 62, 40, 0.92), rgba(14, 42, 28, 0.95)); border: 1.5px solid #34d399; border-radius: 16px; padding: 1.1rem 1.3rem; margin: 0.8rem 0; box-shadow: 0 6px 22px rgba(0,0,0,0.28); }
-    .mission-strip { background: linear-gradient(90deg, rgba(19, 54, 35, 0.85), rgba(13, 38, 25, 0.9)); border: 1px solid rgba(52, 211, 153, 0.32); border-radius: 12px; padding: 0.6rem 1rem; margin: 0.5rem 0 1rem 0; }
-    </style>
-    """)
-else:
-    render_html("""
-    <style>
-    .stApp {
-        background: radial-gradient(circle at 82% 0%, #FDF9EE 0%, #F4ECDA 58%, #EAE0C8 100%) !important;
-        color: #163323 !important;
-    }
-    [data-testid="stHeader"] {
-        background: rgba(253, 249, 238, 0.88) !important;
-        backdrop-filter: blur(8px);
-        border-bottom: 1px solid #C8D6C0 !important;
-    }
-    [data-testid="stHeader"] * { color: #163323 !important; }
-    h1, h2, h3, h4, h5, p, span, label { color: #163323 !important; }
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #EFE5CF 0%, #E3D6BA 100%) !important;
-        border-right: 1.5px solid #C5D1B8 !important;
-    }
-    [data-testid="stSidebar"] * { color: #163323 !important; }
-    [data-testid="stSidebarCollapseButton"] button, [data-testid="collapsedControl"] button {
-        background: linear-gradient(135deg, #FFFDF7, #E9F3E4) !important;
-        border: 1.5px solid #2D6A4F !important;
-        border-radius: 10px !important;
-        color: #1B4332 !important;
-        box-shadow: 0 2px 8px rgba(45, 106, 79, 0.16) !important;
-    }
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        background: linear-gradient(155deg, #FFFDF7 0%, #EBF4E5 100%) !important;
-        border: 1.5px solid #9AC0A0 !important;
-        border-radius: 16px !important;
-        box-shadow: 0 6px 20px rgba(45, 106, 79, 0.08) !important;
-    }
-    [data-testid="stBaseButton-primary"], button[kind="primary"] {
-        background: linear-gradient(135deg, #1B4332, #2D6A4F) !important;
-        border: 1.5px solid #1B4332 !important;
-        border-radius: 10px !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        box-shadow: 0 4px 12px rgba(27, 67, 50, 0.22) !important;
-    }
-    [data-testid="stBaseButton-primary"] *, button[kind="primary"] *,
-    [data-testid="stBaseButton-primary"] p, button[kind="primary"] p {
-        color: #ffffff !important;
-    }
-    [data-testid="stBaseButton-secondary"], button[kind="secondary"],
-    [data-testid="stDownloadButton"] button, [data-testid="stFormSubmitButton"] button {
-        background: linear-gradient(135deg, #FFFDF8, #E3EFE0) !important;
-        border: 1.5px solid #40916C !important;
-        border-radius: 10px !important;
-        color: #143D2B !important;
-        font-weight: 700 !important;
-        box-shadow: 0 2px 8px rgba(45, 106, 79, 0.09) !important;
-    }
-    [data-testid="stBaseButton-secondary"] *, button[kind="secondary"] *,
-    [data-testid="stDownloadButton"] button *, [data-testid="stFormSubmitButton"] button * {
-        color: #143D2B !important;
-    }
-    [data-testid="stBaseButton-secondary"]:hover, button[kind="secondary"]:hover,
-    [data-testid="stDownloadButton"] button:hover, [data-testid="stFormSubmitButton"] button:hover {
-        background: linear-gradient(135deg, #D5EAD8, #C2E2C7) !important;
-        border-color: #1B4332 !important;
-    }
-    [data-testid="stExpander"] {
-        background: linear-gradient(145deg, #FAF5E8, #EDF4E6) !important;
-        border: 1.5px solid #A4C5A8 !important;
-        border-radius: 14px !important;
-    }
-    .stTextInput input, .stNumberInput input, .stDateInput input,
-    .stSelectbox div[data-baseweb="select"] > div {
-        background-color: #FFFDF8 !important;
-        color: #163323 !important;
-        border-color: #9DC0A1 !important;
-    }
-    .top-banner {
-        background: linear-gradient(135deg, #FFFDF8 0%, #EDF5E8 100%);
-        border: 1.5px solid #9DC1A2;
-        border-radius: 16px;
-        padding: 0.9rem 1.3rem;
-        margin-bottom: 1.1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 4px 16px rgba(45, 106, 79, 0.08);
-    }
-    .hero-card {
-        background: linear-gradient(145deg, #FFFDF7 0%, #EDF5E7 100%);
-        border: 1.5px solid #9AC0A0;
-        border-radius: 18px;
-        padding: 1.1rem 1.2rem;
-        min-height: 365px;
-        box-shadow: 0 6px 20px rgba(45, 106, 79, 0.09);
-        margin-bottom: 0.6rem;
-    }
-    .card-kicker {
-        display: inline-block;
-        white-space: nowrap;
-        font-size: 0.68rem;
-        font-weight: 800;
-        letter-spacing: 0.7px;
-        text-transform: uppercase;
-        color: #1B4332 !important;
-        background: #DCEEE0;
-        border: 1px solid #74C69D;
-        padding: 0.18rem 0.56rem;
-        border-radius: 99px;
-    }
-    .streak-pill {
-        display: inline-block;
-        white-space: nowrap;
-        font-size: 0.74rem;
-        font-weight: 800;
-        color: #92400E !important;
-        background: #FEF3C7;
-        border: 1px solid #F59E0B;
-        padding: 0.2rem 0.65rem;
-        border-radius: 99px;
-    }
-    .speech-cloud {
-        position: relative;
-        background: linear-gradient(145deg, #FFFDF9, #EAF5E4);
-        border: 1.5px solid #52B788;
-        border-radius: 16px;
-        padding: 0.95rem 1.1rem;
-        color: #163323 !important;
-        box-shadow: 0 4px 14px rgba(45, 106, 79, 0.08);
-        flex: 1;
-    }
-    .speech-cloud::before {
-        content: "";
-        position: absolute;
-        left: -10px;
-        top: 28px;
-        border-width: 9px 10px 9px 0;
-        border-style: solid;
-        border-color: transparent #52B788 transparent transparent;
-    }
-    .speech-cloud::after {
-        content: "";
-        position: absolute;
-        left: -8px;
-        top: 29px;
-        border-width: 8px 9px 8px 0;
-        border-style: solid;
-        border-color: transparent #FFFDF9 transparent transparent;
-    }
-    .prog-track {
-        width: 100%;
-        height: 9px;
-        background: #E2DAC4;
-        border-radius: 99px;
-        overflow: hidden;
-        border: 1px solid #B6CEB7;
-        margin-top: 0.35rem;
-    }
-    .prog-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #2D6A4F, #40916C, #52B788);
-        border-radius: 99px;
-        transition: width 0.4s ease;
-    }
-    .art-slot-on {
-        background: #D8EFE0;
-        border: 1px solid #2D6A4F;
-        color: #143D2B !important;
-        border-radius: 10px;
-        padding: 0.24rem 0.25rem;
-        font-size: 0.69rem;
-        font-weight: 700;
-        text-align: center;
-        white-space: nowrap;
-    }
-    .art-slot-off {
-        background: #EFE9D8;
-        border: 1px dashed #B5AA92;
-        color: #6B7263 !important;
-        border-radius: 10px;
-        padding: 0.24rem 0.25rem;
-        font-size: 0.69rem;
-        font-weight: 600;
-        text-align: center;
-        white-space: nowrap;
-        opacity: 0.78;
-    }
-    [data-testid="stMetric"] {
-        background: linear-gradient(145deg, #FFFDF7, #EDF5E7) !important;
-        border: 1.5px solid #A4C6A8 !important;
-        border-radius: 14px !important;
-        padding: 0.9rem 1rem !important;
-        box-shadow: 0 3px 12px rgba(45, 106, 79, 0.08) !important;
-    }
-    [data-testid="stMetricValue"] * { color: #143D2B !important; }
-    [data-testid="stMetricLabel"] * { color: #365944 !important; font-weight: 700 !important; }
-    [data-testid="stMetricDelta"] {
-        background: #DFF0E3 !important;
-        border: 1px solid #74C69D !important;
-        border-radius: 99px !important;
-        padding: 0.14rem 0.55rem !important;
-        width: fit-content !important;
-    }
-    [data-testid="stMetricDelta"] div, [data-testid="stMetricDelta"] span {
-        color: #14532D !important;
-    }
-    [data-testid="stMetricDelta"] svg {
-        color: #14532D !important;
-    }
-    .tip-box { background: linear-gradient(135deg, #FFFDF8, #E7F3E4) !important; border: 1.5px solid #74C69D !important; border-radius: 14px; padding: 1.05rem 1.25rem; color: #143D2B !important; margin: 0.8rem 0; box-shadow: 0 2px 10px rgba(45, 106, 79, 0.07); }
-    .swap-card { background: linear-gradient(145deg, #FFFDF7, #EFF6EB) !important; border: 1.5px solid #A6C8AA !important; border-radius: 14px; padding: 1rem; color: #163323 !important; box-shadow: 0 2px 10px rgba(45, 106, 79, 0.06); margin-bottom: 0.5rem; }
-    .badge-on { background: linear-gradient(135deg, #1B4332, #2D6A4F) !important; border: 2px solid #52B788 !important; border-radius: 14px; padding: 1rem; color: #ffffff !important; box-shadow: 0 4px 14px rgba(45,106,79,0.2); margin-bottom: 0.8rem; }
-    .badge-on, .badge-on * { color: #ffffff !important; }
-    .badge-off { background: linear-gradient(145deg, #F6F0E1, #EBE2CD) !important; border: 2px dashed #BFB59D !important; border-radius: 14px; padding: 1rem; color: #64748b !important; filter: grayscale(85%); opacity: 0.72; margin-bottom: 0.8rem; }
-    .avatar-card { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 1rem; text-align: center; }
-    .avatar-circle { width: 92px; height: 92px; border-radius: 50%; border: 3px solid #2D6A4F; overflow: hidden; background: radial-gradient(circle, #FFFDF8, #D8EFE0); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(45, 106, 79, 0.22); margin: 0 auto; }
-    .rank-pill { font-size: 0.8rem; background: #D8EFE0; color: #1B4332 !important; border: 1px solid #40916C; padding: 0.22rem 0.7rem; border-radius: 99px; font-weight: 700; display: inline-block; margin-top: 0.35rem; }
-    .vessel-chip { background: linear-gradient(145deg, #FFFDF7, #EBF4E6); border: 1.5px solid #A4C5A8; border-radius: 14px; padding: 0.75rem; text-align: center; margin-bottom: 0.5rem; min-height: 114px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 3px 10px rgba(45, 106, 79, 0.07); transition: transform 0.18s ease, border-color 0.18s ease; }
-    .vessel-chip:hover { border-color: #2D6A4F; transform: translateY(-3px); }
-    .sim-card { background: linear-gradient(145deg, #FFFDF7, #EDF5E7); border: 1.5px solid #A4C5A8; border-radius: 14px; padding: 1.15rem; margin: 0.6rem 0 1rem 0; box-shadow: 0 3px 10px rgba(45, 106, 79, 0.06); }
-    .optimizer-box { background: linear-gradient(135deg, #FFFDF7, #E2F1DE); border: 1.5px solid #40916C; border-radius: 16px; padding: 1.1rem 1.3rem; margin: 0.8rem 0; box-shadow: 0 4px 16px rgba(45, 106, 79, 0.1); }
-    .mission-strip { background: linear-gradient(90deg, #FFFDF7, #E7F2E2); border: 1px solid #9CC0A1; border-radius: 12px; padding: 0.6rem 1rem; margin: 0.5rem 0 1rem 0; }
-    </style>
-    """)
+is_dark = st.session_state.dark_theme
+T = {
+    "bg": "#131C17" if is_dark else "#F5F9F3",
+    "side": "#18241D" if is_dark else "#EAF1E6",
+    "surface": "#1C2921" if is_dark else "#FFFFFF",
+    "soft": "#24342A" if is_dark else "#EDF4EA",
+    "ink": "#ECF3EA" if is_dark else "#13261B",
+    "muted": "#A3B9A9" if is_dark else "#526859",
+    "accent": "#6CA452" if is_dark else "#4E7E36",
+    "accent_hv": "#5B8E44" if is_dark else "#3D6628",
+    "accent_soft": "#263B2C" if is_dark else "#DCEBD4",
+    "border": "rgba(190, 218, 185, 0.14)" if is_dark else "rgba(45, 78, 43, 0.11)",
+    "shadow": "0 8px 28px rgba(0, 0, 0, 0.24)" if is_dark else "0 8px 28px rgba(24, 48, 30, 0.055)",
+    "gold_bg": "rgba(214, 152, 56, 0.16)" if is_dark else "#FAF2D8",
+    "gold_ink": "#F2CA6B" if is_dark else "#8A5E14",
+}
+
+render_html(f"""
+<style>
+  :root {{
+    --bg: {T['bg']}; --side: {T['side']}; --surface: {T['surface']}; --soft: {T['soft']};
+    --ink: {T['ink']}; --muted: {T['muted']}; --accent: {T['accent']}; --accent-hv: {T['accent_hv']};
+    --accent-soft: {T['accent_soft']}; --border: {T['border']}; --shadow: {T['shadow']};
+  }}
+  .stApp {{ background: var(--bg) !important; color: var(--ink) !important; }}
+  [data-testid="stHeader"] {{ background: transparent !important; }}
+  h1, h2, h3, h4, h5, p, span, label, [data-testid="stSidebar"] * {{ color: var(--ink) !important; }}
+  [data-testid="stSidebar"] {{ background: var(--side) !important; border-right: 1px solid var(--border) !important; }}
+  [data-testid="stSidebarCollapseButton"] button, [data-testid="collapsedControl"] button {{
+    background: var(--surface) !important; border: 1px solid var(--border) !important;
+    border-radius: 12px !important; color: var(--ink) !important; box-shadow: var(--shadow) !important;
+  }}
+
+  /* Soft organic buttons — olive moss primary & sunlit parchment secondary */
+  [data-testid="stBaseButton-primary"], button[kind="primary"] {{
+    background: var(--accent) !important; border: none !important; border-radius: 99px !important;
+    color: #FFFFFF !important; font-weight: 700 !important; padding: 0.45rem 1.1rem !important;
+    box-shadow: 0 4px 12px rgba(78, 126, 54, 0.20) !important;
+  }}
+  [data-testid="stBaseButton-primary"]:hover, button[kind="primary"]:hover {{ background: var(--accent-hv) !important; }}
+  [data-testid="stBaseButton-primary"] *, button[kind="primary"] * {{ color: #FFFFFF !important; }}
+
+  [data-testid="stBaseButton-secondary"], button[kind="secondary"],
+  [data-testid="stDownloadButton"] button, [data-testid="stFormSubmitButton"] button {{
+    background: var(--surface) !important; border: 1px solid var(--border) !important;
+    border-radius: 99px !important; color: var(--ink) !important; font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(24, 48, 30, 0.04) !important;
+  }}
+  [data-testid="stBaseButton-secondary"]:hover, button[kind="secondary"]:hover,
+  [data-testid="stDownloadButton"] button:hover, [data-testid="stFormSubmitButton"] button:hover {{
+    background: var(--accent-soft) !important; border-color: var(--accent) !important;
+  }}
+  [data-testid="stBaseButton-secondary"] *, button[kind="secondary"] *,
+  [data-testid="stDownloadButton"] button *, [data-testid="stFormSubmitButton"] button * {{ color: var(--ink) !important; }}
+
+  /* Form inputs */
+  .stTextInput input, .stNumberInput input, .stDateInput input,
+  .stSelectbox div[data-baseweb="select"] > div {{
+    background: var(--surface) !important; color: var(--ink) !important;
+    border: 1px solid var(--border) !important; border-radius: 12px !important;
+  }}
+
+  /* Seamless Equal-Height Hero Panorama Grid (replaces boxed containers!) */
+  .studio-grid {{
+    display: grid; grid-template-columns: 1fr 1.38fr 1fr; gap: 18px;
+    align-items: stretch; margin: 0.4rem 0 1.1rem 0;
+  }}
+  .studio-panel {{
+    background: var(--surface); border: 1px solid var(--border); border-radius: 22px;
+    padding: 1.25rem 1.35rem; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }}
+  .eyebrow {{
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.9px; text-transform: uppercase;
+    color: var(--accent) !important; margin-bottom: 0.25rem;
+  }}
+  .soft-bar {{ width: 100%; height: 7px; background: var(--soft); border-radius: 99px; overflow: hidden; margin-top: 0.4rem; }}
+  .soft-fill {{ height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }}
+
+  /* Open Top Header & KPI Cards without double borders */
+  .nav-head {{ display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 0.35rem; }}
+  .streak-tag {{
+    background: {T['gold_bg']}; color: {T['gold_ink']} !important; font-size: 0.78rem;
+    font-weight: 800; padding: 0.28rem 0.78rem; border-radius: 99px; white-space: nowrap;
+  }}
+  [data-testid="stMetric"] {{
+    background: var(--surface) !important; border: 1px solid var(--border) !important;
+    border-radius: 20px !important; padding: 1.05rem 1.15rem !important; box-shadow: var(--shadow) !important;
+  }}
+  [data-testid="stMetricValue"] * {{ color: var(--ink) !important; }}
+  [data-testid="stMetricLabel"] * {{ color: var(--muted) !important; font-weight: 700 !important; font-size: 0.84rem !important; }}
+  [data-testid="stMetricDelta"] {{
+    background: var(--accent-soft) !important; border-radius: 99px !important;
+    padding: 0.14rem 0.58rem !important; width: fit-content !important;
+  }}
+  [data-testid="stMetricDelta"] div, [data-testid="stMetricDelta"] span, [data-testid="stMetricDelta"] svg {{
+    color: var(--accent) !important;
+  }}
+
+  /* Soft organic strips & tiles (Zero jagged boxes) */
+  .soft-strip {{
+    background: var(--soft); border-radius: 16px; padding: 0.72rem 1.15rem; margin: 0.65rem 0 1rem 0;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  }}
+  .optimizer-panel {{
+    background: var(--soft); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+    border-radius: 18px; padding: 1.05rem 1.25rem; margin: 0.75rem 0;
+  }}
+  .chip-tile {{
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 0.7rem 0.45rem; text-align: center; height: 118px; margin-bottom: 0.45rem;
+    display: flex; flex-direction: column; justify-content: center; box-shadow: var(--shadow);
+  }}
+  .swap-card {{
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 1rem 1.1rem; box-shadow: var(--shadow); margin-bottom: 0.45rem;
+  }}
+  .badge-on {{
+    background: var(--accent) !important; border-radius: 20px; padding: 1.15rem;
+    color: #FFFFFF !important; margin-bottom: 0.85rem; box-shadow: 0 8px 24px rgba(78, 126, 54, 0.22);
+  }}
+  .badge-on *, .badge-on h3, .badge-on p {{ color: #FFFFFF !important; }}
+  .badge-off {{
+    background: var(--soft) !important; border: 1px dashed var(--border) !important;
+    border-radius: 20px; padding: 1.15rem; opacity: 0.68; margin-bottom: 0.85rem;
+  }}
+  .avatar-circle {{
+    width: 88px; height: 88px; border-radius: 50%; border: 2.5px solid var(--accent);
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    margin: 0 auto; overflow: hidden; box-shadow: var(--shadow);
+  }}
+
+  /* Responsive Phone & Tablet Breakpoints */
+  @media (max-width: 920px) {{
+    .studio-grid {{ grid-template-columns: 1fr !important; }}
+    .nav-head {{ flex-direction: column; align-items: flex-start; }}
+  }}
+</style>
+""")
 
 # ------------------------------------------------------------------------------
-# SCREEN 1: WELCOME & ONBOARDING
+# SCREEN 1: WELCOME & ONBOARDING (Ecovista-Inspired Landscape + Man & Turtle)
 # ------------------------------------------------------------------------------
 
 if not st.session_state.onboarded:
-    title_col = "#34d399" if st.session_state.dark_theme else "#1B4332"
-    sub_col = "#94a3b8" if st.session_state.dark_theme else "#4A6355"
-    card_bg = "linear-gradient(145deg, #153724, #0d2216)" if st.session_state.dark_theme else "linear-gradient(145deg, #FFFDF7, #EAF4E4)"
-    card_bd = "#34d399" if st.session_state.dark_theme else "#52B788"
+    render_html(render_welcome_landscape_svg(dark=is_dark))
+    st.markdown("<div style='height:0.65rem;'></div>", unsafe_allow_html=True)
 
-    render_html(f"<h1 style='text-align: center; color: {title_col}; margin-top: 1rem; margin-bottom: 0;'>🌱 Meet ShopImpact</h1><p style='text-align: center; color: {sub_col}; font-size: 1.12rem; margin-bottom: 2rem;'>Your playful, conscious shopping companion.</p>")
-
-    c1, c2 = st.columns([1.1, 0.9], gap="large")
+    c1, c2 = st.columns([1.25, 0.85], gap="large")
     with c1:
-        st.subheader("Set Your Goals & Avatar")
+        st.subheader("Begin Your Conscious Shopping Journey")
         u_name = st.text_input("Your Shopper Name (Required):", value=st.session_state.user_name)
-        m_choice = st.selectbox("Choose Your Eco Mascot Spirit (Required):", options=list(ECO_MASCOTS.keys()))
-        b_choice = st.slider("Monthly Sustainable Carbon Target (kg CO₂e):", min_value=50, max_value=300, value=st.session_state.carbon_budget, step=10, help="Standard conscious shopper monthly target is 100 to 150 kg CO₂e.")
-
-        st.caption(f"✨ **{m_choice.split()[0]}**: {ECO_MASCOTS[m_choice]}")
-        st.markdown("<br>", unsafe_allow_html=True)
+        m_choice = st.selectbox("Choose Your Eco Companion (Required):", options=list(ECO_MASCOTS.keys()))
+        b_choice = st.slider("Monthly Sustainable Carbon Target (kg CO₂e):", min_value=50, max_value=300, value=st.session_state.carbon_budget, step=10)
+        st.caption(f"✨ **{m_choice.split()[0]}:** {ECO_MASCOTS[m_choice]}")
         if st.button("🚀 Enter ShopImpact Dashboard →", type="primary", width="stretch"):
             st.session_state.user_name = u_name.strip() if u_name.strip() else "Shopper"
             st.session_state.user_mascot = m_choice
             st.session_state.carbon_budget = b_choice
             st.session_state.onboarded = True
-            c_name = m_choice.split()[0]
-            st.session_state.mascot_message = f"Welcome {st.session_state.user_name}! I am {c_name}. Log a purchase below to track CO₂ live and unlock Turtle artwork!"
+            st.session_state.mascot_message = f"Welcome {st.session_state.user_name}! I am {m_choice.split()[0]}. Log a purchase to track live CO₂ and unlock botanical Turtle artwork!"
             st.rerun()
 
     with c2:
-        render_html(render_animated_avatar_svg(m_choice, "happy", 210, 210))
         render_html(f"""
-        <div style="background: {card_bg}; border: 1.5px solid {card_bd}; border-radius: 16px; padding: 1.1rem 1.25rem; margin-top: 0.6rem;">
-            <strong style="color: {title_col};">What you'll experience inside:</strong>
-            <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0; line-height: 1.65;">
-                <li>🌍 <strong>Living Biosphere Globe:</strong> 60 FPS animated terrarium reflecting your monthly CO₂ health</li>
-                <li>⚡ <strong>6 Quick-Log Chips & Streak:</strong> instant logging with live eco streaks and missions</li>
-                <li>🔄 <strong>What-If Green Switch:</strong> swap high-CO₂ items in 1 click to see emissions drop</li>
-                <li>🐢 <strong>Turtle Art Collector Vault:</strong> earn layered Eco Leaf, Step & Gold Rosette art</li>
-                <li>🏆 <strong>Living Wall of Badges:</strong> watch grayscale achievements ignite into color</li>
-            </ul>
+        <div class="studio-panel" style="align-items:center; text-align:center;">
+          {render_animated_avatar_svg(m_choice, "happy", 160, 160)}
+          <div style="text-align:left; width:100%; font-size:0.88rem; line-height:1.6; color:{T['muted']};">
+            <div class="eyebrow">Inside Your Eco Studio</div>
+            <div>• <strong>Living Biosphere:</strong> natural garden dome synced to your monthly budget</div>
+            <div>• <strong>What-If Green Switch:</strong> cut heavy items with 1-click circular swaps</div>
+            <div>• <strong>Turtle Art Collector:</strong> collect Eco Leaf, Traveler Man &amp; Rosette PNGs</div>
+          </div>
         </div>
         """)
 
@@ -1436,107 +856,76 @@ if not st.session_state.onboarded:
 else:
     badges, spend_tot, co2_tot, avg_int, saved_tot, eth_cnt = evaluate_badges(st.session_state.purchases)
     unlocked_num = sum(1 for b in badges if b["unlocked"])
+    rank_title = get_user_eco_rank(st.session_state.purchases)
     cur_streak, best_streak = compute_eco_streak(st.session_state.purchases)
     earned_arts = get_collected_arts(st.session_state.purchases)
     nudge_text, nudge_pct = get_next_badge_nudge(badges)
-    accent_hex = "#34d399" if st.session_state.dark_theme else "#1B4332"
-    muted_hex = "#94a3b8" if st.session_state.dark_theme else "#4B6356"
 
-    # Sidebar Profile Card, Live Progress Summary, Navigation & Theme Switch
     with st.sidebar:
-        rank_title = get_user_eco_rank(st.session_state.purchases)
-        avatar_svg_mini = render_animated_avatar_svg(st.session_state.user_mascot, st.session_state.mascot_mood, 82, 82)
-        
         render_html(f"""
-        <div class="avatar-card">
-            <div class="avatar-circle">
-                {avatar_svg_mini}
-            </div>
-            <div style="font-size: 1.2rem; font-weight: 800; margin-top: 0.55rem;">{html.escape(st.session_state.user_name)}</div>
-            <div class="rank-pill">{rank_title}</div>
-            <div style="font-size: 0.8rem; margin-top: 0.35rem; opacity: 0.85;">{st.session_state.user_mascot}</div>
-            <div style="font-size: 0.78rem; opacity: 0.78;">Target: {st.session_state.carbon_budget} kg CO₂e/mo</div>
+        <div style="text-align:center; margin-bottom:0.8rem;">
+          <div class="avatar-circle">{render_animated_avatar_svg(st.session_state.user_mascot, st.session_state.mascot_mood, 74, 74)}</div>
+          <div style="font-size:1.12rem; font-weight:800; margin-top:0.5rem;">{html.escape(st.session_state.user_name)}</div>
+          <div style="font-size:0.78rem; font-weight:700; color:{T['accent']};">{rank_title}</div>
+          <div style="font-size:0.76rem; opacity:0.78;">Target: {st.session_state.carbon_budget} kg CO₂e/mo</div>
+        </div>
+        <div style="background:{T['surface']}; border:1px solid {T['border']}; border-radius:14px; padding:0.65rem 0.8rem; margin-bottom:0.8rem; font-size:0.78rem;">
+          <div style="display:flex; justify-content:space-between; font-weight:700;">
+            <span>🏆 {unlocked_num}/{len(badges)} Badges</span><span>🔥 {cur_streak}x Streak</span>
+          </div>
+          <div class="soft-bar"><div class="soft-fill" style="width:{int((unlocked_num/len(badges))*100)}%;"></div></div>
+          <div style="margin-top:0.35rem; color:{T['muted']};">🐢 Turtle Art: {len(earned_arts)}/4 earned</div>
         </div>
         """)
-
-        # Quick Progress Snapshot directly in Sidebar
-        render_html(f"""
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 0.65rem 0.8rem; margin-bottom: 0.8rem; font-size: 0.78rem;">
-            <div style="display: flex; justify-content: space-between; font-weight: 700;">
-                <span>🏆 Badges: {unlocked_num}/{len(badges)}</span>
-                <span>🔥 Streak: {cur_streak}x</span>
-            </div>
-            <div class="prog-track"><div class="prog-fill" style="width: {int((unlocked_num/len(badges))*100)}%;"></div></div>
-            <div style="margin-top: 0.35rem; opacity: 0.85;">🎨 Turtle Art Vault: {len(earned_arts)}/3 earned</div>
-        </div>
-        """)
-
-        if st.button("⚙️ Edit Profile / Avatar", width="stretch"):
+        if st.button("⚙️ Edit Profile", width="stretch"):
             st.session_state.onboarded = False
             st.rerun()
 
         st.markdown("---")
-        st.session_state.nav_view = st.radio(
-            "Navigation:",
-            ["📊 Dashboard", "🏆 Wall of Badges"],
-            index=1 if st.session_state.nav_view == "🏆 Wall of Badges" else 0,
-        )
-
-        dark_toggle = st.toggle("🌙 Obsidian Emerald Dark Mode", value=st.session_state.dark_theme)
+        st.session_state.nav_view = st.radio("Navigation:", ["📊 Dashboard", "🏆 Wall of Badges"], index=1 if st.session_state.nav_view == "🏆 Wall of Badges" else 0)
+        dark_toggle = st.toggle("🌙 Forest Dusk Dark Mode", value=st.session_state.dark_theme)
         if dark_toggle != st.session_state.dark_theme:
             st.session_state.dark_theme = dark_toggle
             st.rerun()
 
         st.markdown("---")
         st.caption(f"💡 *{random.choice(ECO_TIPS)}*")
-
-        # Guarded Session Reset Modal
         if not st.session_state.confirm_reset:
-            if st.button("🗑️ Reset / Clear All Purchases", width="stretch"):
+            if st.button("🗑️ Reset Session", width="stretch"):
                 st.session_state.confirm_reset = True
                 st.rerun()
         else:
-            st.warning("⚠️ Clear all logged purchases?")
-            r_c1, r_c2 = st.columns(2)
-            if r_c1.button("Yes, Clear", type="primary", width="stretch"):
-                st.session_state.purchases = []
-                st.session_state.last_logged = None
-                st.session_state.recent_art = None
-                st.session_state.mascot_mood = "mindful"
-                st.session_state.confirm_reset = False
-                c_name = st.session_state.user_mascot.split()[0]
-                st.session_state.mascot_message = f"All purchases cleared! {c_name} is ready for your fresh eco-conscious start."
+            st.warning("Clear all purchases?")
+            rc1, rc2 = st.columns(2)
+            if rc1.button("Yes", type="primary", width="stretch"):
+                st.session_state.purchases, st.session_state.last_logged, st.session_state.recent_art = [], None, None
+                st.session_state.mascot_mood, st.session_state.confirm_reset = "mindful", False
+                st.session_state.mascot_message = "Cleared! Ready for your next mindful purchase."
                 st.rerun()
-            if r_c2.button("Cancel", width="stretch"):
+            if rc2.button("Cancel", width="stretch"):
                 st.session_state.confirm_reset = False
                 st.rerun()
 
-    # --------------------------------------------------------------------------
-    # TOP COMMAND HEADER & SYNCED QUICK SWITCHER (Accessible even if sidebar closed)
-    # --------------------------------------------------------------------------
-    h_left, h_right = st.columns([1.95, 1.25])
-    with h_left:
+    # CLEAN TOP BAR (Inspired by Ecovista Navbar — open typography, zero boxes)
+    h1, h2 = st.columns([2.05, 1.15])
+    with h1:
         render_html(f"""
-        <div class="top-banner">
-            <div>
-                <div style="font-size: 1.25rem; font-weight: 800; color: {accent_hex};">🌱 ShopImpact Studio</div>
-                <div style="font-size: 0.82rem; color: {muted_hex};">Welcome back, <strong>{html.escape(st.session_state.user_name)}</strong> • Saved <strong>{saved_tot:.1f} kg CO₂e</strong> vs retail average</div>
-            </div>
-            <div style="text-align: right;">
-                <span class="streak-pill">🔥 {cur_streak}x Eco Streak</span>
-            </div>
+        <div class="nav-head">
+          <div>
+            <span style="font-size:1.45rem; font-weight:900; letter-spacing:-0.4px; color:{T['ink']};">🌱 ShopImpact</span>
+            <span style="font-size:0.86rem; color:{T['muted']}; margin-left:0.65rem;">Welcome back, <strong>{html.escape(st.session_state.user_name)}</strong> • Saved {saved_tot:.1f} kg CO₂e</span>
+          </div>
+          <span class="streak-tag">🔥 {cur_streak}x Eco Streak</span>
         </div>
         """)
-    with h_right:
-        b1_c, b2_c = st.columns(2)
-        with b1_c:
-            if st.button("📊 Dashboard", type="primary" if st.session_state.nav_view == "📊 Dashboard" else "secondary", width="stretch", key="top_nav_dash"):
-                st.session_state.nav_view = "📊 Dashboard"
-                st.rerun()
-        with b2_c:
-            if st.button(f"🏆 Badges ({unlocked_num}/{len(badges)})", type="primary" if st.session_state.nav_view == "🏆 Wall of Badges" else "secondary", width="stretch", key="top_nav_badges"):
-                st.session_state.nav_view = "🏆 Wall of Badges"
-                st.rerun()
+    with h2:
+        n1, n2 = st.columns(2)
+        if n1.button("📊 Dashboard", type="primary" if st.session_state.nav_view == "📊 Dashboard" else "secondary", width="stretch", key="top_nav_dash"):
+            st.session_state.nav_view = "📊 Dashboard"
+            st.rerun()
+        if n2.button(f"🏆 Badges ({unlocked_num}/{len(badges)})", type="primary" if st.session_state.nav_view == "🏆 Wall of Badges" else "secondary", width="stretch", key="top_nav_badges"):
+            st.session_state.nav_view = "🏆 Wall of Badges"
+            st.rerun()
 
     # --------------------------------------------------------------------------
     # VIEW: 📊 DASHBOARD
@@ -1548,525 +937,282 @@ else:
         used_pct = (co2_tot / b_lim) * 100.0
         capped_pct = min(100, int(round(used_pct)))
 
-        # SYMMETRICAL 3-PANEL HERO STUDIO: Biosphere | Companion & Speech Cloud | Turtle Collector Vault
-        col_bio, col_mid, col_art = st.columns([1.0, 1.34, 1.06], gap="medium")
+        active_art = st.session_state.recent_art or "preview"
+        art_img = draw_vector_art(active_art)
+        art_uri = image_to_data_uri(art_img)
+        art_titles = {"preview": "Seed Emblem (Log eco buy)", "leaf": "Botanical Eco Leaf", "footprint": "Earth Step Medallion", "traveler": "Mindful Walker & Turtle", "badge": "Championship Rosette"}
+        mission_lbl = "✅ Daily Eco Mission Complete" if eth_cnt >= 1 else "🌱 Log 1 circular purchase today"
 
-        with col_bio:
-            with st.container(border=True):
-                render_html(f"""
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
-                    <span class="card-kicker">🌍 Living Biosphere</span>
-                    <span style="font-size:0.76rem; font-weight:700; white-space:nowrap; color:{accent_hex};">{used_pct:.0f}% used</span>
-                </div>
-                """)
-                render_html(render_animated_biosphere_svg(used_pct, co2_tot, b_lim, width=195, height=255))
-                render_html(f"""
-                <div class="prog-track" style="margin-top:0.2rem;">
-                    <div class="prog-fill" style="width:{capped_pct}%;"></div>
-                </div>
-                <div style="font-size:0.76rem; color:{muted_hex}; margin-top:0.35rem; text-align:center;">
-                    {co2_tot:.1f} / {b_lim} kg monthly carbon budget
-                </div>
-                """)
+        # EQUAL-HEIGHT 3-CARD BOTANICAL STUDIO GRID (Unified height & mobile stackable!)
+        render_html(f"""
+        <div class="studio-grid">
+          <div class="studio-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="eyebrow">Living Biosphere</span>
+              <span style="font-size:0.78rem; font-weight:700; color:{T['muted']};">{used_pct:.0f}% used</span>
+            </div>
+            {render_animated_biosphere_svg(used_pct, co2_tot, b_lim, 178, 226)}
+            <div class="soft-bar"><div class="soft-fill" style="width:{capped_pct}%;"></div></div>
+          </div>
 
-        with col_mid:
-            with st.container(border=True):
-                mission_done = "✅ Daily Mission Complete!" if eth_cnt >= 1 else "🌱 Mission: Log 1 circular or organic item"
-                render_html(f"""
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.55rem;">
-                    <span class="card-kicker">🐾 Companion Studio</span>
-                    <span style="font-size:0.74rem; font-weight:700; color:{accent_hex};">{mission_done}</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:0.85rem; margin:0.35rem 0 0.7rem 0;">
-                    <div style="flex:0 0 125px; text-align:center;">
-                        {render_animated_avatar_svg(st.session_state.user_mascot, st.session_state.mascot_mood, 125, 125)}
-                    </div>
-                    <div class="speech-cloud">
-                        <div style="font-size:0.86rem; font-weight:800; color:{accent_hex}; margin-bottom:0.2rem;">{c_name} says:</div>
-                        <div style="font-size:0.86rem; line-height:1.45;">"{msg_esc}"</div>
-                    </div>
-                </div>
-                <div style="padding-top:0.45rem; border-top:1px solid rgba(52, 211, 153, 0.22);">
-                    <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700;">
-                        <span>{nudge_text}</span>
-                        <span style="color:{accent_hex};">{nudge_pct}%</span>
-                    </div>
-                    <div class="prog-track"><div class="prog-fill" style="width:{nudge_pct}%;"></div></div>
-                    <div style="font-size:0.74rem; color:{muted_hex}; margin-top:0.35rem;">
-                        ✨ Best Streak: <strong>{best_streak}x</strong> • Eco Rank: <strong>{rank_title}</strong>
-                    </div>
-                </div>
-                """)
+          <div class="studio-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+              <span class="eyebrow">Companion Studio</span>
+              <span style="font-size:0.75rem; font-weight:700; color:{T['accent']};">{mission_lbl}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem; margin:0.4rem 0;">
+              <div style="flex:0 0 116px; text-align:center;">{render_animated_avatar_svg(st.session_state.user_mascot, st.session_state.mascot_mood, 116, 116)}</div>
+              <div style="background:{T['soft']}; border-radius:16px; padding:0.9rem 1rem; font-size:0.86rem; line-height:1.45; flex:1;">
+                <div style="font-weight:800; color:{T['accent']}; margin-bottom:0.2rem;">{c_name} says:</div>
+                "{msg_esc}"
+              </div>
+            </div>
+            <div style="border-top:1px solid {T['border']}; padding-top:0.55rem;">
+              <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700;">
+                <span>{nudge_text}</span><span style="color:{T['accent']};">{nudge_pct}%</span>
+              </div>
+              <div class="soft-bar"><div class="soft-fill" style="width:{nudge_pct}%;"></div></div>
+            </div>
+          </div>
 
-        with col_art:
-            with st.container(border=True):
-                render_html(f"""
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
-                    <span class="card-kicker">🐢 Turtle Vault</span>
-                    <span style="font-size:0.76rem; font-weight:700; white-space:nowrap; color:{accent_hex};">{len(earned_arts)}/3 earned</span>
-                </div>
-                """)
-                active_art_key = st.session_state.recent_art if st.session_state.recent_art else "preview"
-                art_img = draw_vector_art(active_art_key)
-                art_titles = {
-                    "preview": "Seed Canvas (Log Eco Pick to Unlock)",
-                    "leaf": "Botanical Eco Leaf 🌿",
-                    "footprint": "Earth Step Footprint 👣",
-                    "badge": "Championship Eco Rosette ⭐",
-                }
-                c_img_pad1, c_img_mid, c_img_pad2 = st.columns([0.15, 1.0, 0.15])
-                with c_img_mid:
-                    st.image(art_img, width=155, caption=art_titles.get(active_art_key, "Turtle Vector Art"))
+          <div class="studio-panel" style="align-items:center; text-align:center;">
+            <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+              <span class="eyebrow">Turtle Art Collector</span>
+              <span style="font-size:0.78rem; font-weight:700; color:{T['muted']};">{len(earned_arts)}/4 unlocked</span>
+            </div>
+            <img src="{art_uri}" alt="Procedural Turtle Art" style="width:152px; height:152px; object-fit:contain; margin:0.2rem auto;"/>
+            <div style="width:100%;">
+              <div style="font-size:0.8rem; font-weight:700; color:{T['ink']}; margin-bottom:0.35rem;">{art_titles.get(active_art, 'Botanical Art')}</div>
+              <div style="display:flex; justify-content:center; gap:6px; font-size:0.72rem; font-weight:700; color:{T['muted']};">
+                <span style="padding:2px 8px; border-radius:99px; background:{T['accent_soft'] if 'leaf' in earned_arts else T['soft']};">🌿 Leaf</span>
+                <span style="padding:2px 8px; border-radius:99px; background:{T['accent_soft'] if 'footprint' in earned_arts else T['soft']};">👣 Step</span>
+                <span style="padding:2px 8px; border-radius:99px; background:{T['accent_soft'] if 'badge' in earned_arts else T['soft']};">⭐ Medal</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        """)
 
-                s1, s2, s3 = st.columns(3)
-                with s1:
-                    cls = "art-slot-on" if "leaf" in earned_arts else "art-slot-off"
-                    render_html(f"<div class='{cls}'>🌿 Leaf</div>")
-                with s2:
-                    cls = "art-slot-on" if "footprint" in earned_arts else "art-slot-off"
-                    render_html(f"<div class='{cls}'>👣 Step</div>")
-                with s3:
-                    cls = "art-slot-on" if "badge" in earned_arts else "art-slot-off"
-                    render_html(f"<div class='{cls}'>⭐ Medal</div>")
+        if st.session_state.recent_art:
+            _, dl_col = st.columns([2.2, 1.0])
+            dl_col.download_button("🎨 Download Earned Turtle Art (.png)", image_to_png_bytes(art_img), f"shopimpact_{active_art}.png", "image/png", width="stretch")
 
-                if st.session_state.recent_art:
-                    st.download_button(
-                        "🎨 Save Turtle Art (.png)",
-                        image_to_png_bytes(art_img),
-                        f"shopimpact_{active_art_key}.png",
-                        "image/png",
-                        width="stretch",
-                    )
-
-        st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
-
-        # 4 PRIMARY KPI METRIC CARDS
+        # 4 KPI CARDS
         k1, k2, k3, k4 = st.columns(4)
         k1.metric("Total Spend", f"${spend_tot:,.2f}", f"{len(st.session_state.purchases)} items recorded")
         k2.metric("Carbon Footprint", f"{co2_tot:.1f} kg", f"{avg_int:.2f} kg/$ intensity", delta_color="inverse")
         k3.metric("Carbon Avoided", f"{saved_tot:.1f} kg", "Vs standard 0.45 kg/$")
-        trees_tot = round(co2_tot / 21.0, 1)
-        k4.metric("Trees to Offset", f"{trees_tot} Trees", "21 kg CO₂/tree/year", delta_color="inverse")
+        k4.metric("Trees to Offset", f"{round(co2_tot / 21.0, 1)} Trees", "21 kg CO₂/tree/year", delta_color="inverse")
 
-        # MOTIVATIONAL REAL-WORLD STORY STRIP
-        if st.session_state.purchases:
-            eq_miles, eq_charges, eq_tree_mo = get_equivalency(saved_tot)
-            eth_pct = int(round((eth_cnt / max(len(st.session_state.purchases), 1)) * 100))
-            render_html(f"""
-            <div class="mission-strip" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.6rem; font-size:0.84rem;">
-                <span>🌱 <strong>Ethical Share:</strong> {eth_cnt}/{len(st.session_state.purchases)} buys ({eth_pct}% conscious)</span>
-                <span>🚗 <strong>Avoided Impact:</strong> Equal to skipping <strong>{eq_miles:,}</strong> petrol car miles or powering <strong>{eq_charges:,}</strong> phone charges!</span>
-            </div>
-            """)
+        miles_s, chg_s, _ = get_equivalency(saved_tot)
+        eth_rate = int(round((eth_cnt / len(st.session_state.purchases)) * 100)) if st.session_state.purchases else 0
+        render_html(f"""
+        <div class="soft-strip">
+          <div style="font-size:0.84rem;"><strong>Ethical Share:</strong> {eth_cnt}/{len(st.session_state.purchases)} buys ({eth_rate}% conscious)</div>
+          <div style="font-size:0.84rem; color:{T['muted']};">Avoided impact equals skipping <strong>{miles_s:,}</strong> car miles or powering <strong>{chg_s:,}</strong> phone charges.</div>
+        </div>
+        """)
 
-        # TACTILE QUICK-PURCHASE CHIPS (1-Click Instant Logging)
+        # QUICK-LOG CHIPS
         st.subheader("⚡ Quick-Log Common Purchases")
-        st.caption("One-click logging for everyday purchases. Instantly updates CO₂ math, mascot reaction, Biosphere glow, and streak.")
-
         chip_cols = st.columns(6)
         for i, qp in enumerate(QUICK_PURCHASES):
-            chip_co2 = calculate_carbon(qp["price"], qp["category"], qp["is_ethical"])
+            co2_c = calculate_carbon(qp["price"], qp["category"], qp["is_ethical"])
             with chip_cols[i]:
                 render_html(f"""
-                <div class="vessel-chip">
-                    <div style="font-size: 1.8rem;">{qp['icon']}</div>
-                    <div style="font-weight: 800; font-size: 0.82rem; margin-top: 0.2rem;">{qp['name']}</div>
-                    <div style="color: {accent_hex}; font-weight: 700; font-size: 0.78rem;">${qp['price']:.2f} • {chip_co2:.1f} kg</div>
+                <div class="chip-tile">
+                  <div style="font-size:1.55rem;">{qp['icon']}</div>
+                  <div style="font-weight:800; font-size:0.8rem; margin-top:0.2rem;">{qp['name']}</div>
+                  <div style="color:{T['accent']}; font-weight:700; font-size:0.76rem;">${qp['price']:.2f} • {co2_c:.1f} kg</div>
                 </div>
                 """)
                 if st.button(f"+ Add {qp['name'].split()[0]}", key=f"chip_btn_{i}", width="stretch"):
-                    new_item, mood, msg, art = add_purchase(
-                        st.session_state.purchases, qp["name"], qp["category"], qp["brand"],
-                        qp["price"], date.today(), qp["is_ethical"], st.session_state.user_mascot
-                    )
-                    st.session_state.last_logged = new_item
+                    new_it, mood, msg, art = add_purchase(st.session_state.purchases, qp["name"], qp["category"], qp["brand"], qp["price"], date.today(), qp["is_ethical"], st.session_state.user_mascot)
+                    st.session_state.last_logged = new_it
                     st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
-                    if mood == "ecstatic":
-                        st.balloons()
+                    if mood == "ecstatic": st.balloons()
                     st.rerun()
 
-        st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
-
-        # CUSTOM PURCHASE LOGGING FORM
+        # CUSTOM LOGGING FORM
         st.subheader("🛒 Log a Custom Planned Purchase")
-        st.caption("Record custom purchases into your active Python list. Certified circular or ethical items receive an automatic 30% footprint discount.")
-
         with st.form("custom_log_form", clear_on_submit=True):
             f1, f2, f3 = st.columns([1.2, 1.2, 1.0])
-            with f1:
-                item_name = st.text_input("Item Description (Required)", placeholder="e.g. Organic Cotton Tee, USB-C Cable")
-                cat_choice = st.selectbox("Product Category (Required)", options=list(CATEGORIES.keys()))
-            with f2:
-                brand_val = st.text_input("Brand or Vendor (Optional)", placeholder="e.g. Patagonia, Back Market, Local Store")
-                price_val = st.number_input("Purchase Price ($) (Required)", min_value=1.0, max_value=5000.0, value=45.0, step=5.0)
-            with f3:
-                date_val = st.date_input("Purchase Date (Required)", value=date.today())
-                is_eth = st.checkbox("🌱 Certified Circular / Thrift / Ethical", help="Applies a 30% footprint discount because reusing goods avoids virgin factory production.")
+            item_name = f1.text_input("Item Description (Required)", placeholder="e.g. Organic Cotton Tee, USB-C Cable")
+            cat_choice = f1.selectbox("Product Category (Required)", options=list(CATEGORIES.keys()))
+            brand_val = f2.text_input("Brand or Vendor (Optional)", placeholder="e.g. Patagonia, Back Market")
+            price_val = f2.number_input("Purchase Price ($) (Required)", min_value=1.0, max_value=5000.0, value=45.0, step=5.0)
+            date_val = f3.date_input("Purchase Date (Required)", value=date.today())
+            is_eth = f3.checkbox("🌱 Certified Circular / Thrift / Ethical", help="Applies a 30% footprint discount.")
 
-            c_info = CATEGORIES[cat_choice]
-            tip_msg = random.choice(ECO_TIPS)
-            render_html(f"""
-            <div class="tip-box">
-                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
-                    <div style="font-size: 1.75rem; line-height: 1;">💡</div>
-                    <div>
-                        <div style="font-weight: 700; font-size: 0.94rem;">Category Insight ({c_info['tier']}):</div>
-                        <div style="font-size: 0.87rem; margin-top: 0.15rem; opacity: 0.92;">{c_info['fact']}</div>
-                        <div style="font-size: 0.83rem; margin-top: 0.35rem; color: {accent_hex}; font-weight: 600;">🌿 Eco Tip: {tip_msg}</div>
-                    </div>
-                </div>
-            </div>
-            """)
-
+            ci = CATEGORIES[cat_choice]
+            render_html(f"<div style='background:{T['soft']}; border-radius:14px; padding:0.75rem 1rem; margin:0.5rem 0; font-size:0.85rem;'><strong>Insight ({ci['tier']}):</strong> {ci['fact']} <span style='color:{T['accent']}; font-weight:700;'>• Tip: {random.choice(ECO_TIPS)}</span></div>")
             if st.form_submit_button("🌿 Record Purchase in Active Ledger", width="stretch"):
                 if not item_name.strip():
                     st.error("Please enter an item description before recording.")
                 else:
-                    new_rec, mood, msg, art = add_purchase(
-                        st.session_state.purchases, item_name, cat_choice, brand_val,
-                        price_val, date_val, is_eth, st.session_state.user_mascot
-                    )
-                    st.session_state.last_logged = new_rec
+                    new_it, mood, msg, art = add_purchase(st.session_state.purchases, item_name, cat_choice, brand_val, price_val, date_val, is_eth, st.session_state.user_mascot)
+                    st.session_state.last_logged = new_it
                     st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
-                    if mood in ["ecstatic", "happy"]:
-                        st.balloons()
+                    if mood in ["ecstatic", "happy"]: st.balloons()
                     st.rerun()
 
-        # INTERACTIVE CARBON IMPACT & TREE OFFSET SIMULATOR
         with st.expander("🌲 Interactive Carbon & Tree Offset Simulator", expanded=False):
-            render_html(f"""
-            <div class="sim-card">
-                <h4 style="margin: 0; color: {accent_hex};">🧮 Pre-Purchase Footprint & Tree Offset Simulator</h4>
-                <p style="font-size: 0.86rem; color: {muted_hex}; margin: 0.25rem 0 0 0;">Slide any spend level before buying to see car miles, phone charges, and tree sequestration months.</p>
-            </div>
-            """)
-            sim_c1, sim_c2 = st.columns([1.2, 1.0])
-            with sim_c1:
-                sim_dollars = st.slider("Simulate Dollar Spend ($):", min_value=5.0, max_value=500.0, value=75.0, step=5.0)
-                sim_cat_choice = st.selectbox("Simulate Category:", options=list(CATEGORIES.keys()), key="sim_cat")
-                sim_is_eth = st.checkbox("Certified Circular / Thrift / Ethical?", value=True, key="sim_eth")
-                sim_co2 = calculate_carbon(sim_dollars, sim_cat_choice, sim_is_eth)
-                s_miles, s_charges, s_trees = get_equivalency(sim_co2)
-            with sim_c2:
-                sim_card_bg = "linear-gradient(145deg, #163a26, #0d2217)" if st.session_state.dark_theme else "linear-gradient(145deg, #FFFDF7, #E7F3E4)"
-                sim_card_bd = "#34d399" if st.session_state.dark_theme else "#52B788"
-                render_html(f"""
-                <div style="background: {sim_card_bg}; border: 1.5px solid {sim_card_bd}; border-radius: 14px; padding: 1rem;">
-                    <div style="font-size: 0.84rem; color: {muted_hex};">Estimated Carbon Footprint:</div>
-                    <div style="font-size: 1.8rem; font-weight: 800; color: {accent_hex};">{sim_co2:.2f} kg CO₂e</div>
-                    <div style="font-size: 0.82rem; margin-top: 0.45rem; line-height: 1.55;">
-                        🚗 ~<strong>{s_miles:,}</strong> petrol car miles<br>
-                        📱 ~<strong>{s_charges:,}</strong> smartphone recharges<br>
-                        🌲 ~<strong>{s_trees}</strong> tree-months of sequestration
-                    </div>
-                </div>
-                """)
-                if st.button("➕ Add Simulated Item to Tracker", width="stretch"):
-                    sim_item, mood, msg, art = add_purchase(
-                        st.session_state.purchases, f"Simulated: {sim_cat_choice.split()[0]} (${sim_dollars:.0f})",
-                        sim_cat_choice, "Simulation Tool", sim_dollars, date.today(), sim_is_eth, st.session_state.user_mascot
-                    )
-                    st.session_state.last_logged = sim_item
-                    st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
-                    st.rerun()
+            sc1, sc2 = st.columns([1.2, 1.0])
+            sim_d = sc1.slider("Simulate Dollar Spend ($):", 5.0, 500.0, 75.0, 5.0)
+            sim_c = sc1.selectbox("Simulate Category:", list(CATEGORIES.keys()), key="sim_cat")
+            sim_e = sc1.checkbox("Certified Circular / Ethical?", True, key="sim_eth")
+            s_co2 = calculate_carbon(sim_d, sim_c, sim_e)
+            sm, sch, st_m = get_equivalency(s_co2)
+            render_html(f"<div style='background:{T['soft']}; border-radius:16px; padding:1rem;'><div class='eyebrow'>Estimated CO₂</div><div style='font-size:1.75rem; font-weight:800; color:{T['accent']};'>{s_co2:.2f} kg</div><div style='font-size:0.84rem; margin-top:0.35rem;'>🚗 ~{sm:,} car miles • 📱 ~{sch:,} charges • 🌲 ~{st_m} tree-mo</div></div>", )
+            if sc2.button("➕ Add Simulated Item to Tracker", width="stretch"):
+                si, mood, msg, art = add_purchase(st.session_state.purchases, f"Simulated: {sim_c.split()[0]} (${sim_d:.0f})", sim_c, "Simulation Tool", sim_d, date.today(), sim_e, st.session_state.user_mascot)
+                st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = si, mood, msg, art
+                st.rerun()
 
-        # CONTEXTUAL GREENER SWAPS (Appears reactively right after a purchase is logged)
+        # GREENER SWAPS
         if st.session_state.last_logged:
             last = st.session_state.last_logged
-            st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
             st.subheader(f"🌱 Greener Alternatives for '{last['item']}' ({last['category']})")
-            
             sc1, sc2 = st.columns([1.0, 2.0], gap="medium")
             with sc1:
-                render_html(render_animated_avatar_svg(st.session_state.user_mascot, "happy", 115, 115))
-                st.caption(f"💡 **{c_name}'s Insight:** You logged **{last['carbon_kg']} kg CO₂e**. Adopting a circular swap cuts product emissions dramatically!")
-                st.markdown(f"<div style='font-size: 0.81rem; font-style: italic; color: {muted_hex}; margin-top: 0.35rem;'>{random.choice(SUSTAINABILITY_QUOTES)}</div>", unsafe_allow_html=True)
-            
+                render_html(render_animated_avatar_svg(st.session_state.user_mascot, "happy", 105, 105))
+                st.caption(f"💡 **{c_name}:** Logged **{last['carbon_kg']} kg CO₂e**. Try a circular swap:")
             with sc2:
                 swaps = ETHICAL_ALTERNATIVES.get(last["category"], [])
                 sw_cols = st.columns(len(swaps))
                 for idx, sw in enumerate(swaps):
                     with sw_cols[idx]:
-                        render_html(f"""
-                        <div class="swap-card">
-                            <strong>{sw['brand']}</strong><br>
-                            <span style="font-size: 0.84rem;">{sw['perk']}</span><br>
-                            <span style="color: {accent_hex}; font-weight: 700; font-size: 0.81rem;">⚡ Carbon Cut: {sw['saving']}</span>
-                        </div>
-                        """)
-                        b_name = sw['brand'].split('/')[0].strip()
+                        render_html(f"<div class='swap-card'><strong>{sw['brand']}</strong><br><span style='font-size:0.83rem; color:{T['muted']};'>{sw['perk']}</span><br><strong style='color:{T['accent']}; font-size:0.8rem;'>Carbon Cut: {sw['saving']}</strong></div>")
+                        b_name = sw["brand"].split("/")[0].strip()
                         if st.button(f"Adopt {b_name} 🌿", key=f"adopt_swap_{idx}", width="stretch"):
-                            swap_rec, _, _, _ = add_purchase(
-                                st.session_state.purchases, f"Greener Swap: {b_name} ({last['category']})",
-                                last['category'], b_name, 35.0, date.today(), True, st.session_state.user_mascot
-                            )
-                            st.session_state.last_logged = swap_rec
-                            st.session_state.mascot_mood = "ecstatic"
-                            st.session_state.mascot_message = f"LEGENDARY CHOICE! You adopted {b_name}! {c_name} celebrates your active biosphere restoration!"
-                            st.session_state.recent_art = "badge"
+                            sr, _, _, _ = add_purchase(st.session_state.purchases, f"Greener Swap: {b_name} ({last['category']})", last["category"], b_name, 35.0, date.today(), True, st.session_state.user_mascot)
+                            st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.recent_art = sr, "ecstatic", "badge"
+                            st.session_state.mascot_message = f"Adopted {b_name}! Great biosphere boost."
                             st.balloons()
                             st.rerun()
 
-        # PERSONALIZED "WHAT-IF GREEN SWITCH" OPTIMIZER (Shows real savings on user's heaviest item!)
+        # WHAT-IF OPTIMIZER
         swap_opp = find_top_swap_opportunity(st.session_state.purchases)
         if swap_opp:
             it = swap_opp["item"]
-            op_l, op_r = st.columns([2.1, 0.9], gap="medium")
-            with op_l:
-                render_html(f"""
-                <div class="optimizer-box">
-                    <div style="font-size:0.75rem; font-weight:800; color:{accent_hex}; text-transform:uppercase; letter-spacing:0.6px;">💡 What-If Carbon Optimizer</div>
-                    <div style="font-size:1.0rem; font-weight:700; margin-top:0.2rem;">
-                        Your heaviest footprint item is <em>"{html.escape(it['item'])}"</em> ({swap_opp['cur_co2']} kg CO₂e).
-                    </div>
-                    <div style="font-size:0.86rem; color:{muted_hex}; margin-top:0.2rem;">
-                        Switching to <strong>{swap_opp['target_cat']}</strong> ({swap_opp['brand_suggestion']}) drops it to <strong>{swap_opp['alt_co2']} kg</strong> (saves <strong>{swap_opp['saved_diff']} kg CO₂</strong> / <strong>-{swap_opp['pct_drop']}%</strong>).
-                    </div>
-                </div>
-                """)
-            with op_r:
-                st.markdown("<div style='height:0.9rem;'></div>", unsafe_allow_html=True)
+            op1, op2 = st.columns([2.1, 0.9], gap="medium")
+            op1.markdown(f"<div class='optimizer-panel'><div class='eyebrow'>What-If Carbon Optimizer</div><strong>Your heaviest item is \"{html.escape(it['item'])}\"</strong> ({swap_opp['cur_co2']} kg). Switching to <strong>{swap_opp['target_cat']}</strong> ({swap_opp['brand_suggestion']}) drops it to <strong>{swap_opp['alt_co2']} kg</strong> (saves <strong>{swap_opp['saved_diff']} kg</strong> / -{swap_opp['pct_drop']}%).</div>", unsafe_allow_html=True)
+            with op2:
+                st.markdown("<div style='height:0.65rem;'></div>", unsafe_allow_html=True)
                 if st.button(f"🔄 Swap Item (-{swap_opp['saved_diff']} kg)", type="primary", width="stretch", key="opt_swap_btn"):
-                    target_rec = st.session_state.purchases[swap_opp["index"]]
-                    target_rec["item"] = f"Swapped: {target_rec['item']} (Circular)"
-                    target_rec["category"] = swap_opp["target_cat"]
-                    target_rec["brand"] = swap_opp["brand_suggestion"].split('/')[0].strip()
-                    target_rec["carbon_kg"] = swap_opp["alt_co2"]
-                    target_rec["is_ethical"] = True
-                    st.session_state.last_logged = target_rec
-                    st.session_state.mascot_mood = "ecstatic"
-                    st.session_state.mascot_message = f"SMART SWITCH! Swapping saved {swap_opp['saved_diff']} kg CO₂ instantly!"
-                    st.session_state.recent_art = "badge"
-                    st.toast(f"Swapped to eco option: saved {swap_opp['saved_diff']} kg CO₂!", icon="🌱")
-                    st.balloons()
+                    tr = st.session_state.purchases[swap_opp["index"]]
+                    tr["item"], tr["category"], tr["brand"], tr["carbon_kg"], tr["is_ethical"] = f"Swapped: {tr['item']} (Circular)", swap_opp["target_cat"], swap_opp["brand_suggestion"].split("/")[0].strip(), swap_opp["alt_co2"], True
+                    st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.recent_art = tr, "ecstatic", "badge"
+                    st.session_state.mascot_message = f"Smart switch! Saved {swap_opp['saved_diff']} kg CO₂ instantly!"
                     st.rerun()
 
         st.markdown("---")
-
-        # PERIOD FILTER, INTERACTIVE CHARTS & ENHANCED LEDGER
-        if st.session_state.purchases:
-            all_years = sorted(list({p["date"][:4] for p in st.session_state.purchases}), reverse=True)
-            all_months = sorted(list({p["date"][:7] for p in st.session_state.purchases}), reverse=True)
-            filter_choices = ["All Time"] + [f"Year {y}" for y in all_years] + all_months
+        yrs = sorted({str(p["date"])[:4] for p in st.session_state.purchases}, reverse=True)
+        mos = sorted({str(p["date"])[:7] for p in st.session_state.purchases}, reverse=True)
+        f_opts = ["All Time"] + [f"Year {y}" for y in yrs] + mos
+        st.subheader("📅 Timeline Filter & Visual Carbon Analytics")
+        p_choice = st.radio("Period", f_opts, horizontal=True, label_visibility="collapsed")
+        if p_choice == "All Time":
+            filtered, p_lbl = st.session_state.purchases, "All Time (Cumulative)"
+        elif p_choice.startswith("Year "):
+            yf = p_choice.replace("Year ", "")
+            filtered, p_lbl = [p for p in st.session_state.purchases if str(p["date"]).startswith(yf)], f"Year {yf}"
         else:
-            filter_choices = ["All Time"]
+            filtered, p_lbl = [p for p in st.session_state.purchases if str(p["date"]).startswith(p_choice)], f"Month {p_choice}"
 
-        st.markdown("##### 📅 Dashboard Timeline Filter:")
-        period_choice = st.radio("Period", filter_choices, horizontal=True, label_visibility="collapsed")
-
-        if period_choice == "All Time":
-            filtered_data = st.session_state.purchases
-            period_label = "All Time (Cumulative)"
-        elif period_choice.startswith("Year "):
-            sel_yr = period_choice.replace("Year ", "")
-            filtered_data = [p for p in st.session_state.purchases if p["date"].startswith(sel_yr)]
-            period_label = f"Year {sel_yr}"
-        else:
-            filtered_data = [p for p in st.session_state.purchases if p["date"].startswith(period_choice)]
-            period_label = period_choice
-
-        for p in filtered_data:
-            if "carbon_kg" not in p and "co2" in p: p["carbon_kg"] = p["co2"]
-            if "is_ethical" not in p and "ethical" in p: p["is_ethical"] = p["ethical"]
-            if "price" not in p: p["price"] = 0.0
-            if "category" not in p: p["category"] = "General"
-            if "item" not in p: p["item"] = "Purchase"
-            if "brand" not in p: p["brand"] = "Unspecified"
-            if "date" not in p: p["date"] = str(date.today())
-
-        col_g1, col_g2 = st.columns([1.05, 1.35], gap="large")
-        top_cat_name = "None yet"
-        with col_g1:
-            st.markdown(f"**Emissions by Category ({period_label})**")
-            if filtered_data:
-                df = pd.DataFrame(filtered_data)
-                cat_agg = df.groupby("category", as_index=False).agg(
-                    carbon_kg=("carbon_kg", "sum"),
-                    spend=("price", "sum"),
-                    items=("item", "count"),
-                ).sort_values("carbon_kg", ascending=False)
+        cg1, cg2 = st.columns([1.05, 1.35], gap="large")
+        top_cat_name = "None"
+        with cg1:
+            st.markdown(f"**Emissions by Category ({p_lbl})**")
+            if filtered:
+                df = pd.DataFrame(filtered)
+                cat_agg = df.groupby("category", as_index=False).agg(carbon_kg=("carbon_kg", "sum"), spend=("price", "sum"), items=("item", "count")).sort_values("carbon_kg", ascending=False)
                 top_cat_name = f"{cat_agg.iloc[0]['category']} ({cat_agg.iloc[0]['carbon_kg']:.1f} kg)"
-                cat_agg["tier_color"] = cat_agg["category"].map(
-                    lambda c: "High Carbon" if CATEGORIES.get(c, {}).get("multiplier", 0.3) >= 0.4 else "Low / Conscious"
-                )
-
+                cat_agg["tier"] = cat_agg["category"].map(lambda c: "High Carbon" if CATEGORIES.get(c, {}).get("multiplier", 0.3) >= 0.4 else "Low / Conscious")
                 if HAS_ALTAIR:
-                    bar = alt.Chart(cat_agg).mark_bar(cornerRadiusEnd=6, size=22).encode(
+                    bar = alt.Chart(cat_agg).mark_bar(cornerRadiusEnd=6, size=20).encode(
                         x=alt.X("carbon_kg:Q", title="Carbon Footprint (kg CO₂e)"),
                         y=alt.Y("category:N", sort="-x", title=None, axis=alt.Axis(labelLimit=200)),
-                        color=alt.Color(
-                            "tier_color:N",
-                            scale=alt.Scale(
-                                domain=["Low / Conscious", "High Carbon"],
-                                range=["#10b981", "#f59e0b"],
-                            ),
-                            legend=alt.Legend(orient="top", title=None),
-                        ),
-                        tooltip=[
-                            alt.Tooltip("category:N", title="Product Type"),
-                            alt.Tooltip("items:Q", title="Items"),
-                            alt.Tooltip("spend:Q", title="Spend ($)", format="$,.2f"),
-                            alt.Tooltip("carbon_kg:Q", title="CO₂ (kg)", format=".2f"),
-                        ],
-                    ).properties(height=280)
+                        color=alt.Color("tier:N", scale=alt.Scale(domain=["Low / Conscious", "High Carbon"], range=["#4E7E36", "#D69838"]), legend=alt.Legend(orient="top", title=None)),
+                        tooltip=[alt.Tooltip("category:N", title="Category"), alt.Tooltip("items:Q", title="Items"), alt.Tooltip("spend:Q", format="$,.2f"), alt.Tooltip("carbon_kg:Q", format=".2f")],
+                    ).configure(background="transparent").configure_axis(labelColor=T["ink"], titleColor=T["muted"], gridColor=T["border"]).configure_legend(labelColor=T["ink"]).properties(height=270)
                     st.altair_chart(bar, width="stretch")
 
-                    # Eco vs Conventional Split Donut Chart
-                    split_df = pd.DataFrame([
-                        {"Type": "Ethical / Circular", "CO2": float(df[df["is_ethical"]]["carbon_kg"].sum())},
-                        {"Type": "Conventional", "CO2": float(df[~df["is_ethical"]]["carbon_kg"].sum())},
-                    ])
+                    split_df = pd.DataFrame([{"Type": "Ethical / Circular", "CO2": float(df[df["is_ethical"]]["carbon_kg"].sum())}, {"Type": "Conventional", "CO2": float(df[~df["is_ethical"]]["carbon_kg"].sum())}])
                     split_df = split_df[split_df["CO2"] > 0]
                     if not split_df.empty:
-                        st.markdown("**Ethical vs. Conventional CO₂ Share**")
-                        donut = alt.Chart(split_df).mark_arc(innerRadius=44, outerRadius=78).encode(
-                            theta=alt.Theta("CO2:Q"),
-                            color=alt.Color(
-                                "Type:N",
-                                scale=alt.Scale(domain=["Ethical / Circular", "Conventional"], range=["#10b981", "#e11d48"]),
-                                legend=alt.Legend(orient="right", title=None),
-                            ),
-                            tooltip=[alt.Tooltip("Type:N"), alt.Tooltip("CO2:Q", title="kg CO₂e", format=".2f")],
-                        ).properties(height=180)
+                        st.markdown("**Ethical vs. Conventional Share**")
+                        donut = alt.Chart(split_df).mark_arc(innerRadius=44, outerRadius=76).encode(
+                            theta="CO2:Q",
+                            color=alt.Color("Type:N", scale=alt.Scale(domain=["Ethical / Circular", "Conventional"], range=["#4E7E36", "#C45B4D"]), legend=alt.Legend(orient="right", title=None)),
+                            tooltip=[alt.Tooltip("Type:N"), alt.Tooltip("CO2:Q", format=".2f")],
+                        ).configure(background="transparent").configure_legend(labelColor=T["ink"]).properties(height=175)
                         st.altair_chart(donut, width="stretch")
                 else:
-                    st.bar_chart(df.groupby("category")["carbon_kg"].sum().sort_values(ascending=False), color="#2d6a4f")
+                    st.bar_chart(df.groupby("category")["carbon_kg"].sum().sort_values(ascending=False), color="#4E7E36")
             else:
-                st.info("No purchases recorded yet for this period. Plan and log your first purchase above!")
+                st.info("No purchases logged for this period yet.")
 
-        with col_g2:
-            st.markdown(f"**Transaction Ledger ({len(filtered_data)} records)**")
-            if filtered_data:
-                s_c1, s_c2 = st.columns([1.4, 1.0])
-                with s_c1:
-                    search_q = st.text_input("Search ledger:", placeholder="Filter by item or brand...", label_visibility="collapsed", key="ledger_search")
-                with s_c2:
-                    eth_only = st.checkbox("Eco picks only", value=False, key="ledger_eth_only")
-
-                view_rows = filtered_data
-                if search_q.strip():
-                    q_low = search_q.strip().lower()
-                    view_rows = [r for r in view_rows if q_low in r["item"].lower() or q_low in r["brand"].lower() or q_low in r["category"].lower()]
-                if eth_only:
-                    view_rows = [r for r in view_rows if r["is_ethical"]]
-
-                if view_rows:
-                    df_view = pd.DataFrame(view_rows)[["date", "item", "category", "brand", "price", "carbon_kg", "is_ethical"]]
-                    df_view.columns = ["Date", "Item", "Product Type", "Brand", "Price ($)", "CO₂ (kg)", "Ethical?"]
-                    max_co2 = max(float(df_view["CO₂ (kg)"].max()), 1.0)
-                    st.dataframe(
-                        df_view,
-                        width="stretch",
-                        hide_index=True,
-                        column_config={
-                            "Price ($)": st.column_config.NumberColumn("Price ($)", format="$%.2f"),
-                            "CO₂ (kg)": st.column_config.ProgressColumn("CO₂ (kg)", format="%.2f kg", min_value=0, max_value=max_co2),
-                            "Ethical?": st.column_config.CheckboxColumn("Eco?"),
-                        },
-                    )
+        with cg2:
+            st.markdown(f"**Transaction Ledger ({len(filtered)} records)**")
+            if filtered:
+                s1, s2 = st.columns([1.4, 1.0])
+                sq = s1.text_input("Search ledger:", placeholder="Filter by item or brand...", label_visibility="collapsed", key="ledger_search")
+                eo = s2.checkbox("Eco picks only", value=False, key="ledger_eth_only")
+                vrows = [r for r in filtered if (not sq.strip() or sq.strip().lower() in (r["item"] + r["brand"] + r["category"]).lower()) and (not eo or r["is_ethical"])]
+                base_rows = vrows if vrows else filtered
+                df_view = pd.DataFrame(base_rows)[["date", "item", "category", "brand", "price", "carbon_kg", "is_ethical"]]
+                df_view.columns = ["Date", "Item", "Product Type", "Brand", "Price ($)", "CO₂ (kg)", "Ethical?"]
+                if vrows:
+                    st.dataframe(df_view, width="stretch", hide_index=True, column_config={"Price ($)": st.column_config.NumberColumn("Price ($)", format="$%.2f"), "CO₂ (kg)": st.column_config.ProgressColumn("CO₂ (kg)", format="%.2f kg", min_value=0, max_value=max(float(df_view["CO₂ (kg)"].max()), 1.0)), "Ethical?": st.column_config.CheckboxColumn("Eco?")})
                 else:
-                    df_view = pd.DataFrame(filtered_data)[["date", "item", "category", "brand", "price", "carbon_kg", "is_ethical"]]
-                    df_view.columns = ["Date", "Item", "Product Type", "Brand", "Price ($)", "CO₂ (kg)", "Ethical?"]
                     st.info("No rows match that search filter.")
-                
-                # Action Controls: Undo | Export CSV | Download Scorecard Report
-                u_col1, u_col2, u_col3 = st.columns(3)
-                with u_col1:
-                    if st.button("↩️ Undo Last Purchase", width="stretch", help="Roll back the most recent logged purchase"):
-                        popped = st.session_state.purchases.pop()
-                        prev = st.session_state.purchases[-1] if st.session_state.purchases else None
-                        st.session_state.last_logged = prev
-                        if prev:
-                            mood, msg, art = evaluate_feedback_for_item(
-                                st.session_state.user_mascot, prev["item"], prev["carbon_kg"], prev["is_ethical"]
-                            )
-                            st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
-                        else:
-                            st.session_state.mascot_mood = "mindful"
-                            st.session_state.mascot_message = f"Removed '{popped['item']}'. Log your next purchase above!"
-                            st.session_state.recent_art = None
-                        st.toast(f"Removed '{popped['item']}' from ledger", icon="↩️")
-                        st.rerun()
-                with u_col2:
-                    st.download_button("📥 Export CSV", df_view.to_csv(index=False).encode("utf-8"), f"shopimpact_{period_label.lower().replace(' ', '_')}.csv", "text/csv", width="stretch")
-                with u_col3:
-                    report_md = build_eco_scorecard_markdown(
-                        st.session_state.user_name, rank_title, st.session_state.carbon_budget,
-                        spend_tot, co2_tot, saved_tot, badges, cur_streak, top_cat_name
-                    )
-                    st.download_button("📄 Eco Scorecard", report_md.encode("utf-8"), "shopimpact_scorecard.md", "text/markdown", width="stretch")
+
+                u1, u2, u3 = st.columns(3)
+                if u1.button("↩️ Undo Last Purchase", width="stretch"):
+                    popped = st.session_state.purchases.pop()
+                    prev = st.session_state.purchases[-1] if st.session_state.purchases else None
+                    st.session_state.last_logged = prev
+                    if prev:
+                        st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = evaluate_feedback_for_item(st.session_state.user_mascot, prev["item"], prev["carbon_kg"], prev["is_ethical"])
+                    else:
+                        st.session_state.mascot_mood, st.session_state.recent_art = "mindful", None
+                        st.session_state.mascot_message = f"Removed '{popped['item']}'. Log your next purchase!"
+                    st.rerun()
+                u2.download_button("📥 Export CSV", df_view.to_csv(index=False).encode("utf-8"), f"shopimpact_{p_lbl.lower().replace(' ', '_')}.csv", "text/csv", width="stretch")
+                u3.download_button("📄 Eco Scorecard", build_eco_scorecard_markdown(st.session_state.user_name, rank_title, st.session_state.carbon_budget, spend_tot, co2_tot, saved_tot, badges, cur_streak, top_cat_name).encode("utf-8"), "shopimpact_scorecard.md", "text/markdown", width="stretch")
             else:
-                st.caption("No records available to export yet. Log a quick chip or custom item above.")
+                st.caption("No records to export yet.")
 
     # --------------------------------------------------------------------------
     # VIEW: 🏆 WALL OF BADGES & TURTLE ART VAULT
     # --------------------------------------------------------------------------
     elif st.session_state.nav_view == "🏆 Wall of Badges":
         st.title("🏆 Wall of Badges & Eco Fame")
-        st.caption("Unlocked achievements glow in vibrant emerald gradient. Locked badges stay monochrome grayscale until earned.")
-
+        st.caption("Unlocked milestones bloom in botanical olive-green while upcoming goals remain muted until achieved.")
         st.metric("Badges Unlocked", f"{unlocked_num} of {len(badges)}", f"{int((unlocked_num/len(badges))*100)}% Complete")
-        st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
 
-        b_c1, b_c2 = st.columns(2, gap="large")
+        bc1, bc2 = st.columns(2, gap="large")
         for i, b in enumerate(badges):
-            target = b_c1 if i % 2 == 0 else b_c2
-            with target:
+            with (bc1 if i % 2 == 0 else bc2):
                 if b["unlocked"]:
-                    render_html(f"""
-                    <div class="badge-on">
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <div style="font-size: 3rem;">{b['icon']}</div>
-                            <div>
-                                <h3 style="margin: 0; color: #ffffff;">{b['name']}</h3>
-                                <p style="margin: 0.2rem 0; font-size: 0.9rem; color: #d1fae5;">{b['desc']}</p>
-                                <span style="background: #34d399; color: #064e3b; font-weight: 800; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px;">
-                                    ✨ UNLOCKED ({b['progress']})
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    """)
+                    render_html(f"<div class='badge-on'><div style='display:flex; gap:1rem; align-items:center;'><div style='font-size:2.7rem;'>{b['icon']}</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='background:rgba(255,255,255,0.2); font-weight:800; font-size:0.75rem; padding:0.2rem 0.65rem; border-radius:99px;'>✨ UNLOCKED ({b['progress']})</span></div></div></div>")
                 else:
-                    render_html(f"""
-                    <div class="badge-off">
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <div style="font-size: 3rem;">🔒</div>
-                            <div>
-                                <h3 style="margin: 0; color: #475569;">{b['name']}</h3>
-                                <p style="margin: 0.2rem 0; font-size: 0.9rem; color: #64748b;">{b['desc']}</p>
-                                <span style="background: #94a3b8; color: #ffffff; font-weight: 700; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px;">
-                                    🔒 LOCKED ({b['progress']})
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    """)
+                    render_html(f"<div class='badge-off'><div style='display:flex; gap:1rem; align-items:center;'><div style='font-size:2.7rem;'>🔒</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='font-weight:700; font-size:0.75rem;'>🔒 LOCKED ({b['progress']})</span></div></div></div>")
 
         st.markdown("---")
         st.subheader("🐢 Procedural Turtle Vector Art Vault")
-        st.caption(f"Collect all 3 botanical emblems drawn in-memory by our HeadlessTurtle Pillow engine ({len(earned_arts)}/3 unlocked).")
-
-        v1, v2, v3 = st.columns(3, gap="medium")
+        st.caption(f"Collect all 4 botanical emblems drawn in-memory by HeadlessTurtle + Pillow ({len(earned_arts)}/4 unlocked).")
+        v_cols = st.columns(4, gap="medium")
         art_specs = [
-            ("leaf", "Botanical Eco Leaf", "Unlocked by ethical or organic purchases"),
-            ("footprint", "Earth Step Medallion", "Unlocked by low-footprint buys (<= 10 kg)"),
-            ("badge", "Championship Rosette", "Unlocked by ultra-green picks (<= 3 kg) or swaps"),
+            ("leaf", "Botanical Eco Leaf", "Ethical or organic picks"),
+            ("footprint", "Earth Step Medallion", "Low footprint <= 10 kg"),
+            ("traveler", "Mindful Man & Turtle", "Any 2+ logged items"),
+            ("badge", "Championship Rosette", "Ultra-green <= 3 kg / swaps"),
         ]
-        for col_v, (ak, title_a, desc_a) in zip([v1, v2, v3], art_specs):
-            with col_v:
-                with st.container(border=True):
-                    unlocked_art = ak in earned_arts
-                    img_show = draw_vector_art(ak if unlocked_art else "preview")
-                    st.image(img_show, width=180, caption=f"{'✨ ' if unlocked_art else '🔒 '}{title_a}")
-                    st.caption(desc_a)
+        for col_v, (ak, title_a, desc_a) in zip(v_cols, art_specs):
+            unlocked_art = ak in earned_arts
+            img_u = image_to_data_uri(draw_vector_art(ak if unlocked_art else "preview"))
+            col_v.markdown(f"<div class='studio-panel' style='align-items:center; text-align:center; padding:1rem;'><img src='{img_u}' style='width:140px; height:140px;'/><div style='font-weight:800; font-size:0.86rem; margin-top:0.3rem;'>{'✨ ' if unlocked_art else '🔒 '}{title_a}</div><div style='font-size:0.76rem; color:{T['muted']};'>{desc_a}</div></div>", unsafe_allow_html=True)
 
-st.divider()
-footer_col = "#94a3b8" if st.session_state.dark_theme else "#4A6355"
-render_html(f"""
-<div style="text-align: center; color: {footer_col}; font-size: 0.8rem; padding: 0.8rem 0;">
-    <strong>ShopImpact Conscious Shopping Dashboard</strong> • IDAI 102: Python Programming<br>
-    Candidate: <strong>Parth Pravinbhai Gajera</strong> (ID: <code>1000544</code>) • CRS: Artificial Intelligence
-</div>
-""")
-
+render_html(f"<div style='text-align:center; color:{T['muted']}; font-size:0.8rem; padding:1.4rem 0 0.6rem 0;'><strong>ShopImpact Conscious Shopping Studio</strong> • IDAI 102 • Candidate: <strong>Parth Pravinbhai Gajera</strong> (1000544)</div>")
