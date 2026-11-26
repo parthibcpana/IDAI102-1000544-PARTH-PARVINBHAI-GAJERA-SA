@@ -25,6 +25,26 @@ def render_html(html_str: str):
     clean = "\n".join(line.strip() for line in html_str.splitlines() if line.strip())
     st.markdown(clean, unsafe_allow_html=True)
 
+def render_section_header(kicker: str, title: str, subtitle: str = ""):
+    sub_html = f'<p class="sec-sub">{html.escape(subtitle)}</p>' if subtitle else ""
+    ornament_svg = (
+        '<svg width="18" height="14" viewBox="0 0 18 14" xmlns="http://www.w3.org/2000/svg" style="display:block;">'
+        '<path d="M9 1 C13 3.5, 16 7.5, 9 13 C2 7.5, 5 3.5, 9 1 Z" fill="currentColor" opacity="0.85"/>'
+        '</svg>'
+    )
+    render_html(f"""
+    <div class="sec-wrap">
+      <div class="sec-divider">
+        <span class="sec-line"></span>
+        <span class="sec-ornament">{ornament_svg}</span>
+        <span class="sec-line"></span>
+      </div>
+      <div class="eyebrow" style="margin-top:0.65rem;">{html.escape(kicker)}</div>
+      <h3 class="sec-title">{html.escape(title)}</h3>
+      {sub_html}
+    </div>
+    """)
+
 # ------------------------------------------------------------------------------
 # DOMAIN DATA: CATEGORIES, MULTIPLIERS & CIRCULAR SWAPS
 # ------------------------------------------------------------------------------
@@ -636,7 +656,7 @@ if "mascot_mood" not in st.session_state: st.session_state.mascot_mood = "mindfu
 if "mascot_message" not in st.session_state:
     st.session_state.mascot_message = "Ready when you are! Log a purchase below to track CO₂ and unlock botanical art."
 if "nav_view" not in st.session_state:
-    st.session_state.nav_view = "🏆 Wall of Badges" if st.query_params.get("view") == "badges" else "📊 Dashboard"
+    st.session_state.nav_view = "Wall of Badges" if st.query_params.get("view") == "badges" else "Dashboard"
 if "last_logged" not in st.session_state: st.session_state.last_logged = None
 if "confirm_reset" not in st.session_state: st.session_state.confirm_reset = False
 
@@ -805,6 +825,24 @@ render_html(f"""
     margin: 0 auto; overflow: hidden; box-shadow: var(--shadow);
   }}
 
+  /* Editorial Botanical Section Dividers (Replaces plain HR dividers) */
+  .sec-wrap {{ margin: 1.55rem 0 0.75rem 0; }}
+  .sec-divider {{ display: flex; align-items: center; gap: 12px; opacity: 0.78; }}
+  .sec-line {{
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.45;
+  }}
+  .sec-ornament {{
+    color: var(--accent) !important; background: var(--soft); border: 1px solid var(--border);
+    padding: 5px 10px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center;
+  }}
+  .sec-title {{
+    margin: 0.12rem 0 0 0 !important; font-size: 1.4rem !important; font-weight: 800 !important;
+    letter-spacing: -0.35px; color: var(--ink) !important;
+  }}
+  .sec-sub {{ margin: 0.18rem 0 0 0 !important; font-size: 0.86rem; color: var(--muted) !important; }}
+
   /* Responsive Phone & Tablet Breakpoints */
   @media (max-width: 920px) {{
     .studio-grid {{ grid-template-columns: 1fr !important; }}
@@ -812,6 +850,29 @@ render_html(f"""
   }}
 </style>
 """)
+
+@st.dialog("Log a New Planned Purchase")
+def open_main_log_dialog():
+    """Instant first-view custom purchase logging modal triggered from the top Studio bar."""
+    st.caption("Enter purchase details below to update your live monthly CO₂ footprint and rewards right away.")
+    m_item = st.text_input("Item Description (Required)", placeholder="e.g. Organic Cotton Tee, USB-C Cable", key="modal_item")
+    mc1, mc2 = st.columns(2)
+    m_cat = mc1.selectbox("Product Category", options=list(CATEGORIES.keys()), key="modal_cat")
+    m_brand = mc2.text_input("Brand or Vendor (Optional)", placeholder="e.g. Patagonia, Back Market", key="modal_brand")
+    mc3, mc4 = st.columns(2)
+    m_price = mc3.number_input("Purchase Price ($)", min_value=1.0, max_value=5000.0, value=45.0, step=5.0, key="modal_price")
+    m_date = mc4.date_input("Purchase Date", value=date.today(), key="modal_date")
+    m_eth = st.checkbox("Certified Circular, Thrift, or Ethical (30% CO₂ discount)", key="modal_eth")
+    ci_m = CATEGORIES[m_cat]
+    st.caption(f"Insight ({ci_m['tier'].split()[-1]}): {ci_m['fact']}")
+    if st.button("Record Purchase", type="primary", width="stretch", key="modal_submit_btn"):
+        if not m_item.strip():
+            st.error("Please enter an item description before recording.")
+        else:
+            new_it, mood, msg, art = add_purchase(st.session_state.purchases, m_item, m_cat, m_brand, m_price, m_date, m_eth, st.session_state.user_mascot)
+            st.session_state.last_logged = new_it
+            st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
+            st.rerun()
 
 # ------------------------------------------------------------------------------
 # SCREEN 1: WELCOME & ONBOARDING (Ecovista-Inspired Landscape + Man & Turtle)
@@ -877,21 +938,21 @@ else:
           <div style="margin-top:0.35rem; color:{T['muted']};">🐢 Turtle Art: {len(earned_arts)}/4 earned</div>
         </div>
         """)
-        if st.button("⚙️ Edit Profile", width="stretch"):
+        if st.button("Edit Profile", width="stretch"):
             st.session_state.onboarded = False
             st.rerun()
 
         st.markdown("---")
-        st.session_state.nav_view = st.radio("Navigation:", ["📊 Dashboard", "🏆 Wall of Badges"], index=1 if st.session_state.nav_view == "🏆 Wall of Badges" else 0)
-        dark_toggle = st.toggle("🌙 Forest Dusk Dark Mode", value=st.session_state.dark_theme)
+        st.session_state.nav_view = st.radio("Navigation", ["Dashboard", "Wall of Badges"], index=1 if st.session_state.nav_view == "Wall of Badges" else 0)
+        dark_toggle = st.toggle("Forest Dusk Dark Mode", value=st.session_state.dark_theme)
         if dark_toggle != st.session_state.dark_theme:
             st.session_state.dark_theme = dark_toggle
             st.rerun()
 
         st.markdown("---")
-        st.caption(f"💡 *{random.choice(ECO_TIPS)}*")
+        st.caption(f"*{random.choice(ECO_TIPS)}*")
         if not st.session_state.confirm_reset:
-            if st.button("🗑️ Reset Session", width="stretch"):
+            if st.button("Reset Session", width="stretch"):
                 st.session_state.confirm_reset = True
                 st.rerun()
         else:
@@ -906,31 +967,35 @@ else:
                 st.session_state.confirm_reset = False
                 st.rerun()
 
-    # CLEAN TOP BAR (Inspired by Ecovista Navbar — open typography, zero boxes)
-    h1, h2 = st.columns([2.05, 1.15])
+    # CLEAN TOP BAR WITH FIRST-VIEW LOG ACTION (Zero friction entry)
+    h1, h2 = st.columns([1.65, 1.55])
     with h1:
         render_html(f"""
         <div class="nav-head">
           <div>
-            <span style="font-size:1.45rem; font-weight:900; letter-spacing:-0.4px; color:{T['ink']};">🌱 ShopImpact</span>
+            <span style="font-size:1.45rem; font-weight:900; letter-spacing:-0.4px; color:{T['ink']};">ShopImpact</span>
             <span style="font-size:0.86rem; color:{T['muted']}; margin-left:0.65rem;">Welcome back, <strong>{html.escape(st.session_state.user_name)}</strong> • Saved {saved_tot:.1f} kg CO₂e</span>
           </div>
-          <span class="streak-tag">🔥 {cur_streak}x Eco Streak</span>
+          <span class="streak-tag">{cur_streak}x Eco Streak</span>
         </div>
         """)
     with h2:
-        n1, n2 = st.columns(2)
-        if n1.button("📊 Dashboard", type="primary" if st.session_state.nav_view == "📊 Dashboard" else "secondary", width="stretch", key="top_nav_dash"):
-            st.session_state.nav_view = "📊 Dashboard"
+        n_log, n1, n2 = st.columns([1.25, 0.9, 1.05])
+        if n_log.button("+ Log Purchase", type="primary", width="stretch", key="top_open_log_btn"):
+            open_main_log_dialog()
+        dash_lbl = "● Dashboard" if st.session_state.nav_view == "Dashboard" else "Dashboard"
+        if n1.button(dash_lbl, type="secondary", width="stretch", key="top_nav_dash"):
+            st.session_state.nav_view = "Dashboard"
             st.rerun()
-        if n2.button(f"🏆 Badges ({unlocked_num}/{len(badges)})", type="primary" if st.session_state.nav_view == "🏆 Wall of Badges" else "secondary", width="stretch", key="top_nav_badges"):
-            st.session_state.nav_view = "🏆 Wall of Badges"
+        badge_lbl = f"{'● ' if st.session_state.nav_view == 'Wall of Badges' else ''}Badges ({unlocked_num}/{len(badges)})"
+        if n2.button(badge_lbl, type="secondary", width="stretch", key="top_nav_badges"):
+            st.session_state.nav_view = "Wall of Badges"
             st.rerun()
 
     # --------------------------------------------------------------------------
-    # VIEW: 📊 DASHBOARD
+    # VIEW: DASHBOARD
     # --------------------------------------------------------------------------
-    if st.session_state.nav_view == "📊 Dashboard":
+    if st.session_state.nav_view == "Dashboard":
         c_name = st.session_state.user_mascot.split()[0]
         msg_esc = html.escape(st.session_state.mascot_message)
         b_lim = max(st.session_state.carbon_budget, 1)
@@ -941,9 +1006,9 @@ else:
         art_img = draw_vector_art(active_art)
         art_uri = image_to_data_uri(art_img)
         art_titles = {"preview": "Seed Emblem (Log eco buy)", "leaf": "Botanical Eco Leaf", "footprint": "Earth Step Medallion", "traveler": "Mindful Walker & Turtle", "badge": "Championship Rosette"}
-        mission_lbl = "✅ Daily Eco Mission Complete" if eth_cnt >= 1 else "🌱 Log 1 circular purchase today"
+        mission_lbl = "Daily Eco Mission Complete" if eth_cnt >= 1 else "Goal: Log 1 circular purchase"
 
-        # EQUAL-HEIGHT 3-CARD BOTANICAL STUDIO GRID (Unified height & mobile stackable!)
+        # EQUAL-HEIGHT 3-CARD BOTANICAL STUDIO GRID
         render_html(f"""
         <div class="studio-grid">
           <div class="studio-panel">
@@ -984,9 +1049,9 @@ else:
             <div style="width:100%;">
               <div style="font-size:0.8rem; font-weight:700; color:{T['ink']}; margin-bottom:0.35rem;">{art_titles.get(active_art, 'Botanical Art')}</div>
               <div style="display:flex; justify-content:center; gap:6px; font-size:0.72rem; font-weight:700; color:{T['muted']};">
-                <span style="padding:2px 8px; border-radius:99px; background:{T['accent_soft'] if 'leaf' in earned_arts else T['soft']};">🌿 Leaf</span>
-                <span style="padding:2px 8px; border-radius:99px; background:{T['accent_soft'] if 'footprint' in earned_arts else T['soft']};">👣 Step</span>
-                <span style="padding:2px 8px; border-radius:99px; background:{T['accent_soft'] if 'badge' in earned_arts else T['soft']};">⭐ Medal</span>
+                <span style="padding:2px 9px; border-radius:99px; background:{T['accent_soft'] if 'leaf' in earned_arts else T['soft']};">Leaf</span>
+                <span style="padding:2px 9px; border-radius:99px; background:{T['accent_soft'] if 'footprint' in earned_arts else T['soft']};">Step</span>
+                <span style="padding:2px 9px; border-radius:99px; background:{T['accent_soft'] if 'badge' in earned_arts else T['soft']};">Medal</span>
               </div>
             </div>
           </div>
@@ -995,7 +1060,7 @@ else:
 
         if st.session_state.recent_art:
             _, dl_col = st.columns([2.2, 1.0])
-            dl_col.download_button("🎨 Download Earned Turtle Art (.png)", image_to_png_bytes(art_img), f"shopimpact_{active_art}.png", "image/png", width="stretch")
+            dl_col.download_button("Download Earned Turtle Art (.png)", image_to_png_bytes(art_img), f"shopimpact_{active_art}.png", "image/png", width="stretch")
 
         # 4 KPI CARDS
         k1, k2, k3, k4 = st.columns(4)
@@ -1014,7 +1079,7 @@ else:
         """)
 
         # QUICK-LOG CHIPS
-        st.subheader("⚡ Quick-Log Common Purchases")
+        render_section_header("Fast Entry", "Quick-Log Common Purchases", "One-tap logging with pre-calibrated category emission multipliers.")
         chip_cols = st.columns(6)
         for i, qp in enumerate(QUICK_PURCHASES):
             co2_c = calculate_carbon(qp["price"], qp["category"], qp["is_ethical"])
@@ -1034,7 +1099,7 @@ else:
                     st.rerun()
 
         # CUSTOM LOGGING FORM
-        st.subheader("🛒 Log a Custom Planned Purchase")
+        render_section_header("Custom Purchase Log", "Log a Custom Planned Purchase", "Record any custom purchase into your active list; ethical picks apply a 30% CO₂ reduction.")
         with st.form("custom_log_form", clear_on_submit=True):
             f1, f2, f3 = st.columns([1.2, 1.2, 1.0])
             item_name = f1.text_input("Item Description (Required)", placeholder="e.g. Organic Cotton Tee, USB-C Cable")
@@ -1042,11 +1107,11 @@ else:
             brand_val = f2.text_input("Brand or Vendor (Optional)", placeholder="e.g. Patagonia, Back Market")
             price_val = f2.number_input("Purchase Price ($) (Required)", min_value=1.0, max_value=5000.0, value=45.0, step=5.0)
             date_val = f3.date_input("Purchase Date (Required)", value=date.today())
-            is_eth = f3.checkbox("🌱 Certified Circular / Thrift / Ethical", help="Applies a 30% footprint discount.")
+            is_eth = f3.checkbox("Certified Circular / Thrift / Ethical", help="Applies a 30% footprint discount.")
 
             ci = CATEGORIES[cat_choice]
             render_html(f"<div style='background:{T['soft']}; border-radius:14px; padding:0.75rem 1rem; margin:0.5rem 0; font-size:0.85rem;'><strong>Insight ({ci['tier']}):</strong> {ci['fact']} <span style='color:{T['accent']}; font-weight:700;'>• Tip: {random.choice(ECO_TIPS)}</span></div>")
-            if st.form_submit_button("🌿 Record Purchase in Active Ledger", width="stretch"):
+            if st.form_submit_button("Record Purchase in Active Ledger", width="stretch"):
                 if not item_name.strip():
                     st.error("Please enter an item description before recording.")
                 else:
@@ -1056,15 +1121,15 @@ else:
                     if mood in ["ecstatic", "happy"]: st.balloons()
                     st.rerun()
 
-        with st.expander("🌲 Interactive Carbon & Tree Offset Simulator", expanded=False):
+        with st.expander("Pre-Purchase Carbon & Tree Offset Simulator", expanded=False):
             sc1, sc2 = st.columns([1.2, 1.0])
             sim_d = sc1.slider("Simulate Dollar Spend ($):", 5.0, 500.0, 75.0, 5.0)
             sim_c = sc1.selectbox("Simulate Category:", list(CATEGORIES.keys()), key="sim_cat")
             sim_e = sc1.checkbox("Certified Circular / Ethical?", True, key="sim_eth")
             s_co2 = calculate_carbon(sim_d, sim_c, sim_e)
             sm, sch, st_m = get_equivalency(s_co2)
-            render_html(f"<div style='background:{T['soft']}; border-radius:16px; padding:1rem;'><div class='eyebrow'>Estimated CO₂</div><div style='font-size:1.75rem; font-weight:800; color:{T['accent']};'>{s_co2:.2f} kg</div><div style='font-size:0.84rem; margin-top:0.35rem;'>🚗 ~{sm:,} car miles • 📱 ~{sch:,} charges • 🌲 ~{st_m} tree-mo</div></div>", )
-            if sc2.button("➕ Add Simulated Item to Tracker", width="stretch"):
+            render_html(f"<div style='background:{T['soft']}; border-radius:16px; padding:1rem;'><div class='eyebrow'>Estimated CO₂</div><div style='font-size:1.75rem; font-weight:800; color:{T['accent']};'>{s_co2:.2f} kg</div><div style='font-size:0.84rem; margin-top:0.35rem;'>~{sm:,} car miles • ~{sch:,} phone charges • ~{st_m} tree-mo</div></div>")
+            if sc2.button("+ Add Simulated Item to Tracker", width="stretch"):
                 si, mood, msg, art = add_purchase(st.session_state.purchases, f"Simulated: {sim_c.split()[0]} (${sim_d:.0f})", sim_c, "Simulation Tool", sim_d, date.today(), sim_e, st.session_state.user_mascot)
                 st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = si, mood, msg, art
                 st.rerun()
@@ -1072,11 +1137,11 @@ else:
         # GREENER SWAPS
         if st.session_state.last_logged:
             last = st.session_state.last_logged
-            st.subheader(f"🌱 Greener Alternatives for '{last['item']}' ({last['category']})")
+            render_section_header("Circular Alternatives", f"Greener Options for '{last['item']}'", f"Category: {last['category']}")
             sc1, sc2 = st.columns([1.0, 2.0], gap="medium")
             with sc1:
                 render_html(render_animated_avatar_svg(st.session_state.user_mascot, "happy", 105, 105))
-                st.caption(f"💡 **{c_name}:** Logged **{last['carbon_kg']} kg CO₂e**. Try a circular swap:")
+                st.caption(f"**{c_name}:** Logged **{last['carbon_kg']} kg CO₂e**. Consider a circular swap:")
             with sc2:
                 swaps = ETHICAL_ALTERNATIVES.get(last["category"], [])
                 sw_cols = st.columns(len(swaps))
@@ -1084,7 +1149,7 @@ else:
                     with sw_cols[idx]:
                         render_html(f"<div class='swap-card'><strong>{sw['brand']}</strong><br><span style='font-size:0.83rem; color:{T['muted']};'>{sw['perk']}</span><br><strong style='color:{T['accent']}; font-size:0.8rem;'>Carbon Cut: {sw['saving']}</strong></div>")
                         b_name = sw["brand"].split("/")[0].strip()
-                        if st.button(f"Adopt {b_name} 🌿", key=f"adopt_swap_{idx}", width="stretch"):
+                        if st.button(f"Adopt {b_name}", key=f"adopt_swap_{idx}", width="stretch"):
                             sr, _, _, _ = add_purchase(st.session_state.purchases, f"Greener Swap: {b_name} ({last['category']})", last["category"], b_name, 35.0, date.today(), True, st.session_state.user_mascot)
                             st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.recent_art = sr, "ecstatic", "badge"
                             st.session_state.mascot_message = f"Adopted {b_name}! Great biosphere boost."
@@ -1099,18 +1164,17 @@ else:
             op1.markdown(f"<div class='optimizer-panel'><div class='eyebrow'>What-If Carbon Optimizer</div><strong>Your heaviest item is \"{html.escape(it['item'])}\"</strong> ({swap_opp['cur_co2']} kg). Switching to <strong>{swap_opp['target_cat']}</strong> ({swap_opp['brand_suggestion']}) drops it to <strong>{swap_opp['alt_co2']} kg</strong> (saves <strong>{swap_opp['saved_diff']} kg</strong> / -{swap_opp['pct_drop']}%).</div>", unsafe_allow_html=True)
             with op2:
                 st.markdown("<div style='height:0.65rem;'></div>", unsafe_allow_html=True)
-                if st.button(f"🔄 Swap Item (-{swap_opp['saved_diff']} kg)", type="primary", width="stretch", key="opt_swap_btn"):
+                if st.button(f"Swap Item (-{swap_opp['saved_diff']} kg)", type="primary", width="stretch", key="opt_swap_btn"):
                     tr = st.session_state.purchases[swap_opp["index"]]
                     tr["item"], tr["category"], tr["brand"], tr["carbon_kg"], tr["is_ethical"] = f"Swapped: {tr['item']} (Circular)", swap_opp["target_cat"], swap_opp["brand_suggestion"].split("/")[0].strip(), swap_opp["alt_co2"], True
                     st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.recent_art = tr, "ecstatic", "badge"
                     st.session_state.mascot_message = f"Smart switch! Saved {swap_opp['saved_diff']} kg CO₂ instantly!"
                     st.rerun()
 
-        st.markdown("---")
+        render_section_header("Insights & Ledger", "Timeline Filter & Visual Carbon Analytics", "Review footprint shares by category, filter recorded items, or export your scorecard.")
         yrs = sorted({str(p["date"])[:4] for p in st.session_state.purchases}, reverse=True)
         mos = sorted({str(p["date"])[:7] for p in st.session_state.purchases}, reverse=True)
         f_opts = ["All Time"] + [f"Year {y}" for y in yrs] + mos
-        st.subheader("📅 Timeline Filter & Visual Carbon Analytics")
         p_choice = st.radio("Period", f_opts, horizontal=True, label_visibility="collapsed")
         if p_choice == "All Time":
             filtered, p_lbl = st.session_state.purchases, "All Time (Cumulative)"
@@ -1169,7 +1233,7 @@ else:
                     st.info("No rows match that search filter.")
 
                 u1, u2, u3 = st.columns(3)
-                if u1.button("↩️ Undo Last Purchase", width="stretch"):
+                if u1.button("Undo Last Purchase", width="stretch"):
                     popped = st.session_state.purchases.pop()
                     prev = st.session_state.purchases[-1] if st.session_state.purchases else None
                     st.session_state.last_logged = prev
@@ -1179,16 +1243,16 @@ else:
                         st.session_state.mascot_mood, st.session_state.recent_art = "mindful", None
                         st.session_state.mascot_message = f"Removed '{popped['item']}'. Log your next purchase!"
                     st.rerun()
-                u2.download_button("📥 Export CSV", df_view.to_csv(index=False).encode("utf-8"), f"shopimpact_{p_lbl.lower().replace(' ', '_')}.csv", "text/csv", width="stretch")
-                u3.download_button("📄 Eco Scorecard", build_eco_scorecard_markdown(st.session_state.user_name, rank_title, st.session_state.carbon_budget, spend_tot, co2_tot, saved_tot, badges, cur_streak, top_cat_name).encode("utf-8"), "shopimpact_scorecard.md", "text/markdown", width="stretch")
+                u2.download_button("Export CSV", df_view.to_csv(index=False).encode("utf-8"), f"shopimpact_{p_lbl.lower().replace(' ', '_')}.csv", "text/csv", width="stretch")
+                u3.download_button("Eco Scorecard", build_eco_scorecard_markdown(st.session_state.user_name, rank_title, st.session_state.carbon_budget, spend_tot, co2_tot, saved_tot, badges, cur_streak, top_cat_name).encode("utf-8"), "shopimpact_scorecard.md", "text/markdown", width="stretch")
             else:
                 st.caption("No records to export yet.")
 
     # --------------------------------------------------------------------------
-    # VIEW: 🏆 WALL OF BADGES & TURTLE ART VAULT
+    # VIEW: WALL OF BADGES & TURTLE ART VAULT
     # --------------------------------------------------------------------------
-    elif st.session_state.nav_view == "🏆 Wall of Badges":
-        st.title("🏆 Wall of Badges & Eco Fame")
+    elif st.session_state.nav_view == "Wall of Badges":
+        st.title("Wall of Badges & Eco Fame")
         st.caption("Unlocked milestones bloom in botanical olive-green while upcoming goals remain muted until achieved.")
         st.metric("Badges Unlocked", f"{unlocked_num} of {len(badges)}", f"{int((unlocked_num/len(badges))*100)}% Complete")
 
@@ -1196,13 +1260,11 @@ else:
         for i, b in enumerate(badges):
             with (bc1 if i % 2 == 0 else bc2):
                 if b["unlocked"]:
-                    render_html(f"<div class='badge-on'><div style='display:flex; gap:1rem; align-items:center;'><div style='font-size:2.7rem;'>{b['icon']}</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='background:rgba(255,255,255,0.2); font-weight:800; font-size:0.75rem; padding:0.2rem 0.65rem; border-radius:99px;'>✨ UNLOCKED ({b['progress']})</span></div></div></div>")
+                    render_html(f"<div class='badge-on'><div style='display:flex; gap:1rem; align-items:center;'><div style='font-size:2.7rem;'>{b['icon']}</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='background:rgba(255,255,255,0.2); font-weight:800; font-size:0.75rem; padding:0.2rem 0.65rem; border-radius:99px;'>UNLOCKED ({b['progress']})</span></div></div></div>")
                 else:
-                    render_html(f"<div class='badge-off'><div style='display:flex; gap:1rem; align-items:center;'><div style='font-size:2.7rem;'>🔒</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='font-weight:700; font-size:0.75rem;'>🔒 LOCKED ({b['progress']})</span></div></div></div>")
+                    render_html(f"<div class='badge-off'><div style='display:flex; gap:1rem; align-items:center;'><div style='font-size:2.7rem;'>🔒</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='font-weight:700; font-size:0.75rem;'>LOCKED ({b['progress']})</span></div></div></div>")
 
-        st.markdown("---")
-        st.subheader("🐢 Procedural Turtle Vector Art Vault")
-        st.caption(f"Collect all 4 botanical emblems drawn in-memory by HeadlessTurtle + Pillow ({len(earned_arts)}/4 unlocked).")
+        render_section_header("Procedural Vector Vault", "Turtle Art Collector Vault", f"Collect all 4 botanical emblems drawn in-memory by HeadlessTurtle + Pillow ({len(earned_arts)}/4 unlocked).")
         v_cols = st.columns(4, gap="medium")
         art_specs = [
             ("leaf", "Botanical Eco Leaf", "Ethical or organic picks"),
@@ -1213,6 +1275,6 @@ else:
         for col_v, (ak, title_a, desc_a) in zip(v_cols, art_specs):
             unlocked_art = ak in earned_arts
             img_u = image_to_data_uri(draw_vector_art(ak if unlocked_art else "preview"))
-            col_v.markdown(f"<div class='studio-panel' style='align-items:center; text-align:center; padding:1rem;'><img src='{img_u}' style='width:140px; height:140px;'/><div style='font-weight:800; font-size:0.86rem; margin-top:0.3rem;'>{'✨ ' if unlocked_art else '🔒 '}{title_a}</div><div style='font-size:0.76rem; color:{T['muted']};'>{desc_a}</div></div>", unsafe_allow_html=True)
+            col_v.markdown(f"<div class='studio-panel' style='align-items:center; text-align:center; padding:1rem;'><img src='{img_u}' style='width:140px; height:140px;'/><div style='font-weight:800; font-size:0.86rem; margin-top:0.3rem;'>{title_a}</div><div style='font-size:0.76rem; color:{T['muted']};'>{'Unlocked • ' if unlocked_art else 'Locked • '}{desc_a}</div></div>", unsafe_allow_html=True)
 
 render_html(f"<div style='text-align:center; color:{T['muted']}; font-size:0.8rem; padding:1.4rem 0 0.6rem 0;'><strong>ShopImpact Conscious Shopping Studio</strong> • IDAI 102 • Candidate: <strong>Parth Pravinbhai Gajera</strong> (1000544)</div>")
