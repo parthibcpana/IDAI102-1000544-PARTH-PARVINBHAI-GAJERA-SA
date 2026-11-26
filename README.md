@@ -291,27 +291,27 @@ Built natively with Streamlit Light theming (`.streamlit/config.toml`) in flat, 
 
 <div align="center">
 <img src="assets/screenshots/onboarding_v3.png" alt="Screen 1: Ecovista Botanical Welcome Hero and Onboarding" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 1 (Welcome & Onboarding): Custom SVG landscape with rotating wind turbines, sunlit trees, valley homes, and walking shopper man with Turtle companion.</em></p>
+<p><em>Screen 1 (Welcome & Onboarding): Custom SVG landscape with rotating wind turbines, sunlit trees, valley homes, and walking shopper man with pure-math Turtle companion.</em></p>
 </div>
 
 <div align="center">
-<img src="assets/screenshots/dashboard_v4.png" alt="Screen 2: Botanical Light Studio Dashboard" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 2A (Botanical Light Studio): Equal-height 3-card Hero Studio (Biosphere, Companion & Turtle Rosette), KPI cards, and uniform Quick-Log pills.</em></p>
+<img src="assets/screenshots/dashboard_v5.png" alt="Screen 2: Botanical Light Studio Dashboard" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
+<p><em>Screen 2A (Botanical Light Studio): Equal-height 3-card Hero Studio (Biosphere, Math-Turtle Companion & Rosette), KPI cards, and uniform Quick-Log pills.</em></p>
 </div>
 
 <div align="center">
-<img src="assets/screenshots/dashboard_dark_v2.png" alt="Screen 2B: Forest Dusk Dark Mode Dashboard" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 2B (Forest Dusk Dark Mode): Matte deep-pine palette with adaptive contrast across inputs, metrics, charts, and chips.</em></p>
+<img src="assets/screenshots/dashboard_dark_v3.png" alt="Screen 2B: Forest Dusk Dark Mode Dashboard" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
+<p><em>Screen 2B (Forest Dusk Dark Mode): Matte deep-pine palette with adaptive contrast across inputs, dropdowns, calendars, alerts, toasts, and charts.</em></p>
 </div>
 
 <div align="center">
-<img src="assets/screenshots/analytics_v2.png" alt="Screen 2C: What-If Carbon Optimizer, Altair Charts, and Progress Ledger" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 2C (Interactive Analytics & Optimizer): What-If Carbon Optimizer 1-click swap banner, olive/ochre Altair bar & donut charts, and searchable Progress Ledger.</em></p>
+<img src="assets/screenshots/analytics_v3.png" alt="Screen 2C: What-If Carbon Optimizer, Altair Charts, and Progress Ledger" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
+<p><em>Screen 2C (Interactive Analytics & Optimizer): What-If Carbon Optimizer 1-click swap banner, olive/ochre Altair charts, and searchable Progress Ledger.</em></p>
 </div>
 
 <div align="center">
-<img src="assets/screenshots/wall_of_badges_v3.png" alt="Screen 3: Wall of Badges and 4-Piece Procedural Turtle Art Vault" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 3 (Wall of Badges & Procedural Turtle Art Vault): 4 of 5 milestone badges unlocked above the 4-piece HeadlessTurtle Pillow Vault (Leaf, Step, Mindful Man & Turtle, Championship Rosette).</em></p>
+<img src="assets/screenshots/wall_of_badges_v4.png" alt="Screen 3: Wall of Badges and 4-Piece Procedural Turtle Art Vault" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
+<p><em>Screen 3 (Wall of Badges & Procedural Turtle Art Vault): 4 of 5 milestone badges unlocked above the 4-piece pure-math HeadlessTurtle Vault (Leaf, Step, Mindful Man & Turtle, Championship Rosette).</em></p>
 </div>
 
 ---
@@ -336,7 +336,7 @@ As suggested in the brief, I tested ShopImpact by acting as a first-time user an
 ### Proof of tests (3 sample screenshots collage)
 
 <div align="center">
-<img src="assets/screenshots/test_proof_collage_v3.png" alt="Collage of 3 test screenshots showing Botanical Light Studio, 12-purchase Altair analytics, and Wall of Badges" width="900" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
+<img src="assets/screenshots/test_proof_collage_v4.png" alt="Collage of 3 test screenshots showing Botanical Light Studio, 12-purchase Altair analytics, and Wall of Badges" width="900" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
 <p><em>3-Panel Test Proof Collage: (1) Botanical Light Hero, Biosphere & Rosette reward; (2) 12-purchase mix showing What-If Optimizer, Altair charts & searchable ledger; (3) Wall of Badges & 4-piece Turtle Art Vault.</em></p>
 </div>
 

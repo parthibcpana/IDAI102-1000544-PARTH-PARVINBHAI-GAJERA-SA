@@ -145,6 +145,7 @@ SUSTAINABILITY_QUOTES = [
 # BOTANICAL SVG HERO LANDSCAPE (Ecovista-Inspired Welcome Artwork + Man & Turtle)
 # ------------------------------------------------------------------------------
 
+@st.cache_data(show_spinner=False)
 def render_welcome_landscape_svg(dark=False):
     """Layered flat-botanical SVG horizon with wind turbines, sunlit trees, cottages, shopper & turtle."""
     sky_top = "#18271E" if dark else "#FAFCE8"
@@ -355,50 +356,408 @@ def render_animated_biosphere_svg(used_pct, co2_tot, budget_limit, width=185, he
     </svg>
     """
 
+class HeadlessTurtle:
+    """Pure mathematical Python Turtle kinematics engine (SVG paths + Pillow vertex rasterizer)."""
+    def __init__(self, w=280, h=280):
+        self.w, self.h = w, h
+        self.img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        self.draw = ImageDraw.Draw(self.img)
+        self.x, self.y, self.heading = w / 2, h / 2, 90.0
+        self.down, self.color, self.width = True, (78, 126, 54, 255), 3
+        self.svg_paths = []
+        self._cur_pts = []
+
+    def _flush_svg_stroke(self):
+        if len(self._cur_pts) >= 2:
+            d = "M " + " L ".join(f"{px:.1f} {py:.1f}" for px, py in self._cur_pts)
+            r, g, b, a = self.color
+            op = round(a / 255.0, 2)
+            self.svg_paths.append(
+                f'<path d="{d}" fill="none" stroke="rgb({r},{g},{b})" stroke-opacity="{op}" '
+                f'stroke-width="{self.width}" stroke-linecap="round" stroke-linejoin="round"/>'
+            )
+        self._cur_pts = []
+
+    def setheading(self, angle): self.heading = float(angle) % 360.0
+    def left(self, a): self.heading = (self.heading + float(a)) % 360.0
+    def right(self, a): self.heading = (self.heading - float(a)) % 360.0
+
+    def penup(self):
+        self._flush_svg_stroke()
+        self.down = False
+
+    def pendown(self):
+        self.down = True
+        self._cur_pts = [(self.x, self.y)]
+
+    def forward(self, d):
+        rad = math.radians(self.heading)
+        nx, ny = self.x + d * math.cos(rad), self.y - d * math.sin(rad)
+        if self.down:
+            self.draw.line([(self.x, self.y), (nx, ny)], fill=self.color, width=self.width)
+            if not self._cur_pts:
+                self._cur_pts.append((self.x, self.y))
+            self._cur_pts.append((nx, ny))
+        self.x, self.y = nx, ny
+
+    def goto(self, x, y):
+        if self.down:
+            self.draw.line([(self.x, self.y), (x, y)], fill=self.color, width=self.width)
+            if not self._cur_pts:
+                self._cur_pts.append((self.x, self.y))
+            self._cur_pts.append((x, y))
+        else:
+            self._flush_svg_stroke()
+        self.x, self.y = float(x), float(y)
+
+    def arc(self, r, ext, steps=18):
+        sl = (2.0 * math.pi * r * (abs(ext) / 360.0)) / max(1, steps)
+        step_ang = float(ext) / max(1, steps)
+        for _ in range(steps):
+            self.forward(sl)
+            self.left(step_ang)
+
+    def fill_turtle_poly(self, pts, fill_rgba=None, outline_rgba=None, outline_w=2):
+        """Renders a pure-math turtle vertex polygon onto the canvas without primitive shortcuts."""
+        if len(pts) < 3:
+            return
+        if fill_rgba is not None:
+            self.draw.polygon(pts, fill=fill_rgba)
+        if outline_rgba is not None:
+            self.draw.line(list(pts) + [pts[0]], fill=outline_rgba, width=outline_w)
+
+    def pts_to_svg(self, pts):
+        return " ".join(f"{px:.1f},{py:.1f}" for px, py in pts)
+
+    def trace_oval_pts(self, cx, cy, rx, ry, rot_deg=0.0, steps=32):
+        rr = math.radians(rot_deg)
+        ca, sa = math.cos(rr), math.sin(rr)
+        pts = []
+        for i in range(steps):
+            t = (i / float(steps)) * 2.0 * math.pi
+            lx, ly = rx * math.cos(t), ry * math.sin(t)
+            pts.append((cx + lx * ca - ly * sa, cy + lx * sa + ly * ca))
+        return pts
+
+    def trace_superellipse_pts(self, cx, cy, rx, ry, power=2.5, rot_deg=0.0, steps=40):
+        rr = math.radians(rot_deg)
+        ca, sa = math.cos(rr), math.sin(rr)
+        exp = 2.0 / max(0.5, float(power))
+        pts = []
+        for i in range(steps):
+            t = (i / float(steps)) * 2.0 * math.pi
+            ct, st_v = math.cos(t), math.sin(t)
+            lx = rx * math.copysign(abs(ct) ** exp, ct)
+            ly = ry * math.copysign(abs(st_v) ** exp, st_v)
+            pts.append((cx + lx * ca - ly * sa, cy + lx * sa + ly * ca))
+        return pts
+
+    def trace_bezier_pts(self, p0, p1, p2, p3, steps=22):
+        pts = []
+        for i in range(steps + 1):
+            u = i / float(steps)
+            v = 1.0 - u
+            px = (v**3)*p0[0] + 3*(v**2)*u*p1[0] + 3*v*(u**2)*p2[0] + (u**3)*p3[0]
+            py = (v**3)*p0[1] + 3*(v**2)*u*p1[1] + 3*v*(u**2)*p2[1] + (u**3)*p3[1]
+            pts.append((px, py))
+        return pts
+
+    def trace_star_pts(self, cx, cy, r_outer, r_inner, points=5):
+        pts = []
+        self.heading = 90.0
+        step_deg = 180.0 / points
+        for k in range(points * 2):
+            r = r_outer if k % 2 == 0 else r_inner
+            rad = math.radians(self.heading)
+            pts.append((cx + r * math.cos(rad), cy - r * math.sin(rad)))
+            self.right(step_deg)
+        return pts
+
+    def trace_scallop_ring_pts(self, cx, cy, r_base, amp, lobes=16, steps=96):
+        pts = []
+        for i in range(steps):
+            ang = (i / float(steps)) * 2.0 * math.pi
+            r = r_base + amp * math.cos(lobes * ang)
+            pts.append((cx + r * math.cos(ang), cy + r * math.sin(ang)))
+        return pts
+
+    def trace_turtle_shell_scutes(self, cx, cy, hex_rx=22, hex_ry=18, outer_rx=44, outer_ry=37):
+        hex_pts = []
+        self.svg_paths = []
+        self.color = (26, 62, 34, 195)
+        self.width = 2
+        for k in range(6):
+            ang = math.radians(k * 60 + 30)
+            hx, hy = cx + hex_rx * math.cos(ang), cy + hex_ry * math.sin(ang)
+            ox, oy = cx + outer_rx * math.cos(ang), cy + outer_ry * math.sin(ang)
+            hex_pts.append((hx, hy))
+            self.penup()
+            self.goto(hx, hy)
+            self.pendown()
+            self.goto(ox, oy)
+        self.penup()
+        return self.pts_to_svg(hex_pts), "\n".join(self.svg_paths)
+
+def _sa_face_expressions(t: HeadlessTurtle, hx, hy, eye_dx, mouth_dy, mood, skin_dark="#15261A", accent="#D69838", cheek_op="0.58", accessory_anchor_y=28):
+    """Pure math-traced expressive faces & props across all 5 animated eco mascots."""
+    elx, erx = hx - eye_dx, hx + eye_dx
+    ey = hy - 2
+    my = hy + mouth_dy
+    if mood == "ecstatic":
+        crown_pts = t.pts_to_svg(t.trace_star_pts(hx, accessory_anchor_y - 10, 9.5, 4.2, points=5))
+        s1 = t.pts_to_svg(t.trace_star_pts(hx - 40, hy - 16, 7.5, 2.8, points=4))
+        s2 = t.pts_to_svg(t.trace_star_pts(hx + 40, hy - 14, 6.2, 2.3, points=4))
+        return (
+            f'<g class="sprout"><line x1="{hx}" y1="{accessory_anchor_y + 2}" x2="{hx}" y2="{accessory_anchor_y - 8}" stroke="#B87E22" stroke-width="2.6"/>'
+            f'<polygon points="{crown_pts}" fill="#E9B842" stroke="#9C6A12" stroke-width="1.2"/></g>'
+            f'<rect x="{elx - 10}" y="{ey - 6}" width="20" height="12" rx="4" fill="#13251B" stroke="{accent}" stroke-width="2"/>'
+            f'<rect x="{erx - 10}" y="{ey - 6}" width="20" height="12" rx="4" fill="#13251B" stroke="{accent}" stroke-width="2"/>'
+            f'<line x1="{elx + 10}" y1="{ey - 1}" x2="{erx - 10}" y2="{ey - 1}" stroke="{accent}" stroke-width="2.4"/>'
+            f'<line x1="{elx - 6}" y1="{ey - 3}" x2="{elx - 1}" y2="{ey + 2}" stroke="#FFFFFF" stroke-width="1.5" opacity="0.55" stroke-linecap="round"/>'
+            f'<line x1="{erx - 6}" y1="{ey - 3}" x2="{erx - 1}" y2="{ey + 2}" stroke="#FFFFFF" stroke-width="1.5" opacity="0.55" stroke-linecap="round"/>'
+            f'<ellipse cx="{elx - 5}" cy="{ey + 11}" rx="5" ry="2.8" fill="#EB7B89" opacity="{cheek_op}"/>'
+            f'<ellipse cx="{erx + 5}" cy="{ey + 11}" rx="5" ry="2.8" fill="#EB7B89" opacity="{cheek_op}"/>'
+            f'<path d="M {hx - 11} {my - 1} Q {hx} {my + 13} {hx + 11} {my - 1} Z" fill="#D45B6A" stroke="{skin_dark}" stroke-width="2" stroke-linejoin="round"/>'
+            f'<g class="m-fx"><polygon points="{s1}" fill="#E9B842"/><polygon points="{s2}" fill="#E9B842"/></g>'
+        )
+    if mood == "happy":
+        l1 = t.pts_to_svg(t.trace_oval_pts(hx - 7, accessory_anchor_y - 12, 7.5, 4.2, rot_deg=-28, steps=18))
+        l2 = t.pts_to_svg(t.trace_oval_pts(hx + 7, accessory_anchor_y - 12, 7.5, 4.2, rot_deg=28, steps=18))
+        return (
+            f'<g class="sprout"><line x1="{hx}" y1="{accessory_anchor_y + 2}" x2="{hx}" y2="{accessory_anchor_y - 11}" stroke="#264729" stroke-width="2.4"/>'
+            f'<polygon points="{l1}" fill="#6DA452" stroke="#264729" stroke-width="1.4"/>'
+            f'<polygon points="{l2}" fill="#82BC64" stroke="#264729" stroke-width="1.4"/></g>'
+            f'<g class="m-bk">'
+            f'<circle cx="{elx}" cy="{ey}" r="5.6" fill="{skin_dark}"/><circle cx="{elx - 1.8}" cy="{ey - 2}" r="2.1" fill="#FFF"/><circle cx="{elx + 1.6}" cy="{ey + 1.5}" r="1.1" fill="#E9E4B0"/>'
+            f'<circle cx="{erx}" cy="{ey}" r="5.6" fill="{skin_dark}"/><circle cx="{erx - 1.8}" cy="{ey - 2}" r="2.1" fill="#FFF"/><circle cx="{erx + 1.6}" cy="{ey + 1.5}" r="1.1" fill="#E9E4B0"/>'
+            f'</g>'
+            f'<ellipse cx="{elx - 5}" cy="{ey + 10}" rx="5.2" ry="3" fill="#EB7B89" opacity="{cheek_op}"/>'
+            f'<ellipse cx="{erx + 5}" cy="{ey + 10}" rx="5.2" ry="3" fill="#EB7B89" opacity="{cheek_op}"/>'
+            f'<path d="M {hx - 10} {my - 1} Q {hx} {my + 11} {hx + 10} {my - 1}" fill="none" stroke="{skin_dark}" stroke-width="2.8" stroke-linecap="round"/>'
+        )
+    if mood == "worried":
+        return (
+            f'<line x1="{elx - 6}" y1="{ey - 7}" x2="{elx + 5}" y2="{ey - 10}" stroke="{skin_dark}" stroke-width="2.2" stroke-linecap="round"/>'
+            f'<line x1="{erx - 5}" y1="{ey - 10}" x2="{erx + 6}" y2="{ey - 7}" stroke="{skin_dark}" stroke-width="2.2" stroke-linecap="round"/>'
+            f'<circle cx="{elx}" cy="{ey}" r="5.4" fill="{skin_dark}"/><circle cx="{elx - 1.6}" cy="{ey - 1.8}" r="1.8" fill="#FFF"/>'
+            f'<circle cx="{erx}" cy="{ey}" r="5.4" fill="{skin_dark}"/><circle cx="{erx - 1.6}" cy="{ey - 1.8}" r="1.8" fill="#FFF"/>'
+            f'<path d="M {hx - 9} {my + 4} Q {hx} {my - 4} {hx + 9} {my + 4}" fill="none" stroke="{skin_dark}" stroke-width="2.5" stroke-linecap="round"/>'
+            f'<g class="m-sw"><path d="M {erx + 13} {ey - 8} C {erx + 13} {ey - 8}, {erx + 18} {ey - 1}, {erx + 18} {ey + 3} A 5 5 0 1 1 {erx + 8} {ey + 3} C {erx + 8} {ey - 1}, {erx + 13} {ey - 8}, {erx + 13} {ey - 8} Z" fill="#6EC5D8" stroke="#1E5F70" stroke-width="1.2"/></g>'
+        )
+    if mood == "alarmed":
+        bx, by = hx + 33, accessory_anchor_y + 4
+        return (
+            f'<polygon points="{bx},{by - 12} {bx + 11},{by + 7} {bx - 11},{by + 7}" fill="#C45B4D" stroke="#7A281E" stroke-width="1.5" stroke-linejoin="round"/>'
+            f'<line x1="{bx}" y1="{by - 6}" x2="{bx}" y2="{by + 1}" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>'
+            f'<circle cx="{bx}" cy="{by + 4.3}" r="1.2" fill="#FFFFFF"/>'
+            f'<circle cx="{elx}" cy="{ey}" r="6.2" fill="#FFFFFF" stroke="{skin_dark}" stroke-width="2"/><circle cx="{elx}" cy="{ey}" r="2.6" fill="{skin_dark}"/>'
+            f'<circle cx="{erx}" cy="{ey}" r="6.2" fill="#FFFFFF" stroke="{skin_dark}" stroke-width="2"/><circle cx="{erx}" cy="{ey}" r="2.6" fill="{skin_dark}"/>'
+            f'<ellipse cx="{hx}" cy="{my + 4}" rx="5.2" ry="6.6" fill="{skin_dark}"/>'
+        )
+    l1 = t.pts_to_svg(t.trace_oval_pts(hx - 6, accessory_anchor_y - 10, 6.5, 3.6, rot_deg=-28, steps=16))
+    l2 = t.pts_to_svg(t.trace_oval_pts(hx + 6, accessory_anchor_y - 10, 6.5, 3.6, rot_deg=28, steps=16))
+    return (
+        f'<g class="sprout"><line x1="{hx}" y1="{accessory_anchor_y + 2}" x2="{hx}" y2="{accessory_anchor_y - 9}" stroke="#264729" stroke-width="2"/>'
+        f'<polygon points="{l1}" fill="#6DA452" stroke="#264729" stroke-width="1.3"/>'
+        f'<polygon points="{l2}" fill="#82BC64" stroke="#264729" stroke-width="1.3"/></g>'
+        f'<path d="M {elx - 6} {ey + 1} Q {elx} {ey - 5} {elx + 6} {ey + 1}" fill="none" stroke="{skin_dark}" stroke-width="2.5" stroke-linecap="round"/>'
+        f'<path d="M {erx - 6} {ey + 1} Q {erx} {ey - 5} {erx + 6} {ey + 1}" fill="none" stroke="{skin_dark}" stroke-width="2.5" stroke-linecap="round"/>'
+        f'<path d="M {hx - 8} {my} Q {hx} {my + 6.5} {hx + 8} {my}" fill="none" stroke="{skin_dark}" stroke-width="2.2" stroke-linecap="round"/>'
+    )
+
 def render_animated_avatar_svg(character="turtle", mood="happy", width=155, height=155):
+    """Renders all 5 realistic animated eco mascots strictly from pure Python math & HeadlessTurtle kinematics."""
     if character in ["ecstatic", "happy", "mindful", "worried", "alarmed"]:
         mood, character = character, "turtle"
     ck = str(character).lower()
     c_type = "fox" if "fox" in ck else "owl" if "owl" in ck else "bee" if ("bee" in ck or "pollinator" in ck) else "panda" if "panda" in ck else "turtle"
     shiver = "shiver" if mood in ["worried", "alarmed"] else "bob"
+    uid = f"sa_{c_type}_{mood}_{width}"
+    aura_col = "#C45B4D" if mood == "alarmed" else ("#D69838" if mood in ("ecstatic", "worried") else "#5E9643")
+    aura_op = "0.26" if mood in ("ecstatic", "alarmed") else "0.17"
 
-    svg = f"""<svg width="{width}" height="{height}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
-    <style>
-      @keyframes av-bob {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-6px); }} }}
-      @keyframes av-shv {{ 0%, 100% {{ transform: translate(0,0); }} 25% {{ transform: translate(-2px,1px); }} 75% {{ transform: translate(2px,-1px); }} }}
-      @keyframes wv-l {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(22deg); }} }}
-      @keyframes wv-r {{ 0%, 100% {{ transform: rotate(0deg); }} 50% {{ transform: rotate(-22deg); }} }}
-      @keyframes sp-s {{ 0%, 100% {{ transform: rotate(-8deg); }} 50% {{ transform: rotate(8deg); }} }}
-      .bob {{ animation: av-bob 2.3s ease-in-out infinite; }}
-      .shiver {{ animation: av-shv 0.22s infinite; }}
-      .wave-l {{ animation: wv-l 1.4s ease-in-out infinite; transform-origin: 50px 85px; }}
-      .wave-r {{ animation: wv-r 1.4s ease-in-out infinite; transform-origin: 150px 85px; }}
-      .sprout {{ animation: sp-s 1.9s ease-in-out infinite; transform-origin: 100px 30px; }}
-    </style><g class="{shiver}">"""
+    t = HeadlessTurtle(200, 200)
+    parts = [
+        f'<svg width="{width}" height="{height}" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto; display:block; margin:0 auto;">',
+        '<defs>',
+        f'<radialGradient id="{uid}_aura" cx="50%" cy="52%" r="50%"><stop offset="0%" stop-color="{aura_col}" stop-opacity="{aura_op}"/><stop offset="100%" stop-color="{aura_col}" stop-opacity="0"/></radialGradient>',
+        f'<linearGradient id="{uid}_sh" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6DA452"/><stop offset="55%" stop-color="#417232"/><stop offset="100%" stop-color="#224420"/></linearGradient>',
+        f'<linearGradient id="{uid}_fox" x1="15%" y1="0%" x2="85%" y2="100%"><stop offset="0%" stop-color="#EB8E47"/><stop offset="55%" stop-color="#D46B2E"/><stop offset="100%" stop-color="#9B4318"/></linearGradient>',
+        f'<linearGradient id="{uid}_owl" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#9A6842"/><stop offset="60%" stop-color="#764B2A"/><stop offset="100%" stop-color="#4B2E17"/></linearGradient>',
+        f'<linearGradient id="{uid}_bee" x1="20%" y1="0%" x2="80%" y2="100%"><stop offset="0%" stop-color="#F6D15C"/><stop offset="55%" stop-color="#E3AC36"/><stop offset="100%" stop-color="#B87E1A"/></linearGradient>',
+        f'<clipPath id="{uid}_beec"><polygon points="{t.pts_to_svg(t.trace_superellipse_pts(100, 118, 42, 48, power=2.4, steps=36))}"/></clipPath>',
+        '</defs>',
+        '<style>',
+        '@keyframes av-bob { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }',
+        '@keyframes av-shv { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-2px,1px); } 75% { transform: translate(2px,-1px); } }',
+        '@keyframes wv-l { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(18deg); } }',
+        '@keyframes wv-r { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-18deg); } }',
+        '@keyframes sp-s { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }',
+        '@keyframes av-bk { 0%, 88%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.1); } }',
+        '@keyframes av-sw { 0%, 100% { transform: translateY(0px); opacity: 0.9; } 50% { transform: translateY(5px); opacity: 0.45; } }',
+        '@keyframes av-fx { 0%, 100% { opacity: 0.55; transform: translateY(0px); } 50% { opacity: 1; transform: translateY(-4px); } }',
+        '.bob { animation: av-bob 2.5s ease-in-out infinite; }',
+        '.shiver { animation: av-shv 0.22s infinite; }',
+        '.wave-l { animation: wv-l 1.5s ease-in-out infinite; transform-origin: 54px 96px; }',
+        '.wave-r { animation: wv-r 1.5s ease-in-out infinite; transform-origin: 146px 96px; }',
+        '.sprout { animation: sp-s 2.1s ease-in-out infinite; transform-origin: 100px 30px; }',
+        '.m-bk { transform-box: fill-box; transform-origin: center; animation: av-bk 4.1s infinite; }',
+        '.m-sw { animation: av-sw 1.5s ease-in-out infinite; }',
+        '.m-fx { animation: av-fx 2.1s ease-in-out infinite; }',
+        '</style>',
+        f'<circle cx="100" cy="104" r="90" fill="url(#{uid}_aura)"/>',
+        '<ellipse cx="100" cy="178" rx="46" ry="7.5" fill="rgba(19,38,27,0.12)"/>',
+        f'<g class="{shiver}">',
+    ]
 
     if c_type == "fox":
-        svg += """<path d="M 140 145 C 185 155 190 105 160 85 C 145 95 135 125 140 145 Z" fill="#D97336" stroke="#8E421B" stroke-width="2.4"/><path d="M 175 95 C 190 105 178 120 160 115 Z" fill="#FFFDF8"/><ellipse cx="100" cy="130" rx="46" ry="42" fill="#D97336" stroke="#8E421B" stroke-width="2.8"/><ellipse cx="100" cy="136" rx="28" ry="26" fill="#FDF2E6" stroke="#D97336" stroke-width="1.8"/><ellipse cx="70" cy="165" rx="14" ry="10" fill="#D97336" stroke="#8E421B" stroke-width="2"/><ellipse cx="130" cy="165" rx="14" ry="10" fill="#D97336" stroke="#8E421B" stroke-width="2"/><polygon points="55,42 75,18 85,46" fill="#D97336" stroke="#8E421B" stroke-width="2.4"/><polygon points="62,38 75,24 80,44" fill="#F4C7D2"/><polygon points="145,42 125,18 115,46" fill="#D97336" stroke="#8E421B" stroke-width="2.4"/><polygon points="138,38 125,24 120,44" fill="#F4C7D2"/><ellipse cx="100" cy="62" rx="34" ry="30" fill="#D97336" stroke="#8E421B" stroke-width="2.4"/><ellipse cx="82" cy="72" rx="16" ry="14" fill="#FFFDF8"/><ellipse cx="118" cy="72" rx="16" ry="14" fill="#FFFDF8"/><polygon points="96,72 104,72 100,78" fill="#1F2E24"/>"""
+        tail_top = t.trace_bezier_pts((132, 146), (176, 148), (190, 96), (164, 78), steps=20)
+        tail_bot = t.trace_bezier_pts((164, 78), (144, 88), (134, 118), (126, 138), steps=20)
+        tail_pts = t.pts_to_svg(tail_top + tail_bot)
+        tip_pts = t.pts_to_svg(
+            t.trace_bezier_pts((164, 78), (181, 88), (179, 108), (160, 110), steps=14)
+            + t.trace_bezier_pts((160, 110), (154, 96), (156, 86), (164, 78), steps=12)
+        )
+        body_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 132, 43, 40, power=2.5, steps=36))
+        bib_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 135, 25, 28, power=2.3, steps=28))
+        paw_l = t.pts_to_svg(t.trace_oval_pts(74, 165, 13, 9, rot_deg=-8, steps=20))
+        paw_r = t.pts_to_svg(t.trace_oval_pts(126, 165, 13, 9, rot_deg=8, steps=20))
+        head_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 66, 37, 29, power=2.3, steps=36))
+        cheek_l = t.pts_to_svg(t.trace_oval_pts(80, 74, 17, 13, rot_deg=14, steps=22))
+        cheek_r = t.pts_to_svg(t.trace_oval_pts(120, 74, 17, 13, rot_deg=-14, steps=22))
+        ear_l = t.pts_to_svg(t.trace_bezier_pts((64, 52), (56, 22), (72, 16), (86, 40), steps=16))
+        ear_r = t.pts_to_svg(t.trace_bezier_pts((136, 52), (144, 22), (128, 16), (114, 40), steps=16))
+        parts += [
+            f'<g class="wave-r" style="transform-origin:132px 142px;"><polygon points="{tail_pts}" fill="url(#{uid}_fox)" stroke="#7F3512" stroke-width="2.2" stroke-linejoin="round"/><polygon points="{tip_pts}" fill="#FFF9EC"/></g>',
+            f'<polygon points="{body_pts}" fill="url(#{uid}_fox)" stroke="#7F3512" stroke-width="2.4" stroke-linejoin="round"/>',
+            f'<polygon points="{bib_pts}" fill="#FDF2E4" stroke="#E0B18A" stroke-width="1.4"/>',
+            f'<polygon points="{paw_l}" fill="#4B2B1C" stroke="#2D1910" stroke-width="1.8"/>',
+            f'<polygon points="{paw_r}" fill="#4B2B1C" stroke="#2D1910" stroke-width="1.8"/>',
+            f'<g class="wave-l"><polygon points="{t.pts_to_svg(t.trace_oval_pts(58, 122, 10, 18, rot_deg=24, steps=20))}" fill="#D46B2E" stroke="#7F3512" stroke-width="2"/></g>',
+            f'<polygon points="{ear_l}" fill="#D46B2E" stroke="#7F3512" stroke-width="2.2" stroke-linejoin="round"/><polygon points="68,46 67,25 81,40" fill="#F4C7D2"/>',
+            f'<polygon points="{ear_r}" fill="#D46B2E" stroke="#7F3512" stroke-width="2.2" stroke-linejoin="round"/><polygon points="132,46 133,25 119,40" fill="#F4C7D2"/>',
+            f'<polygon points="{head_pts}" fill="url(#{uid}_fox)" stroke="#7F3512" stroke-width="2.4" stroke-linejoin="round"/>',
+            f'<polygon points="{cheek_l}" fill="#FFF8EE"/><polygon points="{cheek_r}" fill="#FFF8EE"/>',
+            '<path d="M 88 52 Q 100 44 112 52" fill="none" stroke="#F8C28B" stroke-width="2" stroke-linecap="round" opacity="0.65"/>',
+            '<polygon points="94,70 106,70 100,77" fill="#1F241F"/>',
+            '<line x1="65" y1="73" x2="80" y2="75" stroke="#7F3512" stroke-width="1.2"/><line x1="64" y1="79" x2="80" y2="79" stroke="#7F3512" stroke-width="1.2"/>',
+            '<line x1="135" y1="73" x2="120" y2="75" stroke="#7F3512" stroke-width="1.2"/><line x1="136" y1="79" x2="120" y2="79" stroke="#7F3512" stroke-width="1.2"/>',
+            _sa_face_expressions(t, 100, 62, 13, 19, mood, skin_dark="#1C261D", accessory_anchor_y=32),
+        ]
+
     elif c_type == "owl":
-        svg += """<ellipse cx="100" cy="120" rx="50" ry="46" fill="#7D502D" stroke="#4D2F18" stroke-width="2.8"/><ellipse cx="100" cy="126" rx="34" ry="32" fill="#FAF0D2" stroke="#AD783B" stroke-width="2"/><path d="M 90 120 Q 100 128 110 120 M 85 135 Q 100 145 115 135" fill="none" stroke="#AD783B" stroke-width="2"/><g class="wave-l"><ellipse cx="54" cy="120" rx="14" ry="34" fill="#91603A" stroke="#4D2F18" stroke-width="2" transform="rotate(15 54 120)"/></g><g class="wave-r"><ellipse cx="146" cy="120" rx="14" ry="34" fill="#91603A" stroke="#4D2F18" stroke-width="2" transform="rotate(-15 146 120)"/></g><ellipse cx="78" cy="165" rx="12" ry="7" fill="#CE933A"/><ellipse cx="122" cy="165" rx="12" ry="7" fill="#CE933A"/><polygon points="70,36 60,16 80,30" fill="#7D502D" stroke="#4D2F18" stroke-width="2"/><polygon points="130,36 140,16 120,30" fill="#7D502D" stroke="#4D2F18" stroke-width="2"/><ellipse cx="100" cy="58" rx="36" ry="32" fill="#7D502D" stroke="#4D2F18" stroke-width="2.4"/><circle cx="85" cy="56" r="16" fill="#FAF0D2" stroke="#C98A32" stroke-width="2.4"/><circle cx="115" cy="56" r="16" fill="#FAF0D2" stroke="#C98A32" stroke-width="2.4"/><polygon points="96,65 104,65 100,75" fill="#DF9E34"/>"""
+        body_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 122, 46, 44, power=2.6, steps=36))
+        belly_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 128, 32, 31, power=2.4, steps=28))
+        wing_l = t.pts_to_svg(t.trace_oval_pts(55, 120, 13, 31, rot_deg=16, steps=24))
+        wing_r = t.pts_to_svg(t.trace_oval_pts(145, 120, 13, 31, rot_deg=-16, steps=24))
+        head_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 62, 36, 30, power=2.5, steps=32))
+        disc_l = t.pts_to_svg(t.trace_oval_pts(85, 60, 16, 16, steps=24))
+        disc_r = t.pts_to_svg(t.trace_oval_pts(115, 60, 16, 16, steps=24))
+        feathers_svg = "".join(
+            f'<path d="M {fx - 7} {fy} Q {fx} {fy + 8} {fx + 7} {fy}" fill="none" stroke="#AD783B" stroke-width="2" stroke-linecap="round"/>'
+            for fy, cols in [(114, [84, 100, 116]), (127, [78, 93, 107, 122]), (140, [86, 100, 114])]
+            for fx in cols
+        )
+        parts += [
+            '<line x1="56" y1="169" x2="144" y2="169" stroke="#5A4228" stroke-width="5.5" stroke-linecap="round"/>',
+            '<ellipse cx="136" cy="166" rx="7" ry="3.5" fill="#6DA452" transform="rotate(-24 136 166)"/>',
+            f'<g class="wave-l"><polygon points="{wing_l}" fill="#855632" stroke="#4B2E17" stroke-width="2.2"/></g>',
+            f'<g class="wave-r"><polygon points="{wing_r}" fill="#855632" stroke="#4B2E17" stroke-width="2.2"/></g>',
+            f'<polygon points="{body_pts}" fill="url(#{uid}_owl)" stroke="#4B2E17" stroke-width="2.5" stroke-linejoin="round"/>',
+            f'<polygon points="{belly_pts}" fill="#FAF0D2" stroke="#B88442" stroke-width="1.8"/>',
+            feathers_svg,
+            '<polygon points="75,164 81,172 87,164" fill="#D99B38" stroke="#855712" stroke-width="1.4"/>',
+            '<polygon points="113,164 119,172 125,164" fill="#D99B38" stroke="#855712" stroke-width="1.4"/>',
+            '<polygon points="68,38 56,18 81,31" fill="#764B2A" stroke="#4B2E17" stroke-width="2" stroke-linejoin="round"/>',
+            '<polygon points="132,38 144,18 119,31" fill="#764B2A" stroke="#4B2E17" stroke-width="2" stroke-linejoin="round"/>',
+            f'<polygon points="{head_pts}" fill="url(#{uid}_owl)" stroke="#4B2E17" stroke-width="2.4"/>',
+            f'<polygon points="{disc_l}" fill="#FAF0D2" stroke="#C98A32" stroke-width="2.2"/>',
+            f'<polygon points="{disc_r}" fill="#FAF0D2" stroke="#C98A32" stroke-width="2.2"/>',
+            '<polygon points="95,66 105,66 100,77" fill="#DF9E34" stroke="#8E5D12" stroke-width="1.4" stroke-linejoin="round"/>',
+            _sa_face_expressions(t, 100, 62, 15, 20, mood, skin_dark="#18281D", accessory_anchor_y=28),
+        ]
+
     elif c_type == "bee":
-        svg += """<ellipse cx="72" cy="72" rx="28" ry="16" fill="#DCEEF7" opacity="0.85" stroke="#6B98B3" stroke-width="1.5" transform="rotate(-35 72 72)"/><ellipse cx="128" cy="72" rx="28" ry="16" fill="#DCEEF7" opacity="0.85" stroke="#6B98B3" stroke-width="1.5" transform="rotate(35 128 72)"/><ellipse cx="100" cy="115" rx="46" ry="54" fill="#E5B946" stroke="#6F4B2C" stroke-width="2.8"/><path d="M 60 98 Q 100 110 140 98" fill="none" stroke="#1F2E24" stroke-width="11" stroke-linecap="round"/><path d="M 64 125 Q 100 137 136 125" fill="none" stroke="#1F2E24" stroke-width="11" stroke-linecap="round"/><polygon points="96,168 104,168 100,182" fill="#1F2E24"/><path d="M 90 40 Q 80 20 70 24 M 110 40 Q 120 20 130 24" fill="none" stroke="#1F2E24" stroke-width="2.5"/><circle cx="68" cy="24" r="4.5" fill="#D69838"/><circle cx="132" cy="24" r="4.5" fill="#D69838"/><ellipse cx="100" cy="58" rx="28" ry="24" fill="#E5B946" stroke="#6F4B2C" stroke-width="2.4"/>"""
+        wl_top = t.pts_to_svg(t.trace_oval_pts(64, 72, 30, 16, rot_deg=-34, steps=24))
+        wr_top = t.pts_to_svg(t.trace_oval_pts(136, 72, 30, 16, rot_deg=34, steps=24))
+        wl_bot = t.pts_to_svg(t.trace_oval_pts(62, 98, 21, 11, rot_deg=-16, steps=20))
+        wr_bot = t.pts_to_svg(t.trace_oval_pts(138, 98, 21, 11, rot_deg=16, steps=20))
+        body_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 118, 42, 48, power=2.4, steps=36))
+        head_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 62, 29, 25, power=2.4, steps=28))
+        parts += [
+            f'<g class="wave-l"><polygon points="{wl_top}" fill="#E6F4FA" opacity="0.88" stroke="#6B98B3" stroke-width="1.6"/><polygon points="{wl_bot}" fill="#E6F4FA" opacity="0.82" stroke="#6B98B3" stroke-width="1.4"/><line x1="84" y1="84" x2="48" y2="62" stroke="#8FB8CE" stroke-width="1.2"/></g>',
+            f'<g class="wave-r"><polygon points="{wr_top}" fill="#E6F4FA" opacity="0.88" stroke="#6B98B3" stroke-width="1.6"/><polygon points="{wr_bot}" fill="#E6F4FA" opacity="0.82" stroke="#6B98B3" stroke-width="1.4"/><line x1="116" y1="84" x2="152" y2="62" stroke="#8FB8CE" stroke-width="1.2"/></g>',
+            '<polygon points="95,164 105,164 100,179" fill="#1F2E24"/>',
+            f'<polygon points="{body_pts}" fill="url(#{uid}_bee)" stroke="#6F4B2C" stroke-width="2.4"/>',
+            f'<g clip-path="url(#{uid}_beec)">'
+            '<path d="M 52 104 Q 100 116 148 104" fill="none" stroke="#1E2B22" stroke-width="11"/>'
+            '<path d="M 52 130 Q 100 142 148 130" fill="none" stroke="#1E2B22" stroke-width="11"/>'
+            '<path d="M 58 152 Q 100 162 142 152" fill="none" stroke="#1E2B22" stroke-width="9"/>'
+            '</g>',
+            f'<polygon points="{body_pts}" fill="none" stroke="#6F4B2C" stroke-width="2.4"/>',
+            '<ellipse cx="100" cy="86" rx="28" ry="8" fill="#5E4326"/>',
+            '<path d="M 90 42 Q 78 21 67 25 M 110 42 Q 122 21 133 25" fill="none" stroke="#1F2E24" stroke-width="2.4" stroke-linecap="round"/>',
+            '<circle cx="67" cy="25" r="4.5" fill="#E3AC36" stroke="#6F4B2C" stroke-width="1.2"/>',
+            '<circle cx="133" cy="25" r="4.5" fill="#E3AC36" stroke="#6F4B2C" stroke-width="1.2"/>',
+            f'<polygon points="{head_pts}" fill="url(#{uid}_bee)" stroke="#6F4B2C" stroke-width="2.3"/>',
+            _sa_face_expressions(t, 100, 62, 12, 13, mood, skin_dark="#18281D", accessory_anchor_y=34),
+        ]
+
     elif c_type == "panda":
-        svg += """<ellipse cx="100" cy="130" rx="48" ry="44" fill="#FFFDF8" stroke="#1F2E24" stroke-width="2.8"/><path d="M 54 115 Q 100 135 146 115 L 142 155 Q 100 170 58 155 Z" fill="#1F2E24"/><g class="wave-l"><ellipse cx="50" cy="98" rx="14" ry="26" fill="#1F2E24" transform="rotate(-30 50 98)"/></g><g class="wave-r"><ellipse cx="150" cy="98" rx="14" ry="26" fill="#1F2E24" transform="rotate(30 150 98)"/></g><ellipse cx="60" cy="165" rx="14" ry="10" fill="#1F2E24"/><ellipse cx="140" cy="165" rx="14" ry="10" fill="#1F2E24"/><circle cx="68" cy="38" r="15" fill="#1F2E24"/><circle cx="132" cy="38" r="15" fill="#1F2E24"/><ellipse cx="100" cy="62" rx="36" ry="32" fill="#FFFDF8" stroke="#1F2E24" stroke-width="2.5"/><ellipse cx="84" cy="58" rx="11" ry="14" fill="#1F2E24" transform="rotate(-15 84 58)"/><ellipse cx="116" cy="58" rx="11" ry="14" fill="#1F2E24" transform="rotate(15 116 58)"/><ellipse cx="100" cy="72" rx="5" ry="3.5" fill="#1F2E24"/><line x1="104" y1="74" x2="135" y2="82" stroke="#4E7E36" stroke-width="3"/><ellipse cx="132" cy="78" rx="6" ry="3" fill="#6DA452" transform="rotate(-20 132 78)"/>"""
-    else:
-        svg += """<ellipse cx="60" cy="155" rx="15" ry="22" fill="#5A8F44" stroke="#264729" stroke-width="2.4" transform="rotate(-25 60 155)"/><ellipse cx="140" cy="155" rx="15" ry="22" fill="#5A8F44" stroke="#264729" stroke-width="2.4" transform="rotate(25 140 155)"/><polygon points="95,160 105,160 100,180" fill="#5A8F44" stroke="#264729" stroke-width="2"/><g class="wave-l"><ellipse cx="48" cy="88" rx="17" ry="28" fill="#77AD5C" stroke="#264729" stroke-width="2.4" transform="rotate(-35 48 88)"/></g><g class="wave-r"><ellipse cx="152" cy="88" rx="17" ry="28" fill="#77AD5C" stroke="#264729" stroke-width="2.4" transform="rotate(35 152 88)"/></g><ellipse cx="100" cy="120" rx="54" ry="48" fill="#3D6B35" stroke="#264729" stroke-width="2.8"/><ellipse cx="100" cy="120" rx="42" ry="36" fill="#5A8F44" stroke="#264729" stroke-width="2"/><ellipse cx="100" cy="120" rx="26" ry="22" fill="#95C47A" stroke="#3D6B35" stroke-width="2"/><ellipse cx="100" cy="55" rx="28" ry="26" fill="#95C47A" stroke="#264729" stroke-width="2.4"/>"""
+        body_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 132, 46, 42, power=2.5, steps=36))
+        head_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 64, 37, 31, power=2.4, steps=32))
+        patch_l = t.pts_to_svg(t.trace_oval_pts(85, 60, 11, 13.5, rot_deg=-16, steps=22))
+        patch_r = t.pts_to_svg(t.trace_oval_pts(115, 60, 11, 13.5, rot_deg=16, steps=22))
+        arm_l = t.pts_to_svg(t.trace_oval_pts(55, 104, 13, 24, rot_deg=-28, steps=22))
+        arm_r = t.pts_to_svg(t.trace_oval_pts(145, 104, 13, 24, rot_deg=28, steps=22))
+        bamboo_leaf1 = t.pts_to_svg(t.trace_oval_pts(160, 102, 11, 4.5, rot_deg=-26, steps=18))
+        bamboo_leaf2 = t.pts_to_svg(t.trace_oval_pts(161, 118, 9.5, 4, rot_deg=22, steps=18))
+        parts += [
+            f'<polygon points="{body_pts}" fill="#FFFDF8" stroke="#1F2E24" stroke-width="2.5"/>',
+            '<path d="M 55 112 Q 100 130 145 112 L 143 136 Q 100 150 57 136 Z" fill="#1F2E24"/>',
+            f'<g class="wave-l"><polygon points="{arm_l}" fill="#1F2E24"/></g>',
+            f'<g class="wave-r"><polygon points="{arm_r}" fill="#1F2E24"/></g>',
+            '<ellipse cx="64" cy="166" rx="14" ry="10" fill="#1F2E24"/><ellipse cx="64" cy="166" rx="6" ry="4" fill="#E8B8C0"/>',
+            '<ellipse cx="136" cy="166" rx="14" ry="10" fill="#1F2E24"/><ellipse cx="136" cy="166" rx="6" ry="4" fill="#E8B8C0"/>',
+            '<circle cx="67" cy="39" r="14" fill="#1F2E24"/><circle cx="133" cy="39" r="14" fill="#1F2E24"/>',
+            f'<polygon points="{head_pts}" fill="#FFFDF8" stroke="#1F2E24" stroke-width="2.4"/>',
+            f'<polygon points="{patch_l}" fill="#1F2E24"/><polygon points="{patch_r}" fill="#1F2E24"/>',
+            '<ellipse cx="100" cy="73" rx="5.5" ry="3.8" fill="#1F2E24"/>',
+            '<line x1="150" y1="88" x2="150" y2="148" stroke="#4E7E36" stroke-width="4.5" stroke-linecap="round"/>',
+            '<line x1="147" y1="108" x2="153" y2="108" stroke="#DCEBD4" stroke-width="1.6"/>',
+            '<line x1="147" y1="128" x2="153" y2="128" stroke="#DCEBD4" stroke-width="1.6"/>',
+            f'<polygon points="{bamboo_leaf1}" fill="#6DA452" stroke="#355D28" stroke-width="1.2"/>',
+            f'<polygon points="{bamboo_leaf2}" fill="#82BC64" stroke="#355D28" stroke-width="1.2"/>',
+            _sa_face_expressions(t, 100, 62, 15, 20, mood, skin_dark="#FFFFFF" if mood in ("happy", "worried") else "#18281D", cheek_op="0.52", accessory_anchor_y=30),
+        ]
 
-    if mood == "ecstatic":
-        svg += """<g class="sprout"><line x1="100" y1="28" x2="100" y2="10" stroke="#C88C28" stroke-width="3"/><polygon points="100,4 103,11 110,11 105,15 107,22 100,18 93,22 95,15 90,11 97,11" fill="#E6B33A"/></g><path d="M 81 48 L 96 48 Q 96 58 88 58 Q 81 58 81 48 Z" fill="#18281D"/><path d="M 104 48 L 119 48 Q 119 58 112 58 Q 104 58 104 48 Z" fill="#18281D"/><line x1="96" y1="50" x2="104" y2="50" stroke="#18281D" stroke-width="2.5"/><path d="M 88 63 Q 100 76 112 63" fill="#C45B4D" stroke="#264729" stroke-width="2.2" stroke-linecap="round"/>"""
-    elif mood == "happy":
-        svg += """<g class="sprout"><line x1="100" y1="28" x2="100" y2="12" stroke="#264729" stroke-width="2.5"/><ellipse cx="94" cy="10" rx="7" ry="4.5" fill="#6DA452" stroke="#264729" stroke-width="1.5" transform="rotate(-30 94 10)"/><ellipse cx="106" cy="10" rx="7" ry="4.5" fill="#6DA452" stroke="#264729" stroke-width="1.5" transform="rotate(30 106 10)"/></g><circle cx="89" cy="51" r="4.8" fill="#18281D"/><circle cx="87" cy="49" r="1.6" fill="#FFF"/><circle cx="111" cy="51" r="4.8" fill="#18281D"/><circle cx="109" cy="49" r="1.6" fill="#FFF"/><path d="M 88 63 Q 100 74 112 63" fill="none" stroke="#18281D" stroke-width="2.8" stroke-linecap="round"/>"""
-    elif mood == "alarmed":
-        svg += """<polygon points="100,8 107,22 93,22" fill="#C45B4D" stroke="#852E24" stroke-width="1.5"/><circle cx="89" cy="52" r="6.5" fill="#FFF" stroke="#18281D" stroke-width="2"/><circle cx="89" cy="52" r="2.8" fill="#18281D"/><circle cx="111" cy="52" r="6.5" fill="#FFF" stroke="#18281D" stroke-width="2"/><circle cx="111" cy="52" r="2.8" fill="#18281D"/><ellipse cx="100" cy="69" rx="5.5" ry="7.5" fill="#18281D"/>"""
-    elif mood == "worried":
-        svg += """<circle cx="89" cy="53" r="5" fill="#18281D"/><circle cx="111" cy="53" r="5" fill="#18281D"/><path d="M 89 68 Q 100 59 111 68" fill="none" stroke="#18281D" stroke-width="2.6" stroke-linecap="round"/>"""
     else:
-        svg += """<g class="sprout"><line x1="100" y1="28" x2="100" y2="14" stroke="#264729" stroke-width="2"/><ellipse cx="94" cy="12" rx="6" ry="4" fill="#6DA452" stroke="#264729" stroke-width="1.5" transform="rotate(-30 94 12)"/><ellipse cx="106" cy="12" rx="6" ry="4" fill="#6DA452" stroke="#264729" stroke-width="1.5" transform="rotate(30 106 12)"/></g><path d="M 84 52 Q 89 46 94 52 M 106 52 Q 111 46 116 52" fill="none" stroke="#18281D" stroke-width="2.4" stroke-linecap="round"/><path d="M 91 65 Q 100 71 109 65" fill="none" stroke="#18281D" stroke-width="2.2" stroke-linecap="round"/>"""
+        hl_pts = t.pts_to_svg(t.trace_oval_pts(64, 152, 13, 20, rot_deg=-24, steps=24))
+        hr_pts = t.pts_to_svg(t.trace_oval_pts(136, 152, 13, 20, rot_deg=24, steps=24))
+        fl_pts = t.pts_to_svg(t.trace_oval_pts(48, 102, 15, 27, rot_deg=-34, steps=26))
+        fr_pts = t.pts_to_svg(t.trace_oval_pts(152, 102, 15, 27, rot_deg=34, steps=26))
+        sh_outer = t.pts_to_svg(t.trace_superellipse_pts(100, 124, 52, 46, power=2.3, steps=36))
+        sh_mid = t.pts_to_svg(t.trace_superellipse_pts(100, 124, 41, 35, power=2.3, steps=32))
+        hex_pts, ribs_svg = t.trace_turtle_shell_scutes(100, 124, hex_rx=22, hex_ry=18, outer_rx=43, outer_ry=36)
+        head_pts = t.pts_to_svg(t.trace_superellipse_pts(100, 59, 26, 23, power=2.2, steps=28))
+        shell_stroke = "#E9B842" if mood == "ecstatic" else "#234F26"
+        parts += [
+            f'<polygon points="{hl_pts}" fill="#5A8F44" stroke="#234F26" stroke-width="2" stroke-linejoin="round"/>',
+            f'<polygon points="{hr_pts}" fill="#5A8F44" stroke="#234F26" stroke-width="2" stroke-linejoin="round"/>',
+            '<polygon points="94,164 106,164 100,179" fill="#5A8F44" stroke="#234F26" stroke-width="1.8" stroke-linejoin="round"/>',
+            f'<g class="wave-l"><polygon points="{fl_pts}" fill="#77AD5C" stroke="#234F26" stroke-width="2" stroke-linejoin="round"/></g>',
+            f'<g class="wave-r"><polygon points="{fr_pts}" fill="#77AD5C" stroke="#234F26" stroke-width="2" stroke-linejoin="round"/></g>',
+            f'<polygon points="{sh_outer}" fill="url(#{uid}_sh)" stroke="#1D4020" stroke-width="2.8" stroke-linejoin="round"/>',
+            f'<polygon points="{sh_mid}" fill="#5A8F44" stroke="#264E29" stroke-width="1.8" stroke-linejoin="round"/>',
+            ribs_svg,
+            f'<polygon points="{hex_pts}" fill="#95C47A" stroke="{shell_stroke}" stroke-width="2.2" stroke-linejoin="round"/>',
+            '<path d="M 68 96 Q 82 86 104 86" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.42"/>',
+            f'<polygon points="{head_pts}" fill="#95C47A" stroke="#234F26" stroke-width="2.2" stroke-linejoin="round"/>',
+            _sa_face_expressions(t, 100, 59, 12, 9, mood, skin_dark="#15261A", accessory_anchor_y=30),
+        ]
 
-    return svg + "</g></svg>"
+    parts.append("</g></svg>")
+    return "".join(parts)
 
 def get_mascot_reaction(mascot_str, item_name, live_co2, mood, is_eth):
     name = mascot_str.split()[0]
@@ -413,112 +772,99 @@ def get_mascot_reaction(mascot_str, item_name, live_co2, mood, is_eth):
     return f"CARBON SPIKE ALERT: '{item_name}' created {live_co2} kg CO₂e! Swap one item to stay green."
 
 # ------------------------------------------------------------------------------
-# CLOUD-SAFE HEADLESS TURTLE PILLOW GRAPHICS ENGINE (Harmonious Ecovista Tones)
+# TURTLE ART VAULT (100% Pure Math HeadlessTurtle Vertex Rasterization)
 # ------------------------------------------------------------------------------
 
-class HeadlessTurtle:
-    """Pure Python Turtle vector engine executing on Pillow canvases without Tkinter dependencies."""
-    def __init__(self, w=280, h=280):
-        self.w, self.h = w, h
-        self.img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-        self.draw = ImageDraw.Draw(self.img)
-        self.x, self.y, self.heading = w / 2, h / 2, 90
-        self.down, self.color, self.width = True, (78, 126, 54, 255), 3
-
-    def forward(self, d):
-        rad = math.radians(self.heading)
-        nx, ny = self.x + d * math.cos(rad), self.y - d * math.sin(rad)
-        if self.down:
-            self.draw.line([(self.x, self.y), (nx, ny)], fill=self.color, width=self.width)
-        self.x, self.y = nx, ny
-
-    def left(self, a): self.heading = (self.heading + a) % 360
-    def right(self, a): self.heading = (self.heading - a) % 360
-    def penup(self): self.down = False
-    def pendown(self): self.down = True
-    def goto(self, x, y):
-        if self.down:
-            self.draw.line([(self.x, self.y), (x, y)], fill=self.color, width=self.width)
-        self.x, self.y = x, y
-
-def draw_vector_art(art_type="leaf"):
-    """Draws soft organic 280x280 botanical art (Leaf, Step, Rosette, Traveler Man & Turtle) via HeadlessTurtle."""
+@st.cache_data(show_spinner=False)
+def _render_turtle_art_png_cached(art_type="leaf"):
+    """Draws 280x280 botanical art strictly from HeadlessTurtle math vertex equations."""
     w, h = 280, 280
     t = HeadlessTurtle(w, h)
     cx, cy = 140, 136
 
     if art_type == "preview":
-        t.draw.ellipse([(cx - 88, cy - 88), (cx + 88, cy + 88)], fill=(224, 238, 214, 170), outline=(109, 164, 82, 160), width=2)
+        t.fill_turtle_poly(t.trace_oval_pts(cx, cy, 90, 90, steps=48), (226, 240, 216, 185), (109, 164, 82, 175), 2)
+        t.fill_turtle_poly(t.trace_oval_pts(cx, cy, 74, 74, steps=40), None, (109, 164, 82, 95), 1)
         for deg in range(0, 360, 30):
-            rad = math.radians(deg)
-            t.draw.line([(cx + 94 * math.cos(rad), cy + 94 * math.sin(rad)), (cx + 102 * math.cos(rad), cy + 102 * math.sin(rad))], fill=(109, 164, 82, 120), width=2)
-        seed = [(cx, cy - 38), (cx + 20, cy - 8), (cx + 14, cy + 26), (cx, cy + 34), (cx - 14, cy + 26), (cx - 20, cy - 8)]
-        t.draw.polygon(seed, fill=(109, 164, 82, 190), outline=(62, 107, 53, 210))
-        return t.img
+            t.penup(); t.goto(cx, cy); t.setheading(deg); t.forward(94); t.color = (109, 164, 82, 135); t.width = 2; t.pendown(); t.forward(9)
+        t.penup()
+        for k in range(1, 28):
+            ang = math.radians(k * 137.508)
+            r = 7.2 * math.sqrt(k)
+            sx, sy = cx + r * math.cos(ang), cy + r * math.sin(ang)
+            t.fill_turtle_poly(t.trace_oval_pts(sx, sy, 4.2, 4.2, steps=12), (78, 126, 54, 210), (45, 84, 38, 220), 1)
+        seed_pts = t.trace_bezier_pts((cx, cy - 36), (cx + 22, cy - 12), (cx + 18, cy + 20), (cx, cy + 32), steps=18)
+        seed_pts += t.trace_bezier_pts((cx, cy + 32), (cx - 18, cy + 20), (cx - 22, cy - 12), (cx, cy - 36), steps=18)
+        t.fill_turtle_poly(seed_pts, (109, 164, 82, 170), (62, 107, 53, 215), 2)
+        buf = io.BytesIO(); t.img.save(buf, format="PNG"); return buf.getvalue()
 
     if art_type == "leaf":
-        t.draw.ellipse([(cx - 102, cy - 102), (cx + 102, cy + 102)], fill=(232, 243, 224, 240), outline=(78, 126, 54, 220), width=3)
-        t.draw.ellipse([(cx - 52, cy - 68), (cx + 20, cy + 4)], fill=(235, 206, 98, 135))
-        t.penup(); t.goto(cx - 4, cy + 84); t.heading = 84; t.color = (45, 84, 38, 255); t.width = 4; t.pendown(); t.forward(50)
-        leaf_r, leaf_l = [], []
-        for s in range(25):
-            f = s / 24.0
-            y = (cy + 56) - f * 120
-            c, ln = math.sin(f * math.pi) * 42, math.sin(f * math.pi * 0.7) * 14
-            leaf_r.append((cx + ln + c, y))
-            leaf_l.append((cx + ln - c * 0.9, y))
-        t.draw.polygon(leaf_r + list(reversed(leaf_l)), fill=(78, 126, 54, 245), outline=(45, 84, 38, 255))
-        lit = [(cx + math.sin((s/24.0)*math.pi*0.7)*14, (cy+56)-(s/24.0)*120) for s in range(25)] + list(reversed(leaf_l))
-        t.draw.polygon(lit, fill=(133, 180, 108, 220))
-        t.draw.polygon([(cx - 2, cy + 42), (cx - 42, cy + 22), (cx - 58, cy + 4), (cx - 28, cy + 10), (cx - 4, cy + 30)], fill=(156, 198, 126, 240), outline=(62, 107, 53, 255))
-        t.penup(); t.goto(cx, cy + 54); t.heading = 84; t.color = (245, 250, 240, 220); t.width = 2; t.pendown(); t.forward(112)
-        for iy in [cy + 28, cy + 4, cy - 20]:
-            xo = 8 if iy < cy + 10 else 3
-            t.penup(); t.goto(cx + xo, iy); t.heading = 40; t.pendown(); t.forward(22)
-            t.penup(); t.goto(cx + xo, iy); t.heading = 140; t.pendown(); t.forward(20)
+        t.fill_turtle_poly(t.trace_oval_pts(cx, cy, 102, 102, steps=56), (232, 243, 224, 242), (78, 126, 54, 225), 3)
+        t.fill_turtle_poly(t.trace_oval_pts(cx - 16, cy - 32, 36, 36, steps=32), (235, 206, 98, 130))
+        t.penup(); t.goto(cx - 4, cy + 84); t.setheading(84); t.color = (45, 84, 38, 255); t.width = 4; t.pendown(); t.forward(50)
+        leaf_r = t.trace_bezier_pts((cx - 2, cy + 56), (cx + 56, cy + 26), (cx + 54, cy - 36), (cx + 12, cy - 66), steps=24)
+        leaf_l = t.trace_bezier_pts((cx + 12, cy - 66), (cx - 40, cy - 34), (cx - 44, cy + 24), (cx - 2, cy + 56), steps=24)
+        t.fill_turtle_poly(leaf_r + leaf_l, (78, 126, 54, 245), (45, 84, 38, 255), 2)
+        lit_mid = t.trace_bezier_pts((cx - 2, cy + 56), (cx + 10, cy + 8), (cx + 14, cy - 32), (cx + 12, cy - 66), steps=20)
+        t.fill_turtle_poly(lit_mid + leaf_l, (133, 180, 108, 215))
+        side_leaf = t.trace_bezier_pts((cx - 2, cy + 42), (cx - 38, cy + 30), (cx - 58, cy + 4), (cx - 30, cy + 8), steps=14)
+        side_leaf += t.trace_bezier_pts((cx - 30, cy + 8), (cx - 16, cy + 16), (cx - 6, cy + 28), (cx - 2, cy + 42), steps=10)
+        t.fill_turtle_poly(side_leaf, (156, 198, 126, 238), (62, 107, 53, 255), 2)
+        t.penup(); t.goto(cx, cy + 54); t.setheading(84); t.color = (245, 250, 240, 225); t.width = 2; t.pendown(); t.forward(112)
+        for iy, xo in [(cy + 28, 3), (cy + 4, 8), (cy - 20, 10)]:
+            t.penup(); t.goto(cx + xo, iy); t.setheading(40); t.pendown(); t.arc(38, 32, steps=10)
+            t.penup(); t.goto(cx + xo, iy); t.setheading(140); t.pendown(); t.arc(38, -32, steps=10)
 
     elif art_type == "footprint":
-        t.draw.ellipse([(cx - 102, cy - 102), (cx + 102, cy + 102)], fill=(235, 243, 226, 240), outline=(78, 126, 54, 220), width=3)
-        for deg in range(0, 360, 45):
+        t.fill_turtle_poly(t.trace_oval_pts(cx, cy, 102, 102, steps=56), (235, 243, 226, 242), (78, 126, 54, 225), 3)
+        for deg in range(0, 360, 30):
             rad = math.radians(deg)
-            px, py = cx + 96 * math.cos(rad), cy + 96 * math.sin(rad)
-            t.draw.ellipse([(px - 6, py - 6), (px + 6, py + 6)], fill=(133, 180, 108, 240), outline=(62, 107, 53, 210))
-        t.draw.ellipse([(cx - 24, cy + 20), (cx + 20, cy + 68)], fill=(78, 126, 54, 245))
-        foot = [(cx - 20, cy + 32), (cx - 12, cy - 4), (cx - 28, cy - 32), (cx - 14, cy - 60), (cx + 16, cy - 60), (cx + 28, cy - 32), (cx + 14, cy - 4), (cx + 16, cy + 32)]
-        t.draw.polygon(foot, fill=(78, 126, 54, 245))
-        t.draw.ellipse([(cx - 28, cy - 62), (cx + 28, cy - 16)], fill=(95, 146, 70, 245))
+            px, py = cx + 94 * math.cos(rad), cy + 94 * math.sin(rad)
+            t.fill_turtle_poly(t.trace_oval_pts(px, py, 7.5, 4.2, rot_deg=deg + 45, steps=14), (133, 180, 108, 240), (62, 107, 53, 210), 1)
+        t.fill_turtle_poly(t.trace_superellipse_pts(cx - 2, cy + 42, 21, 24, power=2.3, steps=28), (78, 126, 54, 245))
+        sole_r = t.trace_bezier_pts((cx - 18, cy + 34), (cx - 12, cy), (cx - 30, cy - 28), (cx - 14, cy - 58), steps=18)
+        sole_t = t.trace_bezier_pts((cx - 14, cy - 58), (cx, cy - 66), (cx + 22, cy - 56), (cx + 28, cy - 30), steps=14)
+        sole_l = t.trace_bezier_pts((cx + 28, cy - 30), (cx + 16, cy - 2), (cx + 18, cy + 26), (cx + 14, cy + 40), steps=16)
+        t.fill_turtle_poly(sole_r + sole_t + sole_l, (78, 126, 54, 245), (45, 84, 38, 230), 2)
+        t.fill_turtle_poly(t.trace_oval_pts(cx, cy - 36, 26, 22, rot_deg=-8, steps=26), (102, 154, 76, 235))
         for tx, ty, tr in [(-20, -76, 9.5), (-1, -83, 8.2), (14, -79, 7.2), (25, -71, 6.2), (34, -60, 5.2)]:
-            t.draw.ellipse([(cx + tx - tr, cy + ty - tr), (cx + tx + tr, cy + ty + tr)], fill=(109, 164, 82, 245), outline=(255, 253, 245, 220), width=2)
+            t.fill_turtle_poly(t.trace_oval_pts(cx + tx, cy + ty, tr, tr * 1.15, rot_deg=tx * 0.6, steps=18), (109, 164, 82, 245), (255, 253, 245, 225), 2)
 
     elif art_type == "traveler":
-        # Mindful Shopper Man walking with Reusable Tote & Baby Turtle inside Morning Botanical Horizon
-        t.draw.ellipse([(cx - 102, cy - 102), (cx + 102, cy + 102)], fill=(238, 246, 232, 245), outline=(78, 126, 54, 220), width=3)
-        t.draw.pieslice([(cx - 98, cy + 18), (cx + 98, cy + 108)], 0, 180, fill=(167, 206, 132, 220))
-        t.draw.ellipse([(cx + 18, cy - 72), (cx + 62, cy - 28)], fill=(232, 200, 92, 170))
-        # Shopper Man (Left-Center)
-        t.draw.line([(cx - 18, cy + 20), (cx - 28, cy + 62)], fill=(36, 58, 44, 255), width=7)
-        t.draw.line([(cx - 6, cy + 20), (cx + 6, cy + 62)], fill=(48, 76, 58, 255), width=7)
-        t.draw.polygon([(cx - 30, cy - 24), (cx + 4, cy - 24), (cx + 8, cy + 22), (cx - 32, cy + 22)], fill=(78, 126, 54, 255))
-        t.draw.ellipse([(cx - 25, cy - 54), (cx - 1, cy - 30)], fill=(232, 184, 146, 255))
-        t.draw.pieslice([(cx - 26, cy - 56), (cx, cy - 38)], 180, 360, fill=(42, 38, 35, 255))
-        t.draw.rectangle([(cx + 4, cy - 4), (cx + 26, cy + 22)], fill=(242, 228, 181, 255), outline=(140, 115, 67, 255), width=2)
-        # Turtle Companion (Right)
-        t.draw.pieslice([(cx + 26, cy + 36), (cx + 70, cy + 72)], 180, 360, fill=(61, 107, 53, 255))
-        t.draw.ellipse([(cx + 66, cy + 44), (cx + 80, cy + 58)], fill=(119, 177, 90, 255))
+        t.fill_turtle_poly(t.trace_oval_pts(cx, cy, 102, 102, steps=56), (238, 246, 232, 245), (78, 126, 54, 225), 3)
+        hill_arc = t.trace_bezier_pts((cx - 96, cy + 28), (cx - 32, cy + 8), (cx + 42, cy + 12), (cx + 96, cy + 32), steps=24)
+        hill_bot = t.trace_oval_pts(cx, cy, 98, 98, steps=48)
+        hill_clip = [p for p in hill_bot if p[1] >= cy + 26]
+        t.fill_turtle_poly(hill_arc + list(reversed(hill_clip)), (167, 206, 132, 220))
+        t.fill_turtle_poly(t.trace_oval_pts(cx + 40, cy - 50, 22, 22, steps=28), (232, 200, 92, 175))
+        t.penup(); t.goto(cx - 18, cy + 20); t.color = (36, 58, 44, 255); t.width = 7; t.pendown(); t.goto(cx - 28, cy + 62)
+        t.penup(); t.goto(cx - 6, cy + 20); t.color = (48, 76, 58, 255); t.width = 7; t.pendown(); t.goto(cx + 6, cy + 62)
+        t.penup()
+        t.fill_turtle_poly([(cx - 30, cy - 24), (cx + 4, cy - 24), (cx + 8, cy + 22), (cx - 32, cy + 22)], (78, 126, 54, 255), (36, 58, 44, 255), 2)
+        t.fill_turtle_poly(t.trace_oval_pts(cx - 13, cy - 42, 12, 12, steps=22), (232, 184, 146, 255))
+        hair_pts = t.trace_bezier_pts((cx - 26, cy - 44), (cx - 20, cy - 59), (cx - 4, cy - 59), (cx, cy - 44), steps=14)
+        t.fill_turtle_poly(hair_pts, (42, 38, 35, 255))
+        t.fill_turtle_poly([(cx + 4, cy - 4), (cx + 26, cy - 4), (cx + 26, cy + 22), (cx + 4, cy + 22)], (242, 228, 181, 255), (140, 115, 67, 255), 2)
+        sh_dome = t.trace_bezier_pts((cx + 26, cy + 56), (cx + 34, cy + 32), (cx + 62, cy + 32), (cx + 70, cy + 56), steps=18)
+        t.fill_turtle_poly(sh_dome, (61, 107, 53, 255), (30, 60, 36, 255), 2)
+        t.fill_turtle_poly(t.trace_oval_pts(cx + 73, cy + 51, 8, 7, steps=16), (119, 177, 90, 255), (30, 60, 36, 255), 1)
 
-    else:  # Warm Botanical Wheat-Gold & Olive Rosette
+    else:
         cm = 114
-        t.draw.polygon([(cx - 24, cm + 26), (cx - 52, cm + 136), (cx - 30, cm + 118), (cx - 10, cm + 128), (cx - 4, cm + 28)], fill=(78, 126, 54, 255))
-        t.draw.polygon([(cx + 4, cm + 28), (cx + 10, cm + 128), (cx + 30, cm + 118), (cx + 52, cm + 136), (cx + 24, cm + 26)], fill=(61, 107, 53, 255))
-        r_pts = [(cx + (64 if i % 2 == 0 else 54) * math.cos(i * math.pi / 32), cm + (64 if i % 2 == 0 else 54) * math.sin(i * math.pi / 32)) for i in range(64)]
-        t.draw.polygon(r_pts, fill=(214, 152, 56, 255), outline=(235, 194, 96, 255))
-        t.draw.ellipse([(cx - 52, cm - 52), (cx + 52, cm + 52)], fill=(228, 172, 72, 255), outline=(168, 110, 30, 255), width=2)
-        t.draw.ellipse([(cx - 42, cm - 42), (cx + 42, cm + 42)], fill=(45, 84, 38, 255), outline=(149, 196, 122, 240), width=2)
-        t.draw.ellipse([(cx - 30, cm - 30), (cx + 30, cm + 30)], fill=(250, 244, 212, 255), outline=(196, 136, 40, 255), width=2)
-        sp = [(cx + (20 if k % 2 == 0 else 8) * math.cos(-math.pi / 2 + k * math.pi / 5), cm + (20 if k % 2 == 0 else 8) * math.sin(-math.pi / 2 + k * math.pi / 5)) for k in range(10)]
-        t.draw.polygon(sp, fill=(200, 140, 40, 255), outline=(138, 86, 20, 255))
+        t.fill_turtle_poly([(cx - 24, cm + 26), (cx - 52, cm + 136), (cx - 30, cm + 118), (cx - 10, cm + 128), (cx - 4, cm + 28)], (78, 126, 54, 255), (45, 84, 38, 255), 2)
+        t.fill_turtle_poly([(cx + 4, cm + 28), (cx + 10, cm + 128), (cx + 30, cm + 118), (cx + 52, cm + 136), (cx + 24, cm + 26)], (61, 107, 53, 255), (38, 72, 34, 255), 2)
+        t.fill_turtle_poly(t.trace_scallop_ring_pts(cx, cm, 59, 6, lobes=24, steps=96), (214, 152, 56, 255), (235, 194, 96, 255), 2)
+        t.fill_turtle_poly(t.trace_oval_pts(cx, cm, 50, 50, steps=44), (228, 172, 72, 255), (168, 110, 30, 255), 2)
+        t.fill_turtle_poly(t.trace_oval_pts(cx, cm, 41, 41, steps=40), (45, 84, 38, 255), (149, 196, 122, 240), 2)
+        t.fill_turtle_poly(t.trace_oval_pts(cx, cm, 29, 29, steps=36), (250, 244, 212, 255), (196, 136, 40, 255), 2)
+        t.fill_turtle_poly(t.trace_star_pts(cx, cm, 20, 8, points=5), (200, 140, 40, 255), (138, 86, 20, 255), 2)
 
-    return t.img
+    buf = io.BytesIO()
+    t.img.save(buf, format="PNG")
+    return buf.getvalue()
+
+def draw_vector_art(art_type="leaf"):
+    return Image.open(io.BytesIO(_render_turtle_art_png_cached(art_type)))
 
 def image_to_png_bytes(img):
     buf = io.BytesIO()
@@ -657,6 +1003,14 @@ def add_purchase(purchases_list, item_name, product_type, brand, price, purchase
     mood, msg, art = evaluate_feedback_for_item(mascot_str, record["item"], live_co2, is_ethical)
     return record, mood, msg, art
 
+def set_purchase_toast(item_name: str, co2_kg: float, is_eth: bool, prefix: str = "Logged"):
+    if is_eth:
+        st.session_state.pending_toast = (f"{prefix} '{item_name}' (+{co2_kg:.2f} kg CO₂e) • Ethical 30% cut applied", "🌿")
+    elif co2_kg >= 30.0:
+        st.session_state.pending_toast = (f"{prefix} '{item_name}' (+{co2_kg:.2f} kg CO₂e) • Heavy footprint — check swaps", "⚠️")
+    else:
+        st.session_state.pending_toast = (f"{prefix} '{item_name}' (+{co2_kg:.2f} kg CO₂e) added to ledger", "✅")
+
 # ------------------------------------------------------------------------------
 # SESSION STATE INITIALIZATION (Purchases stored in a Python list in session)
 # ------------------------------------------------------------------------------
@@ -676,6 +1030,7 @@ if "nav_view" not in st.session_state:
     st.session_state.nav_view = "Wall of Badges" if st.query_params.get("view") == "badges" else "Dashboard"
 if "last_logged" not in st.session_state: st.session_state.last_logged = None
 if "confirm_reset" not in st.session_state: st.session_state.confirm_reset = False
+if "pending_toast" not in st.session_state: st.session_state.pending_toast = None
 
 if "purchases" not in st.session_state:
     st.session_state.purchases = []
@@ -725,6 +1080,9 @@ T = {
     "shadow": "0 8px 28px rgba(0, 0, 0, 0.24)" if is_dark else "0 8px 28px rgba(24, 48, 30, 0.055)",
     "gold_bg": "rgba(214, 152, 56, 0.16)" if is_dark else "#FAF2D8",
     "gold_ink": "#F2CA6B" if is_dark else "#8A5E14",
+    "alert_info_bg": "#1F3025" if is_dark else "#EAF3E6",
+    "alert_warn_bg": "#2E2716" if is_dark else "#FDF4E1",
+    "alert_err_bg": "#361D20" if is_dark else "#FBECEB",
 }
 
 render_html(f"""
@@ -769,10 +1127,105 @@ render_html(f"""
   [data-testid="stModal"] button[aria-label="Close"] svg {{
     color: {T['ink']} !important; fill: currentColor !important;
   }}
-  div[data-baseweb="popover"] > div, ul[role="listbox"], ul[role="listbox"] li {{
-    background: var(--surface) !important; color: var(--ink) !important; border-color: var(--border) !important;
+  div[data-baseweb="popover"],
+  div[data-baseweb="popover"] > div,
+  div[data-baseweb="popover"] > div > div,
+  [data-testid="stVirtualDropdown"],
+  [data-testid="stVirtualDropdown"] > div,
+  [data-testid="stSelectboxVirtualDropdown"],
+  [data-testid="stSelectboxVirtualDropdown"] > div,
+  [data-testid="stSelectboxVirtualDropdown"] [role="listbox"],
+  div[data-baseweb="menu"],
+  ul[data-baseweb="menu"],
+  [role="listbox"],
+  [role="listbox"] > div,
+  [role="option"] {{
+    background: {T['surface']} !important; background-color: {T['surface']} !important;
+    color: {T['ink']} !important; border-color: {T['border']} !important;
   }}
-  ul[role="listbox"] li:hover, ul[role="listbox"] li[aria-selected="true"] {{ background: var(--accent-soft) !important; }}
+  [data-testid="stSelectboxVirtualDropdown"] {{
+    border: 1px solid {T['border']} !important; border-radius: 12px !important; box-shadow: {T['shadow']} !important;
+  }}
+  div[data-baseweb="popover"] *, [data-testid="stSelectboxVirtualDropdown"] *,
+  [role="listbox"] *, [role="option"] *, div[data-baseweb="menu"] * {{
+    color: {T['ink']} !important;
+  }}
+  [role="option"]:hover, [role="option"][aria-selected="true"],
+  [role="option"][data-focused="true"], [role="option"][data-selected="true"],
+  [role="option"]:hover *, [role="option"][aria-selected="true"] *,
+  [role="option"][data-focused="true"] *, [role="option"][data-selected="true"] * {{
+    background: {T['accent_soft']} !important; background-color: {T['accent_soft']} !important; color: {T['ink']} !important;
+  }}
+
+  /* Calendar & DatePicker Popover (Light & Dark Modes) */
+  [data-baseweb="calendar"], [data-baseweb="calendar"] > div,
+  [data-baseweb="datepicker"], [data-baseweb="datepicker"] > div,
+  [data-baseweb="calendar-header"], [data-baseweb="month"], [data-baseweb="week"],
+  [data-baseweb="calendar"] [role="grid"], [data-baseweb="calendar"] [role="row"],
+  [data-baseweb="calendar"] [role="columnheader"], [data-baseweb="calendar"] [role="gridcell"] {{
+    background: var(--surface) !important; background-color: var(--surface) !important; color: var(--ink) !important;
+  }}
+  [data-baseweb="calendar"] * {{ color: var(--ink) !important; }}
+  [data-baseweb="calendar"] button {{ background: transparent !important; color: var(--ink) !important; }}
+  [data-baseweb="calendar"] button svg {{ fill: var(--ink) !important; color: var(--ink) !important; }}
+  [data-baseweb="calendar"] [role="gridcell"] > div, [data-baseweb="calendar"] [data-baseweb="day"] {{
+    background: transparent !important; color: var(--ink) !important;
+  }}
+  [data-baseweb="calendar"] [role="gridcell"]:hover > div, [data-baseweb="calendar"] [data-baseweb="day"]:hover {{
+    background: var(--accent-soft) !important; background-color: var(--accent-soft) !important; color: var(--ink) !important;
+  }}
+  [data-baseweb="calendar"] [aria-selected="true"],
+  [data-baseweb="calendar"] [aria-selected="true"] > div,
+  [data-baseweb="calendar"] [aria-selected="true"] * {{
+    background: var(--accent) !important; background-color: var(--accent) !important; color: #FFFFFF !important;
+  }}
+
+  /* Theme-Safe Alerts (Info, Warning, Reset Session, Empty Period) */
+  [data-testid="stAlert"], [data-testid="stAlertContainer"], div[role="alert"], .stAlert {{
+    background: {T['alert_info_bg']} !important; background-color: {T['alert_info_bg']} !important;
+    color: var(--ink) !important; border: 1px solid var(--border) !important;
+    border-left: 4px solid var(--accent) !important; border-radius: 14px !important;
+  }}
+  [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]),
+  [data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) {{
+    background: {T['alert_warn_bg']} !important; background-color: {T['alert_warn_bg']} !important;
+    border-left-color: #D69838 !important;
+  }}
+  [data-testid="stAlert"]:has([data-testid="stAlertContentError"]),
+  [data-testid="stAlertContainer"]:has([data-testid="stAlertContentError"]) {{
+    background: {T['alert_err_bg']} !important; background-color: {T['alert_err_bg']} !important;
+    border-left-color: #C45B4D !important;
+  }}
+  [data-testid="stAlert"] *, [data-testid="stAlertContainer"] *, div[role="alert"] *, .stAlert * {{
+    color: var(--ink) !important;
+  }}
+  [data-testid="stAlert"] svg, div[role="alert"] svg {{
+    fill: var(--accent) !important; color: var(--accent) !important;
+  }}
+  [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) svg {{
+    fill: #D69838 !important; color: #D69838 !important;
+  }}
+
+  /* High-Contrast Toast Pop-ups (Light & Dark Modes) */
+  [data-testid="stToastContainer"] {{ z-index: 999999 !important; }}
+  [data-testid="stToast"] {{
+    background: {T['surface']} !important; background-color: {T['surface']} !important;
+    color: {T['ink']} !important; border: 1.5px solid {T['accent']} !important;
+    border-radius: 16px !important; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28) !important;
+  }}
+  [data-testid="stToast"] > div, [data-testid="stToast"] [data-testid="stMarkdownContainer"],
+  [data-testid="stToast"] p, [data-testid="stToast"] span, [data-testid="stToast"] div {{
+    background: transparent !important; color: {T['ink']} !important; font-weight: 600 !important;
+  }}
+  [data-testid="stToast"] button svg {{ color: {T['muted']} !important; fill: {T['muted']} !important; }}
+
+  [data-testid="stForm"], [data-testid="stExpander"] {{
+    background: var(--surface) !important; border: 1px solid var(--border) !important;
+    border-radius: 20px !important;
+  }}
+  [data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {{
+    background: transparent !important; color: var(--ink) !important;
+  }}
 
   [data-testid="stBaseButton-secondary"], button[kind="secondary"],
   [data-testid="stDownloadButton"] button, [data-testid="stFormSubmitButton"] button {{
@@ -787,11 +1240,41 @@ render_html(f"""
   [data-testid="stBaseButton-secondary"] *, button[kind="secondary"] *,
   [data-testid="stDownloadButton"] button *, [data-testid="stFormSubmitButton"] button * {{ color: var(--ink) !important; }}
 
-  /* Form inputs */
-  .stTextInput input, .stNumberInput input, .stDateInput input,
-  .stSelectbox div[data-baseweb="select"] > div {{
-    background: var(--surface) !important; color: var(--ink) !important;
-    border: 1px solid var(--border) !important; border-radius: 12px !important;
+  /* Form inputs (React Aria + BaseWeb across main, forms, and dialogs) */
+  [data-testid="stSelectbox"] .react-aria-ComboBox [role="group"],
+  [data-testid="stTextInputRootElement"],
+  [data-testid="stDateInputField"],
+  [data-testid="stSelectbox"] [data-baseweb="select"] > div,
+  [data-testid="stDateInput"] [data-baseweb="input"],
+  [data-testid="stDateInput"] [data-baseweb="base-input"],
+  [data-testid="stTextInput"] [data-baseweb="input"],
+  [data-testid="stTextInput"] [data-baseweb="base-input"],
+  [data-testid="stNumberInput"] [data-baseweb="input"],
+  [data-testid="stNumberInput"] [data-baseweb="base-input"],
+  [data-baseweb="select"] > div,
+  [data-baseweb="input"],
+  [data-baseweb="base-input"] {{
+    background: {T['surface']} !important; background-color: {T['surface']} !important;
+    color: {T['ink']} !important; border: 1px solid {T['border']} !important; border-radius: 12px !important;
+  }}
+  [data-testid="stSelectbox"] .react-aria-ComboBox [role="group"] *,
+  [data-testid="stTextInputRootElement"] *,
+  [data-testid="stDateInputField"] *,
+  [data-testid="stNumberInputContainer"] *,
+  [data-testid="stNumberInputContainer"] input,
+  [data-baseweb="select"] > div *,
+  [data-baseweb="input"] input,
+  [data-baseweb="base-input"] input {{
+    background: transparent !important; background-color: transparent !important;
+    color: {T['ink']} !important; -webkit-text-fill-color: {T['ink']} !important; caret-color: {T['ink']} !important;
+  }}
+  [data-testid="stTextInputRootElement"] input::placeholder,
+  [data-testid="stSelectbox"] input::placeholder {{
+    color: {T['muted']} !important; -webkit-text-fill-color: {T['muted']} !important; opacity: 0.78 !important;
+  }}
+  [data-testid="stSelectbox"] svg, [data-testid="stDateInput"] svg,
+  [data-baseweb="select"] svg, .stDateInput svg {{
+    color: {T['ink']} !important; fill: {T['ink']} !important;
   }}
   [data-testid="stNumberInputContainer"], .stNumberInput div[data-baseweb="input"] {{
     background: var(--surface) !important; border: 1px solid var(--border) !important;
@@ -862,7 +1345,7 @@ render_html(f"""
   }}
   .chip-tile {{
     background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
-    padding: 0.75rem 0.45rem; text-align: center; height: 132px; margin-bottom: 0.45rem;
+    padding: 0.7rem 0.35rem; text-align: center; height: 176px; margin-bottom: 0.55rem;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     box-shadow: var(--shadow); transition: transform 0.22s ease, border-color 0.22s ease;
   }}
@@ -936,11 +1419,17 @@ def open_main_log_dialog():
             new_it, mood, msg, art = add_purchase(st.session_state.purchases, m_item, m_cat, m_brand, m_price, m_date, m_eth, st.session_state.user_mascot)
             st.session_state.last_logged = new_it
             st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
+            set_purchase_toast(new_it["item"], new_it["carbon_kg"], new_it["is_ethical"])
             st.rerun()
 
 # ------------------------------------------------------------------------------
 # SCREEN 1: WELCOME & ONBOARDING (Ecovista-Inspired Landscape + Man & Turtle)
 # ------------------------------------------------------------------------------
+
+if st.session_state.get("pending_toast"):
+    _t_msg, _t_ico = st.session_state.pending_toast
+    st.session_state.pending_toast = None
+    st.toast(_t_msg, icon=_t_ico)
 
 if not st.session_state.onboarded:
     render_html(render_welcome_landscape_svg(dark=is_dark))
@@ -1022,7 +1511,8 @@ else:
             st.rerun()
 
         st.markdown("---")
-        st.caption(f"*{random.choice(ECO_TIPS)}*")
+        eco_tip_cur = ECO_TIPS[len(st.session_state.purchases) % len(ECO_TIPS)]
+        st.caption(f"*{eco_tip_cur}*")
         if not st.session_state.confirm_reset:
             if st.button("Reset Session", width="stretch"):
                 st.session_state.confirm_reset = True
@@ -1161,10 +1651,11 @@ else:
                   <div style="color:{T['accent']}; font-weight:700; font-size:0.76rem;">${qp['price']:.2f} • {co2_c:.1f} kg</div>
                 </div>
                 """)
-                if st.button(f"+ Add {qp['name'].split()[0]}", key=f"chip_btn_{i}", width="stretch"):
+                if st.button("+ Log", key=f"chip_btn_{i}", width="stretch"):
                     new_it, mood, msg, art = add_purchase(st.session_state.purchases, qp["name"], qp["category"], qp["brand"], qp["price"], date.today(), qp["is_ethical"], st.session_state.user_mascot)
                     st.session_state.last_logged = new_it
                     st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
+                    set_purchase_toast(new_it["item"], new_it["carbon_kg"], new_it["is_ethical"])
                     if mood == "ecstatic": st.balloons()
                     st.rerun()
 
@@ -1180,7 +1671,8 @@ else:
             is_eth = f3.checkbox("Certified Circular / Thrift / Ethical", help="Applies a 30% footprint discount.")
 
             ci = CATEGORIES[cat_choice]
-            render_html(f"<div style='background:{T['soft']}; border-radius:14px; padding:0.75rem 1rem; margin:0.5rem 0; font-size:0.85rem;'><strong>Insight ({ci['tier']}):</strong> {ci['fact']} <span style='color:{T['accent']}; font-weight:700;'>• Tip: {random.choice(ECO_TIPS)}</span></div>")
+            form_tip = ECO_TIPS[len(st.session_state.purchases) % len(ECO_TIPS)]
+            render_html(f"<div style='background:{T['soft']}; border-radius:14px; padding:0.75rem 1rem; margin:0.5rem 0; font-size:0.85rem;'><strong>Insight ({ci['tier']}):</strong> {ci['fact']} <span style='color:{T['accent']}; font-weight:700;'>• Tip: {form_tip}</span></div>")
             if st.form_submit_button("Record Purchase in Active Ledger", width="stretch"):
                 if not item_name.strip():
                     st.error("Please enter an item description before recording.")
@@ -1188,6 +1680,7 @@ else:
                     new_it, mood, msg, art = add_purchase(st.session_state.purchases, item_name, cat_choice, brand_val, price_val, date_val, is_eth, st.session_state.user_mascot)
                     st.session_state.last_logged = new_it
                     st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
+                    set_purchase_toast(new_it["item"], new_it["carbon_kg"], new_it["is_ethical"])
                     if mood in ["ecstatic", "happy"]: st.balloons()
                     st.rerun()
 
@@ -1202,6 +1695,7 @@ else:
             if sc2.button("+ Add Simulated Item to Tracker", width="stretch"):
                 si, mood, msg, art = add_purchase(st.session_state.purchases, f"Simulated: {sim_c.split()[0]} (${sim_d:.0f})", sim_c, "Simulation Tool", sim_d, date.today(), sim_e, st.session_state.user_mascot)
                 st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = si, mood, msg, art
+                set_purchase_toast(si["item"], si["carbon_kg"], si["is_ethical"])
                 st.rerun()
 
         # GREENER SWAPS
@@ -1223,6 +1717,7 @@ else:
                             sr, _, _, _ = add_purchase(st.session_state.purchases, f"Greener Swap: {b_name} ({last['category']})", last["category"], b_name, 35.0, date.today(), True, st.session_state.user_mascot)
                             st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.recent_art = sr, "ecstatic", "badge"
                             st.session_state.mascot_message = f"Adopted {b_name}! Great biosphere boost."
+                            set_purchase_toast(sr["item"], sr["carbon_kg"], True, prefix="Adopted")
                             st.balloons()
                             st.rerun()
 
@@ -1259,6 +1754,7 @@ else:
                         tr["item"], tr["category"], tr["brand"], tr["carbon_kg"], tr["is_ethical"] = f"Swapped: {tr['item']} (Circular)", swap_opp["target_cat"], swap_opp["brand_suggestion"].split("/")[0].strip(), swap_opp["alt_co2"], True
                         st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.recent_art = tr, "ecstatic", "badge"
                         st.session_state.mascot_message = f"Smart switch! Saved {swap_opp['saved_diff']} kg CO₂ instantly!"
+                        st.session_state.pending_toast = (f"Smart switch! Saved {swap_opp['saved_diff']} kg CO₂e instantly!", "♻️")
                         st.rerun()
                     render_html(f"<div style='text-align:center; font-size:0.74rem; color:{T['muted']}; margin-top:0.3rem;'>Updates carbon log live</div>")
 

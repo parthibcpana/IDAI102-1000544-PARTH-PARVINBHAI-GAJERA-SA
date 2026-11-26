@@ -5,3 +5,7 @@ backgroundColor = "#F5F9F3"
 secondaryBackgroundColor = "#EDF4EA"
 textColor = "#13261B"
 font = "sans serif"
+
+[global]
+minCachedMessageSize = 5000000
+maxCachedMessageAge = 100
