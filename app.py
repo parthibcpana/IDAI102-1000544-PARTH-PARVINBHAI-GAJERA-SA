@@ -2,6 +2,7 @@ import base64
 import html
 import io
 import math
+import os
 import random
 from datetime import date
 import pandas as pd
@@ -11,8 +12,24 @@ import streamlit as st
 try:
     import altair as alt
     HAS_ALTAIR = True
-except ImportError:
+except Exception:
     HAS_ALTAIR = False
+
+SA_ASSET_3D_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "3d")
+
+@st.cache_data(show_spinner=False)
+def load_sa_asset_b64(rel_path: str) -> str:
+    full = os.path.join(SA_ASSET_3D_DIR, rel_path.replace("/", os.sep))
+    if not os.path.isfile(full):
+        return ""
+    with open(full, "rb") as f:
+        return "data:image/png;base64," + base64.b64encode(f.read()).decode("ascii")
+
+def render_sa_3d(rel_path: str, alt_text: str, size: int = 56, fallback: str = "") -> str:
+    uri = load_sa_asset_b64(rel_path)
+    if uri:
+        return f'<img src="{uri}" class="asset-3d" alt="{html.escape(alt_text)}" style="width:{size}px; height:{size}px; object-fit:contain; display:inline-block; filter:drop-shadow(0 6px 10px rgba(24,48,30,0.16));"/>'
+    return f'<span style="font-size:{int(size*0.5)}px;">{fallback}</span>'
 
 st.set_page_config(
     page_title="ShopImpact — Conscious Shopping Companion",
@@ -62,12 +79,12 @@ CATEGORIES = {
 }
 
 QUICK_PURCHASES = [
-    {"name": "Fair-Trade Coffee / Tea", "price": 4.50, "category": "Local / Organic Food", "brand": "Local Roaster", "is_ethical": True, "icon": "☕"},
-    {"name": "Local Organic Lunch", "price": 12.00, "category": "Local / Organic Food", "brand": "Farmers Co-op", "is_ethical": True, "icon": "🥗"},
-    {"name": "Thrifted Vintage Jacket", "price": 32.00, "category": "Second-Hand / Thrift", "brand": "Community Thrift", "is_ethical": True, "icon": "🧥"},
-    {"name": "Refurbished Tech Gadget", "price": 85.00, "category": "Refurbished Tech", "brand": "Back Market", "is_ethical": True, "icon": "📱"},
-    {"name": "Fast-Fashion Top", "price": 55.00, "category": "Fast Fashion Apparel", "brand": "High-Street Retail", "is_ethical": False, "icon": "👗"},
-    {"name": "Leather Footwear", "price": 130.00, "category": "Footwear & Leather", "brand": "City Leather Co.", "is_ethical": False, "icon": "👞"},
+    {"name": "Fair-Trade Coffee / Tea", "price": 4.50, "category": "Local / Organic Food", "brand": "Local Roaster", "is_ethical": True, "icon": "☕", "img": "purchases/coffee_cup.png"},
+    {"name": "Local Organic Lunch", "price": 12.00, "category": "Local / Organic Food", "brand": "Farmers Co-op", "is_ethical": True, "icon": "🥗", "img": "purchases/organic_bowl.png"},
+    {"name": "Thrifted Vintage Jacket", "price": 32.00, "category": "Second-Hand / Thrift", "brand": "Community Thrift", "is_ethical": True, "icon": "🧥", "img": "purchases/vintage_jacket.png"},
+    {"name": "Refurbished Tech Gadget", "price": 85.00, "category": "Refurbished Tech", "brand": "Back Market", "is_ethical": True, "icon": "📱", "img": "purchases/refurb_phone.png"},
+    {"name": "Fast-Fashion Top", "price": 55.00, "category": "Fast Fashion Apparel", "brand": "High-Street Retail", "is_ethical": False, "icon": "👗", "img": "purchases/fast_top.png"},
+    {"name": "Leather Footwear", "price": 130.00, "category": "Footwear & Leather", "brand": "City Leather Co.", "is_ethical": False, "icon": "👞", "img": "purchases/leather_shoe.png"},
 ]
 
 ETHICAL_ALTERNATIVES = {
@@ -562,11 +579,11 @@ def evaluate_badges(purchases):
     zw_cnt = sum(1 for p in purchases if "Zero-Waste" in p.get("category", "") or "Thrift" in p.get("category", ""))
 
     badges = [
-        {"id": "starter", "name": "Seed Starter", "icon": "🌱", "desc": "Log your 1st conscious purchase in the dashboard", "unlocked": total_items >= 1, "progress": f"{min(total_items, 1)}/1 item", "pct": 100 if total_items >= 1 else 0},
-        {"id": "low_impact", "name": "Low Impact Shopper", "icon": "🍃", "desc": "Maintain carbon intensity ≤ 0.25 kg/$ (min 2 items)", "unlocked": total_items >= 2 and avg_int <= 0.25, "progress": f"{avg_int:.2f} kg/$ (Goal ≤ 0.25)" if total_items >= 2 else f"{total_items}/2 items required", "pct": 100 if (total_items >= 2 and avg_int <= 0.25) else (max(10, min(95, int((0.25 / max(avg_int, 0.26)) * 100))) if total_items >= 2 else int((total_items / 2) * 100))},
-        {"id": "ethical_pioneer", "name": "Conscious Pioneer", "icon": "♻️", "desc": "Choose 3+ verified circular, thrift, or ethical items", "unlocked": ethical_count >= 3, "progress": f"{ethical_count}/3 ethical items", "pct": min(100, int((ethical_count / 3.0) * 100))},
-        {"id": "eco_saver", "name": "Eco Saver of the Month", "icon": "🌟", "desc": "Save 10+ kg CO₂ vs standard retail baseline", "unlocked": co2_saved >= 10.0 and total_items >= 1, "progress": f"{co2_saved:.1f}/10.0 kg CO₂ saved", "pct": min(100, int((co2_saved / 10.0) * 100)) if total_items >= 1 else 0},
-        {"id": "zero_waste", "name": "Zero-Waste Hero", "icon": "🏆", "desc": "Log 2+ zero-waste or second-hand thrift items", "unlocked": zw_cnt >= 2, "progress": f"{zw_cnt}/2 items", "pct": min(100, int((zw_cnt / 2.0) * 100))},
+        {"id": "starter", "name": "Seed Starter", "icon": "🌱", "img": "badges/starter.png", "desc": "Log your 1st conscious purchase in the dashboard", "unlocked": total_items >= 1, "progress": f"{min(total_items, 1)}/1 item", "pct": 100 if total_items >= 1 else 0},
+        {"id": "low_impact", "name": "Low Impact Shopper", "icon": "🍃", "img": "badges/budget.png", "desc": "Maintain carbon intensity ≤ 0.25 kg/$ (min 2 items)", "unlocked": total_items >= 2 and avg_int <= 0.25, "progress": f"{avg_int:.2f} kg/$ (Goal ≤ 0.25)" if total_items >= 2 else f"{total_items}/2 items required", "pct": 100 if (total_items >= 2 and avg_int <= 0.25) else (max(10, min(95, int((0.25 / max(avg_int, 0.26)) * 100))) if total_items >= 2 else int((total_items / 2) * 100))},
+        {"id": "ethical_pioneer", "name": "Conscious Pioneer", "icon": "♻️", "img": "badges/circular.png", "desc": "Choose 3+ verified circular, thrift, or ethical items", "unlocked": ethical_count >= 3, "progress": f"{ethical_count}/3 ethical items", "pct": min(100, int((ethical_count / 3.0) * 100))},
+        {"id": "eco_saver", "name": "Eco Saver of the Month", "icon": "🌟", "img": "badges/collector.png", "desc": "Save 10+ kg CO₂ vs standard retail baseline", "unlocked": co2_saved >= 10.0 and total_items >= 1, "progress": f"{co2_saved:.1f}/10.0 kg CO₂ saved", "pct": min(100, int((co2_saved / 10.0) * 100)) if total_items >= 1 else 0},
+        {"id": "zero_waste", "name": "Zero-Waste Hero", "icon": "🏆", "img": "badges/champion.png", "desc": "Log 2+ zero-waste or second-hand thrift items", "unlocked": zw_cnt >= 2, "progress": f"{zw_cnt}/2 items", "pct": min(100, int((zw_cnt / 2.0) * 100))},
     ]
     return badges, total_spend, total_co2, avg_int, co2_saved, ethical_count
 
@@ -728,12 +745,34 @@ render_html(f"""
 
   /* Soft organic buttons — olive moss primary & sunlit parchment secondary */
   [data-testid="stBaseButton-primary"], button[kind="primary"] {{
-    background: var(--accent) !important; border: none !important; border-radius: 99px !important;
+    background: #4E7E36 !important; border: none !important; border-radius: 99px !important;
     color: #FFFFFF !important; font-weight: 700 !important; padding: 0.45rem 1.1rem !important;
-    box-shadow: 0 4px 12px rgba(78, 126, 54, 0.20) !important;
+    box-shadow: 0 4px 12px rgba(78, 126, 54, 0.22) !important;
   }}
-  [data-testid="stBaseButton-primary"]:hover, button[kind="primary"]:hover {{ background: var(--accent-hv) !important; }}
+  [data-testid="stBaseButton-primary"]:hover, button[kind="primary"]:hover {{ background: #3D6529 !important; }}
   [data-testid="stBaseButton-primary"] *, button[kind="primary"] * {{ color: #FFFFFF !important; }}
+
+  [role="dialog"],
+  div:has(> [role="dialog"]),
+  [data-testid="stDialog"] [role="dialog"],
+  [data-testid="stDialog"] [role="dialog"] > div,
+  [data-testid="stModal"] [role="dialog"],
+  [data-testid="stModal"] [role="dialog"] > div,
+  div[data-baseweb="modal"] [role="dialog"] {{
+    background: {T['surface']} !important; background-color: {T['surface']} !important;
+    color: {T['ink']} !important; border: 1px solid {T['border']} !important; border-radius: 22px !important;
+  }}
+  [role="dialog"] *, div:has(> [role="dialog"]) *, [data-testid="stDialog"] *, [data-testid="stModal"] * {{ color: {T['ink']} !important; }}
+  [role="dialog"] [data-testid="stBaseButton-primary"] *, [role="dialog"] button[kind="primary"] * {{ color: #FFFFFF !important; }}
+  [role="dialog"] button[aria-label="Close"] svg,
+  [data-testid="stDialog"] button[aria-label="Close"] svg,
+  [data-testid="stModal"] button[aria-label="Close"] svg {{
+    color: {T['ink']} !important; fill: currentColor !important;
+  }}
+  div[data-baseweb="popover"] > div, ul[role="listbox"], ul[role="listbox"] li {{
+    background: var(--surface) !important; color: var(--ink) !important; border-color: var(--border) !important;
+  }}
+  ul[role="listbox"] li:hover, ul[role="listbox"] li[aria-selected="true"] {{ background: var(--accent-soft) !important; }}
 
   [data-testid="stBaseButton-secondary"], button[kind="secondary"],
   [data-testid="stDownloadButton"] button, [data-testid="stFormSubmitButton"] button {{
@@ -754,6 +793,18 @@ render_html(f"""
     background: var(--surface) !important; color: var(--ink) !important;
     border: 1px solid var(--border) !important; border-radius: 12px !important;
   }}
+  [data-testid="stNumberInputContainer"], .stNumberInput div[data-baseweb="input"] {{
+    background: var(--surface) !important; border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+  }}
+  [data-testid="stNumberInputStepDown"], [data-testid="stNumberInputStepUp"], .stNumberInput button {{
+    background: var(--soft) !important; color: var(--ink) !important; border-color: var(--border) !important;
+  }}
+  [data-testid="stNumberInputStepDown"] svg, [data-testid="stNumberInputStepUp"] svg, .stNumberInput button svg {{
+    fill: var(--ink) !important; color: var(--ink) !important;
+  }}
+
+  .asset-3d {{ transition: transform 0.25s cubic-bezier(.22,1,.36,1), filter 0.25s ease; }}
 
   /* Seamless Equal-Height Hero Panorama Grid (replaces boxed containers!) */
   .studio-grid {{
@@ -764,7 +815,9 @@ render_html(f"""
     background: var(--surface); border: 1px solid var(--border); border-radius: 22px;
     padding: 1.25rem 1.35rem; box-shadow: var(--shadow);
     display: flex; flex-direction: column; justify-content: space-between;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
   }}
+  .studio-panel:hover {{ transform: translateY(-3px); }}
   .eyebrow {{
     font-size: 0.72rem; font-weight: 800; letter-spacing: 0.9px; text-transform: uppercase;
     color: var(--accent) !important; margin-bottom: 0.25rem;
@@ -797,27 +850,38 @@ render_html(f"""
     background: var(--soft); border-radius: 16px; padding: 0.72rem 1.15rem; margin: 0.65rem 0 1rem 0;
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
   }}
-  .optimizer-panel {{
-    background: var(--soft); border: 1px solid var(--border); border-left: 4px solid var(--accent);
-    border-radius: 18px; padding: 1.05rem 1.25rem; margin: 0.75rem 0;
+  .st-key-optimizer_card {{
+    background: var(--surface) !important; border: 1px solid var(--border) !important;
+    border-radius: 22px !important; padding: 0.45rem 0.65rem !important; box-shadow: var(--shadow) !important;
+  }}
+  .opt-flow {{
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }}
+  .opt-stage {{
+    flex: 1 1 190px; background: var(--soft); border-radius: 16px; padding: 0.8rem 1rem;
   }}
   .chip-tile {{
     background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
-    padding: 0.7rem 0.45rem; text-align: center; height: 118px; margin-bottom: 0.45rem;
-    display: flex; flex-direction: column; justify-content: center; box-shadow: var(--shadow);
+    padding: 0.75rem 0.45rem; text-align: center; height: 132px; margin-bottom: 0.45rem;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    box-shadow: var(--shadow); transition: transform 0.22s ease, border-color 0.22s ease;
   }}
+  .chip-tile:hover {{ transform: translateY(-4px); border-color: var(--accent); }}
+  .chip-tile:hover .asset-3d {{ transform: scale(1.1) rotate(-4deg); }}
   .swap-card {{
     background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
     padding: 1rem 1.1rem; box-shadow: var(--shadow); margin-bottom: 0.45rem;
   }}
   .badge-on {{
-    background: var(--accent) !important; border-radius: 20px; padding: 1.15rem;
-    color: #FFFFFF !important; margin-bottom: 0.85rem; box-shadow: 0 8px 24px rgba(78, 126, 54, 0.22);
+    background: #4E7E36 !important; border-radius: 20px; padding: 1.15rem;
+    color: #FFFFFF !important; margin-bottom: 0.85rem; box-shadow: 0 8px 24px rgba(78, 126, 54, 0.24);
+    transition: transform 0.22s ease;
   }}
+  .badge-on:hover {{ transform: translateY(-3px); }}
   .badge-on *, .badge-on h3, .badge-on p {{ color: #FFFFFF !important; }}
   .badge-off {{
     background: var(--soft) !important; border: 1px dashed var(--border) !important;
-    border-radius: 20px; padding: 1.15rem; opacity: 0.68; margin-bottom: 0.85rem;
+    border-radius: 20px; padding: 1.15rem; opacity: 0.72; margin-bottom: 0.85rem;
   }}
   .avatar-circle {{
     width: 88px; height: 88px; border-radius: 50%; border: 2.5px solid var(--accent);
@@ -943,7 +1007,15 @@ else:
             st.rerun()
 
         st.markdown("---")
-        st.session_state.nav_view = st.radio("Navigation", ["Dashboard", "Wall of Badges"], index=1 if st.session_state.nav_view == "Wall of Badges" else 0)
+        sa_nav_opts = ["Dashboard", "Wall of Badges"]
+        if st.session_state.get("sidebar_nav_radio") not in sa_nav_opts:
+            st.session_state.sidebar_nav_radio = st.session_state.nav_view
+        def _sync_sa_nav():
+            st.session_state.nav_view = st.session_state.sidebar_nav_radio
+        def _switch_sa_view(target: str):
+            st.session_state.nav_view = target
+            st.session_state.sidebar_nav_radio = target
+        st.radio("Navigation", sa_nav_opts, key="sidebar_nav_radio", on_change=_sync_sa_nav)
         dark_toggle = st.toggle("Forest Dusk Dark Mode", value=st.session_state.dark_theme)
         if dark_toggle != st.session_state.dark_theme:
             st.session_state.dark_theme = dark_toggle
@@ -984,13 +1056,11 @@ else:
         if n_log.button("+ Log Purchase", type="primary", width="stretch", key="top_open_log_btn"):
             open_main_log_dialog()
         dash_lbl = "● Dashboard" if st.session_state.nav_view == "Dashboard" else "Dashboard"
-        if n1.button(dash_lbl, type="secondary", width="stretch", key="top_nav_dash"):
-            st.session_state.nav_view = "Dashboard"
-            st.rerun()
+        if n1.button(dash_lbl, type="secondary", width="stretch", key="top_nav_dash", on_click=_switch_sa_view, args=("Dashboard",)):
+            pass
         badge_lbl = f"{'● ' if st.session_state.nav_view == 'Wall of Badges' else ''}Badges ({unlocked_num}/{len(badges)})"
-        if n2.button(badge_lbl, type="secondary", width="stretch", key="top_nav_badges"):
-            st.session_state.nav_view = "Wall of Badges"
-            st.rerun()
+        if n2.button(badge_lbl, type="secondary", width="stretch", key="top_nav_badges", on_click=_switch_sa_view, args=("Wall of Badges",)):
+            pass
 
     # --------------------------------------------------------------------------
     # VIEW: DASHBOARD
@@ -1086,7 +1156,7 @@ else:
             with chip_cols[i]:
                 render_html(f"""
                 <div class="chip-tile">
-                  <div style="font-size:1.55rem;">{qp['icon']}</div>
+                  <div>{render_sa_3d(qp.get('img', ''), qp['name'], 56, qp['icon'])}</div>
                   <div style="font-weight:800; font-size:0.8rem; margin-top:0.2rem;">{qp['name']}</div>
                   <div style="color:{T['accent']}; font-weight:700; font-size:0.76rem;">${qp['price']:.2f} • {co2_c:.1f} kg</div>
                 </div>
@@ -1156,20 +1226,41 @@ else:
                             st.balloons()
                             st.rerun()
 
-        # WHAT-IF OPTIMIZER
+        # WHAT-IF CARBON OPTIMIZER STUDIO
         swap_opp = find_top_swap_opportunity(st.session_state.purchases)
         if swap_opp:
             it = swap_opp["item"]
-            op1, op2 = st.columns([2.1, 0.9], gap="medium")
-            op1.markdown(f"<div class='optimizer-panel'><div class='eyebrow'>What-If Carbon Optimizer</div><strong>Your heaviest item is \"{html.escape(it['item'])}\"</strong> ({swap_opp['cur_co2']} kg). Switching to <strong>{swap_opp['target_cat']}</strong> ({swap_opp['brand_suggestion']}) drops it to <strong>{swap_opp['alt_co2']} kg</strong> (saves <strong>{swap_opp['saved_diff']} kg</strong> / -{swap_opp['pct_drop']}%).</div>", unsafe_allow_html=True)
-            with op2:
-                st.markdown("<div style='height:0.65rem;'></div>", unsafe_allow_html=True)
-                if st.button(f"Swap Item (-{swap_opp['saved_diff']} kg)", type="primary", width="stretch", key="opt_swap_btn"):
-                    tr = st.session_state.purchases[swap_opp["index"]]
-                    tr["item"], tr["category"], tr["brand"], tr["carbon_kg"], tr["is_ethical"] = f"Swapped: {tr['item']} (Circular)", swap_opp["target_cat"], swap_opp["brand_suggestion"].split("/")[0].strip(), swap_opp["alt_co2"], True
-                    st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.recent_art = tr, "ecstatic", "badge"
-                    st.session_state.mascot_message = f"Smart switch! Saved {swap_opp['saved_diff']} kg CO₂ instantly!"
-                    st.rerun()
+            circ_icon = render_sa_3d("badges/circular.png", "Circular Swap", 40, "->")
+            with st.container(border=True, key="optimizer_card"):
+                op1, op2 = st.columns([2.2, 0.8], gap="medium", vertical_alignment="center")
+                with op1:
+                    render_html(f"""
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:0.55rem;">
+                      <span class="eyebrow" style="margin:0;">What-If Carbon Optimizer</span>
+                      <span style="background:{T['accent_soft']}; color:{T['accent']}; font-size:0.75rem; font-weight:800; padding:2px 10px; border-radius:99px;">Potential Cut: -{swap_opp['saved_diff']} kg CO₂ (-{swap_opp['pct_drop']}%)</span>
+                    </div>
+                    <div class="opt-flow">
+                      <div class="opt-stage">
+                        <div style="font-size:0.72rem; font-weight:700; color:{T['muted']}; text-transform:uppercase;">Heaviest Current Item</div>
+                        <div style="font-weight:800; font-size:0.94rem; margin-top:0.15rem;">{html.escape(it['item'])}</div>
+                        <div style="font-size:0.8rem; color:{T['muted']};">{html.escape(it['category'])} • <strong>{swap_opp['cur_co2']} kg CO₂</strong></div>
+                      </div>
+                      <div style="text-align:center; padding:0 0.25rem;">{circ_icon}</div>
+                      <div class="opt-stage" style="background:{T['accent_soft']};">
+                        <div style="font-size:0.72rem; font-weight:700; color:{T['accent']}; text-transform:uppercase;">Circular Alternative</div>
+                        <div style="font-weight:800; font-size:0.94rem; margin-top:0.15rem;">{html.escape(swap_opp['brand_suggestion'])}</div>
+                        <div style="font-size:0.8rem; color:{T['muted']};">{html.escape(swap_opp['target_cat'])} • <strong style="color:{T['accent']};">{swap_opp['alt_co2']} kg CO₂</strong></div>
+                      </div>
+                    </div>
+                    """)
+                with op2:
+                    if st.button(f"Swap Item (-{swap_opp['saved_diff']} kg)", type="primary", width="stretch", key="opt_swap_btn"):
+                        tr = st.session_state.purchases[swap_opp["index"]]
+                        tr["item"], tr["category"], tr["brand"], tr["carbon_kg"], tr["is_ethical"] = f"Swapped: {tr['item']} (Circular)", swap_opp["target_cat"], swap_opp["brand_suggestion"].split("/")[0].strip(), swap_opp["alt_co2"], True
+                        st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.recent_art = tr, "ecstatic", "badge"
+                        st.session_state.mascot_message = f"Smart switch! Saved {swap_opp['saved_diff']} kg CO₂ instantly!"
+                        st.rerun()
+                    render_html(f"<div style='text-align:center; font-size:0.74rem; color:{T['muted']}; margin-top:0.3rem;'>Updates carbon log live</div>")
 
         render_section_header("Insights & Ledger", "Timeline Filter & Visual Carbon Analytics", "Review footprint shares by category, filter recorded items, or export your scorecard.")
         yrs = sorted({str(p["date"])[:4] for p in st.session_state.purchases}, reverse=True)
@@ -1258,11 +1349,12 @@ else:
 
         bc1, bc2 = st.columns(2, gap="large")
         for i, b in enumerate(badges):
+            b_img = render_sa_3d(b.get("img", "") if b["unlocked"] else "badges/locked.png", b["name"], 52, b["icon"] if b["unlocked"] else "🔒")
             with (bc1 if i % 2 == 0 else bc2):
                 if b["unlocked"]:
-                    render_html(f"<div class='badge-on'><div style='display:flex; gap:1rem; align-items:center;'><div style='font-size:2.7rem;'>{b['icon']}</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='background:rgba(255,255,255,0.2); font-weight:800; font-size:0.75rem; padding:0.2rem 0.65rem; border-radius:99px;'>UNLOCKED ({b['progress']})</span></div></div></div>")
+                    render_html(f"<div class='badge-on'><div style='display:flex; gap:1rem; align-items:center;'><div style='width:62px; height:62px; border-radius:16px; background:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;'>{b_img}</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='background:rgba(255,255,255,0.22); font-weight:800; font-size:0.75rem; padding:0.2rem 0.65rem; border-radius:99px;'>UNLOCKED ({b['progress']})</span></div></div></div>")
                 else:
-                    render_html(f"<div class='badge-off'><div style='display:flex; gap:1rem; align-items:center;'><div style='font-size:2.7rem;'>🔒</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='font-weight:700; font-size:0.75rem;'>LOCKED ({b['progress']})</span></div></div></div>")
+                    render_html(f"<div class='badge-off'><div style='display:flex; gap:1rem; align-items:center;'><div style='width:62px; height:62px; border-radius:16px; background:{T['surface']}; border:1px solid {T['border']}; display:flex; align-items:center; justify-content:center; flex-shrink:0;'>{b_img}</div><div><h3 style='margin:0;'>{b['name']}</h3><p style='margin:0.2rem 0; font-size:0.9rem;'>{b['desc']}</p><span style='font-weight:700; font-size:0.75rem;'>LOCKED ({b['progress']})</span></div></div></div>")
 
         render_section_header("Procedural Vector Vault", "Turtle Art Collector Vault", f"Collect all 4 botanical emblems drawn in-memory by HeadlessTurtle + Pillow ({len(earned_arts)}/4 unlocked).")
         v_cols = st.columns(4, gap="medium")
