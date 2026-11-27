@@ -1,14 +1,16 @@
+<p align="center">
+  <img src="assets/svg/masthead-intro.svg" alt="ShopImpact: Receipts count price tags, never atmospheric cost. Interactive Python and Streamlit carbon ledger overview." width="100%"/>
+</p>
+
 <div align="center">
 
 # ShopImpact: Conscious Shopping Dashboard
-### *See the hidden CO₂ behind every purchase and turn eco-friendly choices into a rewarding habit*
+### *See the hidden CO₂ behind every purchase and turn low-waste choices into a measurable habit*
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-2D6A4F.svg)](https://www.python.org/)
-[![Framework: Streamlit](https://img.shields.io/badge/framework-Streamlit-FF4B4B.svg)](https://streamlit.io/)
-[![Status: Operational](https://img.shields.io/badge/status-Operational-10B981.svg)]()
-[![Design: Human--Centered](https://img.shields.io/badge/design-Human--Centered-8B5CF6.svg)]()
-[![Theme: Obsidian%20Emerald](https://img.shields.io/badge/theme-Obsidian%20Emerald-059669.svg)]()
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-2D6A4F.svg)](https://www.python.org/)
+[![Streamlit >=1.45](https://img.shields.io/badge/Streamlit-%3E%3D1.45-4E7E36.svg)](https://streamlit.io/)
+[![Dual Theme](https://img.shields.io/badge/Theme-Botanical%20Light%20%26%20Forest%20Dusk-18241D.svg)](.streamlit/config.toml)
 
 </div>
 
@@ -23,7 +25,7 @@
 > **Live Web App Link:** [https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/](https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/)  
 > **GitHub Repository:** [https://github.com/parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA](https://github.com/parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA)
 
----
+<p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
 
 ## Quick Navigation
 
@@ -34,20 +36,20 @@
 5. [Stage 4: Testing & creative features](#stage-4-testing--creative-features)
 6. [Stage 5: Deploy & document our project](#stage-5-deploy--document-our-project)
 
----
+<p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
 
 ## Project Overview & Intended Learning Outcomes
 
 ### What our app does (Purpose & Rationale)
-When we buy clothes, gadgets, or groceries, the price tag only tells us what we pay at the counter, not what the planet pays behind the scenes. **ShopImpact** turns everyday shopping into something transparent and encouraging. Log any planned or completed purchase (product type, brand, price, and date), and the app calculates its estimated CO₂ footprint on the spot, updates a live monthly spend vs. carbon dashboard, suggests greener brands to swap to, and celebrates positive picks with unlockable badges, animated mascots, and Turtle drawings.
+When we buy clothes, gadgets, or groceries, the price tag only tells us what we pay at the counter, not what the planet pays behind the scenes. **ShopImpact** makes everyday buying footprints visible without guilt. Log any planned or completed purchase (product type, brand, price, and date) to calculate its estimated CO₂e immediately, update a live monthly spend vs. carbon ledger, compare greener brand swaps, and collect pure-math Turtle drawings and milestone badges.
 
 ```mermaid
 flowchart TD
-    subgraph ShopImpact ["🌱 How ShopImpact Works at a Glance"]
-        A["Log Purchase<br>6 Quick Chips or Custom Form"] --> B["Calculate Carbon Footprint<br>Price × Multiplier (30% off if Eco)"]
-        B --> C["Update Monthly Dashboard<br>Spend, CO₂, Saved & Category Chart"]
-        B --> D["Live Visual Reactions<br>60 FPS Biosphere Globe & 5 Mascots"]
-        B --> E["Positive Eco Rewards<br>Badges, Greener Swaps & Turtle Art"]
+    subgraph ShopImpact ["How ShopImpact Works at a Glance"]
+        A["Log Purchase<br>6 Quick Chips, Top Modal, or Custom Form"] --> B["Calculate Carbon Footprint<br>Price x Multiplier (30% off if Circular)"]
+        B --> C["Update Monthly Dashboard<br>Spend, CO2, Saved & Altair Charts"]
+        B --> D["Live Botanical Studio<br>Animated Biosphere SVG & 5 Math Mascots"]
+        B --> E["Positive Eco Rewards<br>Badges, Circular Swaps & HeadlessTurtle PNGs"]
     end
 ```
 
@@ -55,39 +57,39 @@ flowchart TD
 
 | Intended Learning Outcome | What I Learned | How I Applied It |
 | :--- | :--- | :--- |
-| **Design, develop, and deploy an interactive Python-based web application.** | I learned how to build a multi-screen Python web app that reacts live as users click and submit forms. | I built `app.py` with an Onboarding gateway, live Dashboard, and Wall of Badges, then deployed it online via Streamlit Cloud. |
-| **Apply core Python constructs (lists, dictionaries, control structures) to solve real-world problems.** | I learned how a Python `list` and dictionaries work together to hold changing session records without a heavy database. | I stored purchases inside `st.session_state.purchases` (a Python `list`), mapped multipliers and swaps in dictionaries, and used `if/elif` rules for badges and moods. |
-| **Utilize Python libraries (`datetime`, `Streamlit`) to enhance application functionality and user experience.** | I learned how plugging standard and visual Python libraries into my logic turns dry numbers into helpful visuals. | I used `datetime` for purchase dates and year/month filters, `Streamlit` for live widgets and metrics, `pandas` for charts and CSV downloads, and `Pillow` for Turtle drawings. |
-| **Plan, document, test, and deploy a complete Python solution with real-world usability.** | I learned why planning a layout sketch first and testing realistic mixed inputs stops bugs before launch. | I sketched the screens early, tested 12+ cheap/expensive/eco/non-eco items, fixed Undo and cloud rendering issues, and documented every step on GitHub. |
-| **Reflect on ethical considerations, user needs, and societal impact when designing technology solutions.** | I learned that shaming people over high-carbon purchases makes them close the app instead of changing habits. | I designed a zero-guilt tracker: all data stays private in local session memory with zero tracking, and heavy-carbon picks immediately show practical eco swaps instead of blame. |
+| **Design, develop, and deploy an interactive Python-based web application.** | I learned how to structure a multi-screen Python web app that reacts cleanly as users submit forms, toggle themes, and inspect live charts. | Built `app.py` with an Onboarding gateway, Command Studio (`+ Log Purchase` modal + live simulator fragment), and Wall of Badges hosted on Streamlit Cloud. |
+| **Apply core Python constructs (lists, dictionaries, control structures) to solve real-world problems.** | I learned how a Python `list` of dictionaries keeps fast, mutable session records without needing external SQL setup. | Stored active buys in `st.session_state.purchases` (`list[dict]`), mapped multipliers and brand swaps in dictionaries, and drove badges and moods with clean `if/elif` functions. |
+| **Utilize Python libraries (`datetime`, `Streamlit`) to enhance application functionality and user experience.** | I learned how combining standard and data libraries turns plain numeric logs into fast visual feedback. | Used `datetime` for purchase stamps and period filtering, `Streamlit` (`@st.cache_data`, `@st.dialog`, `@st.fragment`) for smooth speed, `Altair`/`pandas` for charts and exports, and `Pillow` for `HeadlessTurtle` PNGs. |
+| **Plan, document, test, and deploy a complete Python solution with real-world usability.** | I learned why sketching screen hierarchy first and stress-testing mixed purchases prevents layout bugs and edge-case errors. | Mapped a 3-screen wireframe early, verified 12+ varied purchases live, tuned dark/light popover contrast and WebSocket image caching, and documented every stage cleanly. |
+| **Reflect on ethical considerations, user needs, and societal impact when designing technology solutions.** | I learned that preachy or guilt-heavy interfaces push people away instead of building sustainable habits. | Kept all records strictly private inside local session memory with zero telemetry, and paired heavy-carbon purchases with constructive 1-click circular swaps. |
 
----
+<p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
 
 ## Stage 1: Understand the problem & plan our design
 
 ```mermaid
 flowchart LR
-    E["1. Empathize<br>Talk to shoppers & find<br>real friction"] --> D["2. Define<br>Pick must-have features &<br>zero-guilt goals"]
-    D --> I["3. Ideate<br>Design earthy colors,<br>mascots & Turtle art"]
-    I --> P["4. Prototype<br>Write modular logic &<br>Streamlit layout"]
-    P --> T["5. Test & Deploy<br>Test 12+ purchases &<br>host live on Cloud"]
+    E["1. Empathize<br>Review everyday shopping habits<br>& find friction points"] --> D["2. Define<br>Pick core calculators &<br>zero-guilt goals"]
+    D --> I["3. Ideate<br>Design flat botanical palette,<br>mascots & Turtle geometry"]
+    I --> P["4. Prototype<br>Write modular Python functions<br>& cached Streamlit views"]
+    P --> T["5. Test & Deploy<br>Verify 12+ purchases &<br>deploy to Streamlit Cloud"]
 ```
 
 ### Who will use the app?
-Before designing the screens, I thought through and discussed everyday buying habits with classmates, friends, and family to see who would genuinely find this tool useful and why:
+Before designing the screens, I talked through everyday buying habits with classmates, friends, and family to understand who would actually keep using this tool:
 
-1. **Students watching their budget:** Many of us already thrift jackets, reuse water bottles, or buy second-hand laptops to save money. Using ShopImpact lets students see that saving money and cutting emissions go hand in hand, giving extra motivation to keep it up.
-2. **Young shoppers making quick daily buys:** Between takeaway coffee, fast fashion sales, and groceries, people don't want to fill out a 5-minute survey for every snack. Having one-click quick chips lets them check an item's carbon cost in seconds right before buying.
-3. **Eco-conscious families planning monthly buys:** Households trying to cut waste need one simple monthly scorecard showing what categories (like leather footwear or packaged groceries) create the biggest footprint, so the whole family can pick realistic swaps together.
-4. **Thoughtful tech & gift buyers:** People shopping for pricier items (phones, laptops, shoes) open the Offset Simulator to compare buying brand-new vs. certified refurbished before spending hundreds of dollars.
+1. **Students watching their budget:** Many of us already thrift denim, reuse bottles, or pick refurbished laptops to save money. Seeing exact kg CO₂e savings next to dollar savings reinforces that frugal and sustainable choices align.
+2. **Daily convenience shoppers:** Between morning coffee, quick snacks, and online apparel drops, nobody fills out a 5-minute survey for a `$4.50` drink. One-tap Quick-Log chips record routine items immediately.
+3. **Households reviewing monthly spending:** Families cutting household waste need one clear monthly view showing which categories (such as packaged groceries or leather footwear) drive most emissions so they can swap smartly together.
+4. **Thoughtful tech and gift buyers:** Shoppers weighing big-ticket buys (phones, laptops, shoes) open the live Pre-Purchase Offset Simulator to compare brand-new vs. refurbished impact before paying.
 
 ### What pain points does it solve?
-1. **Hidden impact:** Most shoppers don't know that a new pair of leather shoes or electronics carries dozens of kilograms of invisible factory CO₂.
-2. **Money vs. planet disconnect:** Banking apps show how much cash left your account, not how much CO₂ that purchase added or how much carbon buying thrift saved.
-3. **Guilt instead of encouragement:** Heavy climate calculators often feel preachy and technical, making casual users lose interest quickly.
+1. **Hidden atmospheric cost:** Receipts display price and tax, never the manufacturing carbon behind leather shoes or electronics.
+2. **Money vs. planet disconnect:** Banking summaries track cash spent, not how much CO₂ an item emitted or how much carbon buying circular avoided.
+3. **Calculator fatigue and guilt:** Overly dense, scolding climate tools make casual shoppers close the tab quickly.
 
 ### What emotions do you want to create?
-**Awareness, empowerment, and fun (never guilt!).** Checking an item should feel curious and uplifting: small green swaps unlock upbeat mascot reactions, gold sunglasses, confetti balloons, and playful drawings.
+**Curiosity, clarity, and encouragement (never guilt).** Logging an eco pick unlocks upbeat mascot reactions, gold sunglasses, and custom mathematical artwork, while heavy items calmly offer lower-carbon alternatives.
 
 ### Our Feature Mind-Map (Must-Have vs. Nice-to-Have)
 
@@ -96,260 +98,256 @@ mindmap
   root((ShopImpact Plan))
     Must-Have Features
       Input fields
-        Item name
+        Item name & brand
         Product type
-        Brand
         Price & Date
+        Circular checkbox
       Real-time CO2 math
       Monthly dashboard
         Spend & CO2 totals
         Category bar chart
-      Fun Badges
+      Milestone Badges
         Eco Saver of Month
         Low Impact Shopper
       Greener alternatives per category
-      Turtle art rewards
-    Nice-to-Have & Creative Extras
-      Random eco tips
-      Dark & high-contrast light mode
-      Motivational quotes
-      60 FPS Animated Biosphere Globe
-      5 Expressive Mascot Spirits
-      Quick-Log Chips & Tree Simulator
+      HeadlessTurtle rewards
+    Nice-to-Have & Performance Extras
+      Dual Light & Dark Config
+      Menu-to-Sidebar Theme Sync
+      Cached Pure-Math Mascots
+      Quick-Log Chips & Modal Dialog
+      Isolated Offset Simulator Fragment
+      What-If Optimizer & CSV/MD Export
 ```
 
 ### Sketch of our vision
-- **Design Sketch:** [Sketch of our vision (`/assets/sketch.png`)](/assets/sketch.png)
-- **Screen layout planned:** Place the purchase inputs cleanly at the top, the live monthly dashboard and category chart right in the center, and badges + Turtle drawings clearly visible on the side.
-- **Visual style planned:** Calm earthy tones (deep forest greens, warm beige/linen, and clean sky accents) paired with friendly animal mascots and large headers so key totals stand out immediately.
+To keep layout priorities clear before coding, I planned the three interconnected screens in a clean architectural wireframe (`assets/svg/wireframe-blueprint.svg`):
+
+<p align="center">
+  <img src="assets/svg/wireframe-blueprint.svg" alt="ShopImpact 3-Screen Wireframe Blueprint" width="100%"/>
+</p>
+
+- **Screen layout planned:** Keep a persistent `+ Log Purchase` button and 3-panel hero studio at the top, surface live KPIs and Quick-Log chips right underneath, and place interactive Altair charts beside a searchable Transaction Ledger.
+- **Visual style planned:** Flat, breathable botanical sage and forest-dusk tones paired with clear typography and procedural mathematical visuals rather than cluttered dashboard chrome.
 
 ### Compulsory features planned
-1. **Input fields:** Item name, product type, brand, price, date, and an ethical/circular toggle.
-2. **Real-time CO₂ calculation:** Instant footprint update as soon as you log a purchase.
-3. **Monthly dashboard:** Live total spend, total CO₂ impact, carbon saved, and category chart.
-4. **Fun badges:** Dynamic achievements like *"Eco Saver of the Month"* and *"Low Impact Shopper"*.
-5. **Greener alternatives:** Curated list of eco-friendly brands suggested for every category.
-6. **Turtle graphic:** Playful leaf, footprint, or eco badge drawn automatically for positive choices.
+1. **Input fields:** Item description, category selector, optional brand, price, purchase date, and circular/ethical toggle.
+2. **Real-time CO₂ calculation:** Instant footprint and avoided-carbon updates on every entry.
+3. **Monthly dashboard:** Spend total, net CO₂ footprint, avoided emissions, tree equivalent, and category breakdowns.
+4. **Milestone badges:** Dynamic goals including *Eco Saver of the Month* and *Low Impact Shopper*.
+5. **Greener alternatives:** Actionable category swaps with percentage reductions and 1-click adoption.
+6. **Turtle graphics:** Pure-math `HeadlessTurtle` emblems drawn automatically for mindful choices.
 
 ### Optional features planned & added
-- **Random eco tips** rotating with each purchase (such as liters of water saved by thrift cotton).
-- **Dark mode / High-contrast light mode toggle** for comfortable reading in any lighting.
-- **Motivational quotes** from environmental leaders to keep users inspired.
-- **Creative bonus features:** 60 FPS animated Biosphere globe, 5 reactive companion mascots, 6 Quick-Log chips, Tree Offset Simulator, and instant Undo / CSV export.
+- **Rotating eco tips** tied to session count inside custom logging views.
+- **Native Light & Forest Dusk Dark theming** with bidirectional sync between the sidebar toggle and Streamlit's top-right three-dots menu (`System / Light / Dark`).
+- **Cached performance studio:** Pre-Purchase Carbon Simulator running inside an isolated `@st.fragment`, cached 3D icons (`112x112` @2x Retina), `@st.cache_data` mascot SVGs, What-If Carbon Optimizer, instant Undo, and `.csv` / `.md` scorecard exports.
 
----
+<p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
 
 ## Stage 2: Our Python logic & integration details
 
 ### A Simple Algorithm We Designed
-Every time a shopper logs an item, `app.py` runs one clean step-by-step sequence:
+Every log, swap, or chip click runs through one deterministic Python sequence inside `app.py`:
 
-```
-[Shopper logs a purchase: Quick Chip OR Custom Form]
-        │
-        ▼
-[Calculate Impact: Price × Category Multiplier (30% off if Eco/Circular)]
-        │
-        ▼
-[Save to Python List: Append purchase dictionary to st.session_state.purchases]
-        │
-        ├──> [Update Totals: Total Spend, Total CO₂, Carbon Saved & Trees]
-        ├──> [Update Visuals: Shift Biosphere Globe % & Mascot Mood]
-        ├──> [Check Badges: Scan purchases list -> Unlock matching milestones]
-        └──> [Reward Check: Eco/Low-CO₂ pick? -> Draw HeadlessTurtle Leaf/Footprint/Badge]
-```
+<p align="center">
+  <img src="assets/svg/logic-pipeline.svg" alt="ShopImpact Python Runtime Pipeline" width="100%"/>
+</p>
 
 ### Data structures
-- **List of purchases (`st.session_state.purchases`):** A Python **`list`** that keeps track of every logged purchase. Each element inside the list is a **`dict`** containing product type (`category`), `price`, `brand`, `date` (purchase date), `item`, `carbon_kg`, and `is_ethical`:
+- **Session purchases (`st.session_state.purchases`):** A Python **`list`** storing one **`dict`** per logged item (`id`, `item`, `category`, `brand`, `price`, `carbon_kg`, `date`, `is_ethical`):
   ```python
   purchase = {
-      "item": "Vintage Denim Jacket", "category": "Second-Hand / Thrift",
+      "id": 1, "item": "Vintage Denim Jacket", "category": "Second-Hand / Thrift",
       "brand": "Goodwill Thrift", "price": 32.0, "carbon_kg": 1.12,
       "date": "2026-11-03", "is_ethical": True
   }
   ```
-- **Dictionaries (`dict`) for instant lookups:**
-  - `CATEGORIES`: stores the multiplier, impact tier, icon, and eco fact for each of the 9 product types.
-  - `ETHICAL_ALTERNATIVES`: maps each product type to a **`list`** of greener brand swaps, benefits, and carbon cut percentages.
-  - `ECO_MASCOTS`: holds the 5 companion animals and their themes.
+- **Lookup dictionaries (`dict`):**
+  - `CATEGORIES`: holds the emission multiplier, impact tier label, and domain explanation for all 9 product categories.
+  - `ETHICAL_ALTERNATIVES`: maps each category to verified circular swaps and percentage cuts.
+  - `ECO_MASCOTS`: stores the 5 companion animals (Shelly, Pip, Barnaby, Bumble, Bao) and themes.
 
 ### Impact calculation (Simple, Clear Formulas)
 
 1. **Carbon Footprint Formula:**
    `CO₂ Footprint (kg) = Price ($) × Category Multiplier`
-   *(If you check Eco-Friendly / Second-Hand: multiply by `0.70`, which gives a simple **30% discount** because reusing goods skips factory production!)*
+   *(If Circular / Ethical is checked: multiply by `0.70` for a **30% reduction** because circular goods avoid virgin factory manufacturing.)*
 
    > **Quick Example:**  
-   > - **`$130` Leather Shoes** (`0.65` high multiplier) -> `130 × 0.65` = **`84.5 kg` CO₂**  
-   > - **`$32` Thrift Jacket** (`0.05` low multiplier + 30% discount) -> `32 × 0.05 × 0.70` = **`1.12 kg` CO₂**
+   > - **`$130` Leather Shoes** (`0.65` multiplier) -> `130 × 0.65` = **`84.50 kg` CO₂**  
+   > - **`$32` Thrift Jacket** (`0.05` multiplier × `0.70` discount) -> `32 × 0.05 × 0.70` = **`1.12 kg` CO₂**
 
 2. **CO₂ Saved (Carbon Avoided):**
-   `CO₂ Saved (kg) = (Price × 0.45 Normal Average) − Your Actual CO₂`
-   *(Normal shopping averages about `0.45 kg` of CO₂ per dollar. Anytime your item emits less than that average, the difference counts as CO₂ saved! Never goes below `0`.)*
+   `CO₂ Saved (kg) = (Price × 0.45 Baseline Average) - Actual CO₂`
+   *(Standard retail averages around `0.45 kg` CO₂ per dollar. Whenever an item emits less than that baseline, the difference is banked as CO₂ saved, clamped at `0.0` minimum.)*
 
-   > **Quick Example:** On that **`$32` Thrift Jacket**, normal shopping emits `32 × 0.45 = 14.40 kg`, while thrift creates only `1.12 kg`, so you saved **`13.28 kg` of CO₂**!
+   > **Quick Example:** On the **`$32` Thrift Jacket**, baseline retail emits `32 × 0.45 = 14.40 kg`, while thrift emits `1.12 kg`, avoiding **`13.28 kg` CO₂**.
 
 3. **Everyday Comparisons (`get_equivalency()`):**
-   So big numbers actually make sense at a glance:
-   - **Petrol Car Miles:** `CO₂ × 2.4` *(driving 1 mile burns roughly 0.4 kg CO₂)*
-   - **Phone Charges:** `CO₂ × 121` *(1 kg CO₂ equals about 121 smartphone charges)*
-   - **Trees to Offset:** `CO₂ ÷ 21` *(1 mature tree absorbs roughly 21 kg CO₂ in a year)*
+   - **Petrol Car Miles:** `CO₂ × 2.4`
+   - **Phone Charges:** `CO₂ × 121`
+   - **Tree-Months Needed to Offset:** `(CO₂ ÷ 21.0) × 12` *(1 mature tree absorbs ~21 kg CO₂/year)*
 
 ```mermaid
 flowchart LR
-    T1["Ultra-Green (0.05 to 0.08)<br>Second-Hand • Zero-Waste • Organic"] --> T2["Conscious (0.11)<br>Refurbished Tech"]
-    T2 --> T3["Moderate / High (0.38 to 0.46)<br>Groceries • Fast Fashion • Plastics"]
-    T3 --> T4["Very Heavy (0.55 to 0.65)<br>New Electronics • Leather Shoes"]
+    T1["Ultra-Green (0.05 to 0.08)<br>Second-Hand | Zero-Waste | Organic"] --> T2["Conscious (0.11)<br>Refurbished Tech"]
+    T2 --> T3["Moderate / High (0.38 to 0.46)<br>Groceries | Fast Fashion | Plastics"]
+    T3 --> T4["Very Heavy (0.55 to 0.65)<br>New Electronics | Leather Shoes"]
 ```
 
 | Product Type | Multiplier (kg CO₂ per $) | Impact Rating | Reasoning Behind Score |
 | :--- | :---: | :---: | :--- |
-| **Second-Hand / Thrift** | `0.05` | Minimal | Reusing extends item life with no new factory manufacturing. |
-| **Zero-Waste Reusables** | `0.07` | Minimal | Durable bamboo and steel replace hundreds of single-use plastics. |
-| **Local / Organic Food** | `0.08` | Low | Skips long-distance cold trucks and synthetic chemicals. |
-| **Refurbished Tech** | `0.11` | Low | Avoids mining fresh rare-earth metals and building new chips. |
-| **Packaged Groceries** | `0.38` | Moderate | Factory food processing and layered plastic wrapping add carbon. |
-| **Fast Fashion Apparel** | `0.42` | High | Synthetic polyester production and chemical dyeing take heavy energy. |
-| **Home & Plastics** | `0.46` | High | Relies on petroleum materials and high-temperature molding. |
-| **Consumer Electronics** | `0.55` | High | Silicon chip manufacturing and global shipping create heavy upfront emissions. |
-| **Footwear & Leather** | `0.65` | Very High | Combines livestock farming methane with intensive leather tanning. |
+| **Second-Hand / Thrift** | `0.05` | Minimal | Reusing extends garment/item life without new manufacturing. |
+| **Zero-Waste Reusables** | `0.07` | Minimal | Durable bamboo and steel displace single-use plastics repeatedly. |
+| **Local / Organic Food** | `0.08` | Low | Eliminates long-haul refrigerated freight and synthetic chemicals. |
+| **Refurbished Tech** | `0.11` | Low | Avoids rare-earth mineral mining and fresh semiconductor fab emissions. |
+| **Packaged Groceries** | `0.38` | Moderate | Industrial processing and layered plastic packaging raise footprint. |
+| **Fast Fashion Apparel** | `0.42` | High | Synthetic polyester spinning and chemical dyeing consume heavy energy. |
+| **Home & Plastics** | `0.46` | High | Petrochemical feedstocks and high-heat molding drive emissions. |
+| **Consumer Electronics** | `0.55` | High | Wafer fabrication and global hardware logistics carry high upfront CO₂. |
+| **Footwear & Leather** | `0.65` | Very High | Combines livestock emissions with intensive leather tanning. |
 
 ### Badges & messages
-`evaluate_badges(purchases)` scans the purchases list after every action and turns locked grayscale cards into glowing emerald badges:
+`evaluate_badges(purchases)` scans the active session list after every action and updates badge states:
 
 ```mermaid
 flowchart TD
-    L["Purchases List (st.session_state.purchases)"] --> C1{"Items >= 1?"}
-    C1 -- Yes --> B1["🌱 Seed Starter: UNLOCKED"]
-    C1 -- No --> L1["🔒 Locked (Grayscale)"]
+    L["Session List (st.session_state.purchases)"] --> C1{"Items >= 1?"}
+    C1 -- Yes --> B1["Seed Starter: UNLOCKED"]
+    C1 -- No --> L1["Locked"]
 
     L --> C2{"Items >= 2 & Avg <= 0.25 kg/$?"}
-    C2 -- Yes --> B2["🍃 Low Impact Shopper: UNLOCKED"]
-    C2 -- No --> L2["🔒 Locked (Grayscale)"]
+    C2 -- Yes --> B2["Low Impact Shopper: UNLOCKED"]
+    C2 -- No --> L2["Locked"]
 
     L --> C3{"Ethical Items >= 3?"}
-    C3 -- Yes --> B3["♻️ Conscious Pioneer: UNLOCKED"]
-    C3 -- No --> L3["🔒 Locked (Grayscale)"]
+    C3 -- Yes --> B3["Conscious Pioneer: UNLOCKED"]
+    C3 -- No --> L3["Locked"]
 
-    L --> C4{"CO₂ Saved >= 10.0 kg?"}
-    C4 -- Yes --> B4["🌟 Eco Saver of the Month: UNLOCKED"]
-    C4 -- No --> L4["🔒 Locked (Grayscale)"]
+    L --> C4{"CO2 Saved >= 10.0 kg?"}
+    C4 -- Yes --> B4["Eco Saver of the Month: UNLOCKED"]
+    C4 -- No --> L4["Locked"]
 
     L --> C5{"Thrift / Zero-Waste >= 2?"}
-    C5 -- Yes --> B5["🏆 Zero-Waste Hero: UNLOCKED"]
-    C5 -- No --> L5["🔒 Locked (Grayscale)"]
+    C5 -- Yes --> B5["Zero-Waste Hero: UNLOCKED"]
+    C5 -- No --> L5["Locked"]
 ```
 
-At the same time, `evaluate_feedback_for_item()` picks one of 5 mascot expressions based on your latest purchase:
+Meanwhile, `evaluate_feedback_for_item()` picks one of 5 mascot reactions based on the latest item's CO₂ footprint:
 
 ```mermaid
 stateDiagram-v2
     [*] --> Mindful: Clean session
-    Mindful --> Ecstatic: Ethical & CO₂ <= 3.0 kg (Gold sunglasses!)
-    Mindful --> Happy: Ethical OR CO₂ <= 10.0 kg
-    Mindful --> Worried: CO₂ 25.1 to 50.0 kg (Sweating)
-    Mindful --> Alarmed: CO₂ > 50.0 kg (Alert!)
+    Mindful --> Ecstatic: Ethical & CO2 <= 3.0 kg
+    Mindful --> Happy: Ethical OR CO2 <= 10.0 kg
+    Mindful --> Worried: CO2 25.1 to 50.0 kg
+    Mindful --> Alarmed: CO2 > 50.0 kg
 ```
 
-- **Companion Mascots:** **Shelly 🐢** (Sea Turtle), **Pip 🦊** (Forest Fox), **Barnaby 🦉** (Eco Owl), **Bumble 🐝** (Pollinator), and **Bao 🐼** (Bamboo Panda), each with custom messages for positive and high-carbon buys.
+- **Companion Mascots:** **Shelly** (Sea Turtle), **Pip** (Forest Fox), **Barnaby** (Eco Owl), **Bumble** (Pollinator), and **Bao** (Bamboo Panda), rendered cleanly via pure-math `HeadlessTurtle` curves (superellipses, cubic Beziers, hex scutes, and polar trigonometry).
 
 ### Suggestions
-For each product type, `ETHICAL_ALTERNATIVES` stores a Python `list` of greener brands with clear CO₂ savings and a 1-click **Adopt** button right below the form:
+For each category, `ETHICAL_ALTERNATIVES` suggests greener brands with expected CO₂ reductions and a 1-click **Adopt** action:
 - **Fast Fashion Apparel** -> *Patagonia Worn Wear* (`65%` cut) or *Depop / Local Thrift* (`92%` cut)
 - **Consumer Electronics** -> *Back Market Refurbished* (`82%` cut) or *Fairphone Modular* (`60%` cut)
 - **Footwear & Leather** -> *Allbirds / Veja* (`52%` cut) or *Will's Vegan Store* (`70%` cut)
 
 ### Integration details
-We organized the codebase into small, single-job functions (`add_purchase()`, `calculate_carbon()`, `evaluate_badges()`, `get_equivalency()`, `find_top_swap_opportunity()`, `draw_vector_art()`) inside [`app.py`](app.py) and connected 5 core libraries:
-- **`datetime`:** Stamps `date.today()` onto every purchase and powers *All Time / Year / Month* dashboard filtering.
-- **`pandas`:** Aggregates category spend and carbon sums (`groupby("category")["carbon_kg"].sum()`) for visualizations, progress bars, and CSV downloads.
-- **`altair`:** Renders interactive horizontal category bars (color-coded emerald vs. amber) and an ethical-vs.-conventional donut chart with hover tooltips.
-- **`Pillow` (`ImageDraw`):** Drives our upgraded `HeadlessTurtle` vector engine (`280x280` layered botanical graphics) and PNG art exports safely on Linux cloud servers.
-- **`streamlit`:** Connects forms, session lists, quick chips, top studio navigation, sortable/searchable ledger tables (`ProgressColumn`), and dual themes cleanly.
+The logic lives inside clean, single-job functions inside [`app.py`](app.py) (`add_purchase()`, `calculate_carbon()`, `evaluate_badges()`, `get_equivalency()`, `find_top_swap_opportunity()`, `_render_turtle_art_png_cached()`) backed by 5 core Python libraries:
+- **`datetime`:** Stamps `date.today()` onto records and drives *All Time / Year / Month* filters.
+- **`pandas`:** Aggregates spend and CO₂ totals for charts and CSV exports.
+- **`altair`:** Renders horizontal category bars (olive green vs. ochre amber) and an ethical-vs.-conventional donut chart with tooltips.
+- **`Pillow` (`ImageDraw`):** Drives `HeadlessTurtle` `280x280` raster exports and `@2x` Retina icon thumbnail caching (`112x112`) safely on headless Linux cloud servers.
+- **`streamlit`:** Connects `@st.dialog` quick logging, `@st.fragment` offset simulation, `@st.cache_data` CSS/SVG pipelines, ProgressColumn tables, and synced dual themes.
 
----
+<p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
 
 ## Stage 3: Interactive Streamlit cloud interface
 
 ### Layout
-- **Welcome & Onboarding Screen:** Opens with a custom panoramic SVG botanical horizon featuring rotating wind turbines, sunlit rolling sage hills, cottages, trees, and a conscious shopper man walking with Shelly the Sea Turtle beside a simple onboarding form.
-- **Equal-Height 3-Panel Studio Grid:** An open navbar sits above a seamless CSS Grid locking **Living Biosphere**, **Companion Studio**, and **Turtle Art Collector** to identical heights on desktop and stacking cleanly on mobile screens.
-- **Analytics & Ledger Section:** Displays 4 KPI metrics, avoided real-world impact, the **What-If Carbon Optimizer**, uniform **6 Quick-Log Chips**, Custom Purchase form, interactive Altair charts, and a searchable ledger.
+- **Welcome & Onboarding Screen:** Opens with a custom animated botanical SVG horizon featuring turning wind turbines, rolling hills, valley cottages, and a walker with Shelly the Turtle beside the onboarding form.
+- **Equal-Height 3-Panel Studio Grid:** An open top action bar (`+ Log Purchase`, `Dashboard`, `Badges`) sits above a CSS Grid locking **Living Biosphere**, **Companion Studio**, and **Turtle Art Collector** cleanly across desktop and stacking smoothly under `920px` on mobile.
+- **Analytics & Ledger Studio:** Pairs 4 KPI cards, avoided real-world equivalents, the **What-If Carbon Optimizer**, 6 aligned Quick-Log tiles, Custom Form, Altair charts, and a searchable Transaction Ledger.
 
 ### Interactivity
-- **6 Quick-Log Chips:** Log routine purchases (*Coffee, Organic Lunch, Thrift Jacket, Refurb Tech, Fast Fashion, Leather Shoes*) in 1 click.
-- **What-If Carbon Optimizer:** Detects your heaviest conventional item, previews the exact kg CO2 drop of a circular swap, and swaps it in 1 click.
-- **Searchable Ledger & Exports:** Live keyword search, *Eco picks only* toggle, *All Time / Year / Month* filter radio, **Tree Offset Simulator**, **Undo Last Purchase**, guarded Reset dialog, **Export CSV**, and **Eco Scorecard (`.md`)** download.
+- **Quick-Log Chips & First-View `+ Log Purchase` Modal:** Record routine items in 1 click or open the top dialog from anywhere without scrolling.
+- **What-If Carbon Optimizer:** Detects your heaviest conventional item, previews the CO₂ drop of swapping to thrift/refurbished/zero-waste, and swaps it in 1 click.
+- **Fast Pre-Purchase Simulator (`@st.fragment`):** Adjust spend sliders in real time with zero full-page flicker.
+- **Ledger Controls & Exports:** Live item/brand search, *Eco picks only* toggle, timeline radio filter, **Undo Last Purchase**, guarded Reset confirmation, **Export CSV**, and **Eco Scorecard (`.md`)**.
 
 ### Visual hierarchy
-Generous whitespace, soft rounded `20px` surfaces with hairline `1px` borders, pill action buttons, and calm typography keep numbers and eco actions crystal clear without boxy clutter.
+Generous breathing room, `20px` rounded surfaces with hairline `1px` borders, pill action buttons, and high-contrast alerts and toasts keep totals readable without noisy boxes.
 
 ### Color palette
-Built natively with Streamlit Light theming (`.streamlit/config.toml`) in flat, natural botanical tones inspired by morning sage landscapes: **Daytime Botanical Light Mode** (`#F5F9F3` meadow cream backdrop, `#FFFFFF` cards, `#13261B` deep pine ink, `#4E7E36` olive-moss primary actions, `#D69838` birch ochre, `#C45B4D` muted terracotta) plus a smooth **Forest Dusk Dark Mode** toggle (`#131C17` matte slate backdrop).
+Dual native Streamlit themes configured inside [`.streamlit/config.toml`](.streamlit/config.toml):
+- **Ecovista Botanical Light (`[theme.light]`):** `#F5F9F3` meadow cream backdrop, `#FFFFFF` elevated cards, `#13261B` deep pine ink, `#4E7E36` olive-moss primary buttons, `#D69838` ochre, `#C45B4D` terracotta.
+- **Forest Dusk Dark (`[theme.dark]`):** `#131C17` matte forest-slate backdrop, `#1C2921` card surfaces, `#ECF3EA` crisp pale ink, `#6CA452` sage accent, synced automatically between the sidebar toggle and Streamlit's `⋮` (`System / Light / Dark`) menu.
 
 ### Live App Screenshots
 
 <div align="center">
 <img src="assets/screenshots/onboarding_v3.png" alt="Screen 1: Ecovista Botanical Welcome Hero and Onboarding" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 1 (Welcome & Onboarding): Custom SVG landscape with rotating wind turbines, sunlit trees, valley homes, and walking shopper man with pure-math Turtle companion.</em></p>
+<p><em>Screen 1 (Welcome & Onboarding): Custom animated SVG botanical landscape beside the profile gateway and live mascot preview.</em></p>
 </div>
 
 <div align="center">
-<img src="assets/screenshots/dashboard_v5.png" alt="Screen 2: Botanical Light Studio Dashboard" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 2A (Botanical Light Studio): Equal-height 3-card Hero Studio (Biosphere, Math-Turtle Companion & Rosette), KPI cards, and uniform Quick-Log pills.</em></p>
+<img src="assets/screenshots/dashboard_v5.png" alt="Screen 2A: Botanical Light Studio Dashboard" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
+<p><em>Screen 2A (Botanical Light Studio): Equal-height 3-card Hero Studio, KPI cards, and uniform 3D Quick-Log tiles.</em></p>
 </div>
 
 <div align="center">
 <img src="assets/screenshots/dashboard_dark_v3.png" alt="Screen 2B: Forest Dusk Dark Mode Dashboard" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 2B (Forest Dusk Dark Mode): Matte deep-pine palette with adaptive contrast across inputs, dropdowns, calendars, alerts, toasts, and charts.</em></p>
+<p><em>Screen 2B (Forest Dusk Dark Mode): Matte forest-slate theme with calibrated contrast across dropdowns, date pickers, alerts, toasts, and charts.</em></p>
 </div>
 
 <div align="center">
 <img src="assets/screenshots/analytics_v3.png" alt="Screen 2C: What-If Carbon Optimizer, Altair Charts, and Progress Ledger" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 2C (Interactive Analytics & Optimizer): What-If Carbon Optimizer 1-click swap banner, olive/ochre Altair charts, and searchable Progress Ledger.</em></p>
+<p><em>Screen 2C (Interactive Analytics & Optimizer): What-If Carbon Optimizer swap banner, Altair breakdown charts, and searchable Progress Ledger.</em></p>
 </div>
 
 <div align="center">
 <img src="assets/screenshots/wall_of_badges_v4.png" alt="Screen 3: Wall of Badges and 4-Piece Procedural Turtle Art Vault" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 3 (Wall of Badges & Procedural Turtle Art Vault): 4 of 5 milestone badges unlocked above the 4-piece pure-math HeadlessTurtle Vault (Leaf, Step, Mindful Man & Turtle, Championship Rosette).</em></p>
+<p><em>Screen 3 (Wall of Badges & Procedural Turtle Art Vault): Unlocked milestone cards above the 4-piece HeadlessTurtle Vault.</em></p>
 </div>
 
----
+<p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
 
 ## Stage 4: Testing & creative features
 
 ### Testing with 10 to 15 purchases
-As suggested in the brief, I tested ShopImpact by acting as a first-time user and entering **12 mixed purchases** spanning expensive, cheap, eco, and non-eco items (plus adopting a greener swap as item #13, running the What-If Optimizer drop from `523.34 kg` to `215.89 kg`, toggling Light and Forest Dusk themes, and testing **Undo** back to 12):
+As suggested in the brief, I tested ShopImpact by acting as a first-time user and entering **12 mixed purchases** spanning cheap, expensive, circular, and conventional items (plus adopting a swap as item #13, testing the What-If Optimizer drop from `523.34 kg` to `215.89 kg`, toggling Light and Dark modes from both the sidebar and `⋮` menu, and verifying **Undo**):
 
 | Test Group | Sample Purchases Entered (12 Total) | Prices Tested | Observed Result |
 | :--- | :--- | :---: | :--- |
-| **Cheap Eco** | Fair-Trade Coffee, Glass Pantry Jar Pack, Bamboo Water Bottle | `$4.50 to $24` | Totals updated live (`0.25 to 1.18 kg`); Pip put on gold sunglasses; Turtle drew Gold Rosette & Leaf. |
-| **Mid-Range Eco** | Vintage Denim Jacket, Organic Produce Box, Thrifted Wool Coat | `$32 to $48` | Applied 30% eco discount; unlocked *Seed Starter*, *Conscious Pioneer*, and *Zero-Waste Hero*. |
-| **Expensive Eco** | Refurbished Laptop (`Back Market`) | `$280` | Logged just `21.56 kg` CO2 (vs `154 kg` new); raised Carbon Saved past `100 kg` and unlocked *Eco Saver*. |
-| **Non-Eco (Cheap & Expensive)** | Plastic Bins, Fast-Fashion Sweater, Packaged Snacks, Leather Shoes (`$130`), Smartphone (`$320`) | `$22 to $320` | Intensity rose to `0.33 kg/$`; Biosphere shifted to terracotta Overload and *Low Impact Shopper* stayed locked (`> 0.25 kg/$`). |
+| **Cheap Eco** | Fair-Trade Coffee, Glass Pantry Jar Pack, Bamboo Water Bottle | `$4.50 to $24` | Totals updated cleanly (`0.25 to 1.18 kg`); Pip put on gold sunglasses; Turtle rendered Gold Rosette & Eco Leaf. |
+| **Mid-Range Eco** | Vintage Denim Jacket, Organic Produce Box, Thrifted Wool Coat | `$32 to $48` | Applied 30% circular discount; unlocked *Seed Starter*, *Conscious Pioneer*, and *Zero-Waste Hero*. |
+| **Expensive Eco** | Refurbished Laptop (`Back Market`) | `$280` | Logged `21.56 kg` CO₂ (vs `154 kg` new), pushing avoided CO₂ past `100 kg` and unlocking *Eco Saver*. |
+| **Non-Eco (Cheap & Expensive)** | Plastic Bins, Fast-Fashion Sweater, Packaged Snacks, Leather Shoes (`$130`), Smartphone (`$320`) | `$22 to $320` | Intensity rose to `0.33 kg/$`; Biosphere turned terracotta Overload and *Low Impact Shopper* stayed locked (`> 0.25 kg/$`). |
 
 **Verification checks from testing:**
-- **Do totals update immediately?** Yes. All 4 KPIs (`$989.50` spend, `329.4 kg` CO2, `115.8 kg` avoided, `15.7 Trees`), Altair charts, and the ledger update right away on every submit and swap.
-- **Are badges awarded correctly?** Yes. All 4 earned badges unlocked at exact thresholds while *Low Impact Shopper* stayed locked until carbon intensity dropped below `0.25 kg/$`.
-- **Does Turtle drawing appear at the right time?** Yes. Eco Leaf, Earth Step Medallion, Mindful Man & Turtle, and Championship Rosette unlock cleanly and export as `.png` files.
+- **Do totals update immediately?** Yes. All 4 KPIs (`$989.50` spend, `329.4 kg` CO₂, `115.8 kg` avoided, `15.7 Trees`), Altair charts, and the ledger update immediately.
+- **Are badges awarded correctly?** Yes. Earned badges unlock at exact thresholds while *Low Impact Shopper* stays locked until carbon intensity falls below `0.25 kg/$`.
+- **Does Turtle drawing appear at the right time?** Yes. Eco Leaf, Earth Step Medallion, Mindful Man & Turtle, and Championship Rosette unlock and export cleanly as `.png` files.
 
 ### Proof of tests (3 sample screenshots collage)
 
 <div align="center">
 <img src="assets/screenshots/test_proof_collage_v4.png" alt="Collage of 3 test screenshots showing Botanical Light Studio, 12-purchase Altair analytics, and Wall of Badges" width="900" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>3-Panel Test Proof Collage: (1) Botanical Light Hero, Biosphere & Rosette reward; (2) 12-purchase mix showing What-If Optimizer, Altair charts & searchable ledger; (3) Wall of Badges & 4-piece Turtle Art Vault.</em></p>
+<p><em>3-Panel Test Proof Collage: (1) Botanical Light Hero, Biosphere & Rosette reward; (2) 12-purchase mix with What-If Optimizer, Altair charts & ledger; (3) Wall of Badges & Turtle Art Vault.</em></p>
 </div>
 
 ### Feedback & refinements we made
-After testing on desktop and `412px` mobile screens, we spotted 5 friction points and refined every one:
-1. **Harsh dark boxes & heavy gradients:** Replaced dark neon rectangles and muddy gradients with a light, breathable flat botanical palette inspired by natural greens, soft shadows, and equal-height CSS Grid hero cards.
-2. **Theme text mismatches:** Added `.streamlit/config.toml` (`base = "light"`) and unified Light/Dark CSS tokens so inputs, buttons, metric deltas, and charts adapt text contrast automatically.
-3. **Mobile responsiveness & alignment:** Set sidebar state to `auto`, added mobile `@media (max-width: 920px)` single-column stacking, and fixed Quick-Log chip heights so all 6 buttons align flat.
-4. **Actionable swap discovery:** Added the **What-If Carbon Optimizer** above the ledger alongside search/eco-only filtering and **Eco Scorecard (`.md`)** downloads.
-5. **Cloud Turtle & Welcome artwork:** Built our base64 panoramic SVG horizon (animated wind turbines, sunlit hillside, walking shopper man & turtle) and 4-piece Pillow `HeadlessTurtle` vault without desktop `tkinter`.
+Testing on desktop browsers, Streamlit Community Cloud, and narrow mobile viewports uncovered 6 concrete issues we resolved:
+1. **Heavy dark boxes & harsh contrast:** Replaced boxy dark panels with a soft flat botanical palette and responsive equal-height CSS Grid hero cards.
+2. **Dark/Light popover & alert contrast bugs:** Explicitly styled React Aria/BaseWeb select dropdowns, calendars, alerts (`Reset Session` warning and empty-period info), and toast notifications so dark mode never leaves white backgrounds under light text.
+3. **Top three-dots (`⋮`) menu theme sync:** Configured dual `[theme.light]` & `[theme.dark]` sections in `.streamlit/config.toml`, isolated `⋮` popover typography from app-body ink rules, and synced theme switches bidirectionally between `⋮` (`System / Light / Dark`) and the sidebar toggle (even inside Streamlit Cloud's iframe).
+4. **Rerun latency & WebSocket asset weight:** Cached SVG generators (`render_animated_avatar_svg`, `render_animated_biosphere_svg`), pre-encoded `HeadlessTurtle` PNG URIs, cached tokenized CSS, downsampled 3D icons to `@2x` (`112x112`), and isolated the Offset Simulator inside `@st.fragment`.
+5. **Actionable swap discovery:** Added the **What-If Carbon Optimizer** above the ledger alongside keyword filters and **Eco Scorecard (`.md`)** exports.
+6. **Cloud-safe botanical art:** Built pure-math `HeadlessTurtle` curves on Pillow canvases and animated SVG horizon artwork requiring zero desktop `tkinter`.
 
 ### Creative features added
-- **Panoramic Ecovista SVG Welcome Horizon:** Custom animated vector scene with rotating wind turbines, sunlit valley homes, golden conifers, and a shopper walking with Shelly the Turtle:
+- **Animated Botanical Horizon & Living Biosphere SVG:** Custom vector artwork synced cleanly to budget usage percentage:
   ```mermaid
   flowchart LR
       P["Monthly Budget %"] --> S1["<= 50%: Pristine Biosphere (Olive Moss)"]
@@ -358,27 +356,27 @@ After testing on desktop and `412px` mobile screens, we spotted 5 friction point
       P --> S4["> 100%: Carbon Overload (Terracotta)"]
   ```
 
-- **Cloud-Safe 4-Piece Headless Turtle Art Vault (`HeadlessTurtle`):** Procedurally draws **Botanical Eco Leaf**, **Earth Step Medallion**, **Mindful Man & Turtle**, and **Championship Gold Rosette** on `280x280` Pillow canvases with `.png` download:
+- **Cloud-Safe 4-Piece `HeadlessTurtle` Vault:** Mathematically draws **Botanical Eco Leaf**, **Earth Step Medallion**, **Mindful Man & Turtle**, and **Championship Gold Rosette** on `280x280` Pillow canvases with `.png` download:
   ```mermaid
   flowchart LR
-      T["Turtle State (x, y, heading)"] --> M["Trigonometric Steps<br>forward / leaf / walker / rosette"]
+      T["Turtle State (x, y, heading)"] --> M["Trigonometric Steps<br>forward / arc / bezier / rosette"]
       M --> IMG["Pillow RGBA 280x280 Canvas"]
-      IMG --> ART["Leaf • Step • Man & Turtle • Rosette"]
+      IMG --> ART["Leaf | Step | Man & Turtle | Rosette"]
   ```
 
-- **Eco Streaks, Daily Missions & What-If Carbon Optimizer:** Live ethical streak counter, daily mission tracker, and 1-click swap of your heaviest conventional purchase.
-- **Tree Offset Simulator & Downloadable Eco Scorecard:** Interactive `$5 to $500` pre-purchase impact slider alongside downloadable `.csv` transaction logs and `.md` Eco Scorecard summaries.
+- **Eco Streaks, Daily Missions & What-If Carbon Optimizer:** Tracks consecutive circular buys and identifies your highest-impact conventional swap automatically.
+- **Pre-Purchase Offset Simulator & Scorecard Exports:** Isolated `@st.fragment` dollar simulator paired with `.csv` and `.md` downloads.
 
----
+<p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
 
 ## Stage 5: Deploy & document our project
 
 ### Files uploaded to GitHub
-- `app.py` (Clean, refactored Python & Streamlit studio application)
-- `.streamlit/config.toml` (Native Botanical Light base theme configuration)
-- `requirements.txt` (Pinned packages: `streamlit>=1.35.0`, `pandas>=2.0.0`, `pillow>=10.0.0`, `altair>=5.0.0`)
-- `README.md` (Full project guide, logic breakdown, testing proof, and live link)
-- `assets/` (Design wireframe sketch at `/assets/sketch.png` and verified app screenshots inside `assets/screenshots/`)
+- `app.py` (Cached, responsive Python & Streamlit application)
+- `.streamlit/config.toml` (Dual `[theme.light]` & `[theme.dark]` botanical theme configuration + WebSocket cache tuning)
+- `requirements.txt` (`streamlit>=1.45.0`, `pandas>=2.0.0`, `pillow>=10.0.0`, `altair>=5.0.0`)
+- `README.md` (Project documentation, mathematical explanations, testing proof, and custom SVG visuals)
+- `assets/` (Custom animated SVGs under `assets/svg/`, 3D icons under `assets/3d/`, and verified screenshots under `assets/screenshots/`)
 
 ### Deployment instructions
 
@@ -391,14 +389,16 @@ streamlit run app.py
 ```
 
 **Deploy to Streamlit Cloud:**
-1. Push `app.py`, `requirements.txt`, `README.md`, and `assets/` to our GitHub repository.
-2. Open [share.streamlit.io](https://share.streamlit.io/) and click **"Deploy an app"** (*"Create app"*).
-3. Connect GitHub and select `parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA` (`main` branch, main file `app.py`).
+1. Push `app.py`, `.streamlit/config.toml`, `requirements.txt`, `README.md`, and `assets/` to GitHub.
+2. Open [share.streamlit.io](https://share.streamlit.io/) and click **"Deploy an app"**.
+3. Select `parthibcpana/IDAI102-1000544-PARTH-PARVINBHAI-GAJERA-SA` (`main` branch, main file `app.py`).
 4. Click **Deploy** to publish the live web app.
 
 ### Live web app link
 **Live Web App:** [https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/](https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/)
 
----
+<p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
 
-**Parth Pravinbhai Gajera** (Candidate Registration No: `1000544`) | `IDAI 102: Python Programming` | Artificial Intelligence | Aspee Nutan Academy / WACP International
+<div align="center">
+  <strong>Parth Pravinbhai Gajera</strong> (Candidate Registration No: <code>1000544</code>) &middot; <code>IDAI 102: Python Programming</code> &middot; Artificial Intelligence &middot; Aspee Nutan Academy / WACP International
+</div>

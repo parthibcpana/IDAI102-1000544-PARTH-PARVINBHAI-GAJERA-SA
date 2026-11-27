@@ -23,8 +23,12 @@ def load_sa_asset_b64(rel_path: str) -> str:
     full = os.path.join(SA_ASSET_3D_DIR, rel_path.replace("/", os.sep))
     if not os.path.isfile(full):
         return ""
-    with open(full, "rb") as f:
-        return "data:image/png;base64," + base64.b64encode(f.read()).decode("ascii")
+    with Image.open(full) as im:
+        im = im.convert("RGBA")
+        im.thumbnail((112, 112), Image.Resampling.LANCZOS)
+        buf = io.BytesIO()
+        im.save(buf, format="PNG", optimize=True)
+    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
 
 def render_sa_3d(rel_path: str, alt_text: str, size: int = 56, fallback: str = "") -> str:
     uri = load_sa_asset_b64(rel_path)
@@ -132,14 +136,6 @@ ECO_TIPS = [
     "Bamboo grows up to 90 cm per day without synthetic pesticides, making it an ideal plastic swap.",
     "Washing clothes on cold cycles reduces laundry carbon footprint by up to 75% per load.",
     "Circular repair programs extend product lifespans by an average of 3.2 years per item.",
-]
-
-SUSTAINABILITY_QUOTES = [
-    "“The greatest threat to our planet is the belief that someone else will save it.” — Robert Swan",
-    "“The most sustainable garment is the one already in your wardrobe — or thrifted from someone else's.” — Orsola de Castro",
-    "“Small acts, when multiplied by millions of people, can transform the world.” — Howard Zinn",
-    "“There is no such thing as ‘away’. When we throw anything away it must go somewhere.” — Annie Leonard",
-    "“We do not inherit the Earth from our ancestors; we borrow it from our children.” — Native Proverb",
 ]
 
 # ------------------------------------------------------------------------------
@@ -294,8 +290,10 @@ def render_welcome_landscape_svg(dark=False):
 # ANIMATED SVG LIVING BIOSPHERE & 5 MASCOT ENGINE (Ecovista Palette)
 # ------------------------------------------------------------------------------
 
+@st.cache_data(show_spinner=False)
 def render_animated_biosphere_svg(used_pct, co2_tot, budget_limit, width=185, height=238):
-    pct = min(150.0, max(0.0, float(used_pct)))
+    pct = min(150.0, max(0.0, round(float(used_pct), 1)))
+    co2_tot = round(float(co2_tot), 1)
     if pct <= 50.0:
         sky_top, sky_bot = "#F2F9EC", "#D4E9C9"
         ring_col, canopy_col, hill_col = "#4E7E36", "#6DA452", "#92C273"
@@ -566,6 +564,7 @@ def _sa_face_expressions(t: HeadlessTurtle, hx, hy, eye_dx, mouth_dy, mood, skin
         f'<path d="M {hx - 8} {my} Q {hx} {my + 6.5} {hx + 8} {my}" fill="none" stroke="{skin_dark}" stroke-width="2.2" stroke-linecap="round"/>'
     )
 
+@st.cache_data(show_spinner=False)
 def render_animated_avatar_svg(character="turtle", mood="happy", width=155, height=155):
     """Renders all 5 realistic animated eco mascots strictly from pure Python math & HeadlessTurtle kinematics."""
     if character in ["ecstatic", "happy", "mindful", "worried", "alarmed"]:
@@ -864,16 +863,9 @@ def _render_turtle_art_png_cached(art_type="leaf"):
     t.img.save(buf, format="PNG")
     return buf.getvalue()
 
-def draw_vector_art(art_type="leaf"):
-    return Image.open(io.BytesIO(_render_turtle_art_png_cached(art_type)))
-
-def image_to_png_bytes(img):
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return buf.getvalue()
-
-def image_to_data_uri(img):
-    return "data:image/png;base64," + base64.b64encode(image_to_png_bytes(img)).decode("ascii")
+@st.cache_data(show_spinner=False)
+def get_turtle_art_data_uri(art_type="leaf"):
+    return "data:image/png;base64," + base64.b64encode(_render_turtle_art_png_cached(art_type)).decode("ascii")
 
 # ------------------------------------------------------------------------------
 # DOMAIN LOGIC, STREAK, BADGE & OPTIMIZER HELPERS
@@ -1012,6 +1004,17 @@ def set_purchase_toast(item_name: str, co2_kg: float, is_eth: bool, prefix: str 
     else:
         st.session_state.pending_toast = (f"{prefix} '{item_name}' (+{co2_kg:.2f} kg CO₂e) added to ledger", "✅")
 
+def _log_purchase_event(item_name, product_type, brand, price, purchase_date, is_ethical, prefix="Logged", celebrate=()):
+    rec, mood, msg, art = add_purchase(
+        st.session_state.purchases, item_name, product_type, brand, price, purchase_date, is_ethical, st.session_state.user_mascot
+    )
+    st.session_state.last_logged = rec
+    st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
+    set_purchase_toast(rec["item"], rec["carbon_kg"], rec["is_ethical"], prefix=prefix)
+    if mood in celebrate:
+        st.balloons()
+    st.rerun()
+
 # ------------------------------------------------------------------------------
 # SESSION STATE INITIALIZATION (Purchases stored in a Python list in session)
 # ------------------------------------------------------------------------------
@@ -1071,35 +1074,39 @@ if "purchases" not in st.session_state:
             st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = rec, m, msg, art
 
 # ------------------------------------------------------------------------------
-# UNIFIED TOKENIZED CSS (Airy Flat Botanical Palette, Zero Harsh Boxes, Mobile-Ready)
+# UNIFIED TOKENIZED CSS (Cached per Light/Dark Mode for Instant Reruns)
 # ------------------------------------------------------------------------------
 
-is_dark = st.session_state.dark_theme
-T = {
-    "bg": "#131C17" if is_dark else "#F5F9F3",
-    "side": "#18241D" if is_dark else "#EAF1E6",
-    "surface": "#1C2921" if is_dark else "#FFFFFF",
-    "soft": "#24342A" if is_dark else "#EDF4EA",
-    "ink": "#ECF3EA" if is_dark else "#13261B",
-    "muted": "#A3B9A9" if is_dark else "#526859",
-    "accent": "#6CA452" if is_dark else "#4E7E36",
-    "accent_hv": "#5B8E44" if is_dark else "#3D6628",
-    "accent_soft": "#263B2C" if is_dark else "#DCEBD4",
-    "border": "rgba(190, 218, 185, 0.14)" if is_dark else "rgba(45, 78, 43, 0.11)",
-    "shadow": "0 8px 28px rgba(0, 0, 0, 0.24)" if is_dark else "0 8px 28px rgba(24, 48, 30, 0.055)",
-    "gold_bg": "rgba(214, 152, 56, 0.16)" if is_dark else "#FAF2D8",
-    "gold_ink": "#F2CA6B" if is_dark else "#8A5E14",
-    "alert_info_bg": "#1F3025" if is_dark else "#EAF3E6",
-    "alert_warn_bg": "#2E2716" if is_dark else "#FDF4E1",
-    "alert_err_bg": "#361D20" if is_dark else "#FBECEB",
-}
+@st.cache_data(show_spinner=False)
+def get_theme_tokens(dark: bool) -> dict:
+    return {
+        "bg": "#131C17" if dark else "#F5F9F3",
+        "side": "#18241D" if dark else "#EAF1E6",
+        "surface": "#1C2921" if dark else "#FFFFFF",
+        "soft": "#24342A" if dark else "#EDF4EA",
+        "ink": "#ECF3EA" if dark else "#13261B",
+        "muted": "#A3B9A9" if dark else "#526859",
+        "accent": "#6CA452" if dark else "#4E7E36",
+        "accent_hv": "#5B8E44" if dark else "#3D6628",
+        "accent_soft": "#263B2C" if dark else "#DCEBD4",
+        "border": "rgba(190, 218, 185, 0.14)" if dark else "rgba(45, 78, 43, 0.11)",
+        "shadow": "0 8px 28px rgba(0, 0, 0, 0.24)" if dark else "0 8px 28px rgba(24, 48, 30, 0.055)",
+        "gold_bg": "rgba(214, 152, 56, 0.16)" if dark else "#FAF2D8",
+        "gold_ink": "#F2CA6B" if dark else "#8A5E14",
+        "alert_info_bg": "#1F3025" if dark else "#EAF3E6",
+        "alert_warn_bg": "#2E2716" if dark else "#FDF4E1",
+        "alert_err_bg": "#361D20" if dark else "#FBECEB",
+    }
 
-render_html(f"""
+@st.cache_data(show_spinner=False)
+def get_app_css(dark: bool) -> str:
+    tk = get_theme_tokens(dark)
+    return ("""
 <style>
   :root {{
-    --bg: {T['bg']}; --side: {T['side']}; --surface: {T['surface']}; --soft: {T['soft']};
-    --ink: {T['ink']}; --muted: {T['muted']}; --accent: {T['accent']}; --accent-hv: {T['accent_hv']};
-    --accent-soft: {T['accent_soft']}; --border: {T['border']}; --shadow: {T['shadow']};
+    --bg: {bg}; --side: {side}; --surface: {surface}; --soft: {soft};
+    --ink: {ink}; --muted: {muted}; --accent: {accent}; --accent-hv: {accent_hv};
+    --accent-soft: {accent_soft}; --border: {border}; --shadow: {shadow};
   }}
   .stApp {{ background: var(--bg) !important; color: var(--ink) !important; }}
   [data-testid="stHeader"] {{ background: transparent !important; }}
@@ -1111,7 +1118,7 @@ render_html(f"""
     border-radius: 12px !important; color: var(--ink) !important; box-shadow: var(--shadow) !important;
   }}
 
-  /* Soft organic buttons — olive moss primary & sunlit parchment secondary */
+  /* Soft organic buttons */
   [data-testid="stBaseButton-primary"], button[kind="primary"] {{
     background: #4E7E36 !important; border: none !important; border-radius: 99px !important;
     color: #FFFFFF !important; font-weight: 700 !important; padding: 0.45rem 1.1rem !important;
@@ -1120,293 +1127,166 @@ render_html(f"""
   [data-testid="stBaseButton-primary"]:hover, button[kind="primary"]:hover {{ background: #3D6529 !important; }}
   [data-testid="stBaseButton-primary"] *, button[kind="primary"] * {{ color: #FFFFFF !important; }}
 
-  [role="dialog"],
-  div:has(> [role="dialog"]),
-  [data-testid="stDialog"] [role="dialog"],
-  [data-testid="stDialog"] [role="dialog"] > div,
-  [data-testid="stModal"] [role="dialog"],
-  [data-testid="stModal"] [role="dialog"] > div,
+  [role="dialog"], div:has(> [role="dialog"]),
+  [data-testid="stDialog"] [role="dialog"], [data-testid="stDialog"] [role="dialog"] > div,
+  [data-testid="stModal"] [role="dialog"], [data-testid="stModal"] [role="dialog"] > div,
   div[data-baseweb="modal"] [role="dialog"] {{
-    background: {T['surface']} !important; background-color: {T['surface']} !important;
-    color: {T['ink']} !important; border: 1px solid {T['border']} !important; border-radius: 22px !important;
+    background: {surface} !important; background-color: {surface} !important;
+    color: {ink} !important; border: 1px solid {border} !important; border-radius: 22px !important;
   }}
-  [role="dialog"] *, div:has(> [role="dialog"]) *, [data-testid="stDialog"] *, [data-testid="stModal"] * {{ color: {T['ink']} !important; }}
+  [role="dialog"] *, div:has(> [role="dialog"]) *, [data-testid="stDialog"] *, [data-testid="stModal"] * {{ color: {ink} !important; }}
   [role="dialog"] [data-testid="stBaseButton-primary"] *, [role="dialog"] button[kind="primary"] * {{ color: #FFFFFF !important; }}
-  [role="dialog"] button[aria-label="Close"] svg,
-  [data-testid="stDialog"] button[aria-label="Close"] svg,
-  [data-testid="stModal"] button[aria-label="Close"] svg {{
-    color: {T['ink']} !important; fill: currentColor !important;
+  [role="dialog"] button[aria-label="Close"] svg, [data-testid="stDialog"] button[aria-label="Close"] svg, [data-testid="stModal"] button[aria-label="Close"] svg {{
+    color: {ink} !important; fill: currentColor !important;
   }}
-  div[data-baseweb="popover"],
-  div[data-baseweb="popover"] > div,
-  div[data-baseweb="popover"] > div > div,
-  [data-testid="stVirtualDropdown"],
-  [data-testid="stVirtualDropdown"] > div,
-  [data-testid="stSelectboxVirtualDropdown"],
-  [data-testid="stSelectboxVirtualDropdown"] > div,
+  div[data-baseweb="popover"], div[data-baseweb="popover"] > div, div[data-baseweb="popover"] > div > div,
+  [data-testid="stVirtualDropdown"], [data-testid="stVirtualDropdown"] > div,
+  [data-testid="stSelectboxVirtualDropdown"], [data-testid="stSelectboxVirtualDropdown"] > div,
   [data-testid="stSelectboxVirtualDropdown"] [role="listbox"],
-  div[data-baseweb="menu"],
-  ul[data-baseweb="menu"],
-  [role="listbox"],
-  [role="listbox"] > div,
-  [role="option"] {{
-    background: {T['surface']} !important; background-color: {T['surface']} !important;
-    color: {T['ink']} !important; border-color: {T['border']} !important;
+  div[data-baseweb="menu"], ul[data-baseweb="menu"], [role="listbox"], [role="listbox"] > div, [role="option"] {{
+    background: {surface} !important; background-color: {surface} !important; color: {ink} !important; border-color: {border} !important;
   }}
-  [data-testid="stSelectboxVirtualDropdown"] {{
-    border: 1px solid {T['border']} !important; border-radius: 12px !important; box-shadow: {T['shadow']} !important;
-  }}
-  div[data-baseweb="popover"] *, [data-testid="stSelectboxVirtualDropdown"] *,
-  [role="listbox"] *, [role="option"] *, div[data-baseweb="menu"] * {{
-    color: {T['ink']} !important;
-  }}
-  [role="option"]:hover, [role="option"][aria-selected="true"],
-  [role="option"][data-focused="true"], [role="option"][data-selected="true"],
-  [role="option"]:hover *, [role="option"][aria-selected="true"] *,
-  [role="option"][data-focused="true"] *, [role="option"][data-selected="true"] * {{
-    background: {T['accent_soft']} !important; background-color: {T['accent_soft']} !important; color: {T['ink']} !important;
+  [data-testid="stSelectboxVirtualDropdown"] {{ border: 1px solid {border} !important; border-radius: 12px !important; box-shadow: {shadow} !important; }}
+  div[data-baseweb="popover"] *, [data-testid="stSelectboxVirtualDropdown"] *, [role="listbox"] *, [role="option"] *, div[data-baseweb="menu"] * {{ color: {ink} !important; }}
+  [role="option"]:hover, [role="option"][aria-selected="true"], [role="option"][data-focused="true"], [role="option"][data-selected="true"],
+  [role="option"]:hover *, [role="option"][aria-selected="true"] *, [role="option"][data-focused="true"] *, [role="option"][data-selected="true"] * {{
+    background: {accent_soft} !important; background-color: {accent_soft} !important; color: {ink} !important;
   }}
 
-  /* Calendar & DatePicker Popover (Light & Dark Modes) */
-  [data-baseweb="calendar"], [data-baseweb="calendar"] > div,
-  [data-baseweb="datepicker"], [data-baseweb="datepicker"] > div,
+  /* Calendar & DatePicker Popover */
+  [data-baseweb="calendar"], [data-baseweb="calendar"] > div, [data-baseweb="datepicker"], [data-baseweb="datepicker"] > div,
   [data-baseweb="calendar-header"], [data-baseweb="month"], [data-baseweb="week"],
-  [data-baseweb="calendar"] [role="grid"], [data-baseweb="calendar"] [role="row"],
-  [data-baseweb="calendar"] [role="columnheader"], [data-baseweb="calendar"] [role="gridcell"] {{
+  [data-baseweb="calendar"] [role="grid"], [data-baseweb="calendar"] [role="row"], [data-baseweb="calendar"] [role="columnheader"], [data-baseweb="calendar"] [role="gridcell"] {{
     background: var(--surface) !important; background-color: var(--surface) !important; color: var(--ink) !important;
   }}
   [data-baseweb="calendar"] * {{ color: var(--ink) !important; }}
   [data-baseweb="calendar"] button {{ background: transparent !important; color: var(--ink) !important; }}
   [data-baseweb="calendar"] button svg {{ fill: var(--ink) !important; color: var(--ink) !important; }}
-  [data-baseweb="calendar"] [role="gridcell"] > div, [data-baseweb="calendar"] [data-baseweb="day"] {{
-    background: transparent !important; color: var(--ink) !important;
-  }}
-  [data-baseweb="calendar"] [role="gridcell"]:hover > div, [data-baseweb="calendar"] [data-baseweb="day"]:hover {{
-    background: var(--accent-soft) !important; background-color: var(--accent-soft) !important; color: var(--ink) !important;
-  }}
-  [data-baseweb="calendar"] [aria-selected="true"],
-  [data-baseweb="calendar"] [aria-selected="true"] > div,
-  [data-baseweb="calendar"] [aria-selected="true"] * {{
+  [data-baseweb="calendar"] [role="gridcell"] > div, [data-baseweb="calendar"] [data-baseweb="day"] {{ background: transparent !important; color: var(--ink) !important; }}
+  [data-baseweb="calendar"] [role="gridcell"]:hover > div, [data-baseweb="calendar"] [data-baseweb="day"]:hover {{ background: var(--accent-soft) !important; background-color: var(--accent-soft) !important; color: var(--ink) !important; }}
+  [data-baseweb="calendar"] [aria-selected="true"], [data-baseweb="calendar"] [aria-selected="true"] > div, [data-baseweb="calendar"] [aria-selected="true"] * {{
     background: var(--accent) !important; background-color: var(--accent) !important; color: #FFFFFF !important;
   }}
 
-  /* Theme-Safe Alerts (Info, Warning, Reset Session, Empty Period) */
+  /* Theme-Safe Alerts & High-Contrast Toast Pop-ups */
   [data-testid="stAlert"], [data-testid="stAlertContainer"], div[role="alert"], .stAlert {{
-    background: {T['alert_info_bg']} !important; background-color: {T['alert_info_bg']} !important;
-    color: var(--ink) !important; border: 1px solid var(--border) !important;
-    border-left: 4px solid var(--accent) !important; border-radius: 14px !important;
+    background: {alert_info_bg} !important; background-color: {alert_info_bg} !important;
+    color: var(--ink) !important; border: 1px solid var(--border) !important; border-left: 4px solid var(--accent) !important; border-radius: 14px !important;
   }}
-  [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]),
-  [data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) {{
-    background: {T['alert_warn_bg']} !important; background-color: {T['alert_warn_bg']} !important;
-    border-left-color: #D69838 !important;
+  [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]), [data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) {{
+    background: {alert_warn_bg} !important; background-color: {alert_warn_bg} !important; border-left-color: #D69838 !important;
   }}
-  [data-testid="stAlert"]:has([data-testid="stAlertContentError"]),
-  [data-testid="stAlertContainer"]:has([data-testid="stAlertContentError"]) {{
-    background: {T['alert_err_bg']} !important; background-color: {T['alert_err_bg']} !important;
-    border-left-color: #C45B4D !important;
+  [data-testid="stAlert"]:has([data-testid="stAlertContentError"]), [data-testid="stAlertContainer"]:has([data-testid="stAlertContentError"]) {{
+    background: {alert_err_bg} !important; background-color: {alert_err_bg} !important; border-left-color: #C45B4D !important;
   }}
-  [data-testid="stAlert"] *, [data-testid="stAlertContainer"] *, div[role="alert"] *, .stAlert * {{
-    color: var(--ink) !important;
-  }}
-  [data-testid="stAlert"] svg, div[role="alert"] svg {{
-    fill: var(--accent) !important; color: var(--accent) !important;
-  }}
-  [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) svg {{
-    fill: #D69838 !important; color: #D69838 !important;
-  }}
+  [data-testid="stAlert"] *, [data-testid="stAlertContainer"] *, div[role="alert"] *, .stAlert * {{ color: var(--ink) !important; }}
+  [data-testid="stAlert"] svg, div[role="alert"] svg {{ fill: var(--accent) !important; color: var(--accent) !important; }}
+  [data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) svg {{ fill: #D69838 !important; color: #D69838 !important; }}
 
-  /* High-Contrast Toast Pop-ups (Light & Dark Modes) */
   [data-testid="stToastContainer"] {{ z-index: 999999 !important; }}
   [data-testid="stToast"] {{
-    background: {T['surface']} !important; background-color: {T['surface']} !important;
-    color: {T['ink']} !important; border: 1.5px solid {T['accent']} !important;
-    border-radius: 16px !important; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28) !important;
+    background: {surface} !important; background-color: {surface} !important; color: {ink} !important;
+    border: 1.5px solid {accent} !important; border-radius: 16px !important; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28) !important;
   }}
   [data-testid="stToast"] > div, [data-testid="stToast"] [data-testid="stMarkdownContainer"],
-  [data-testid="stToast"] p, [data-testid="stToast"] span, [data-testid="stToast"] div {{
-    background: transparent !important; color: {T['ink']} !important; font-weight: 600 !important;
-  }}
-  [data-testid="stToast"] button svg {{ color: {T['muted']} !important; fill: {T['muted']} !important; }}
+  [data-testid="stToast"] p, [data-testid="stToast"] span, [data-testid="stToast"] div {{ background: transparent !important; color: {ink} !important; font-weight: 600 !important; }}
+  [data-testid="stToast"] button svg {{ color: {muted} !important; fill: {muted} !important; }}
 
-  [data-testid="stForm"], [data-testid="stExpander"] {{
-    background: var(--surface) !important; border: 1px solid var(--border) !important;
-    border-radius: 20px !important;
-  }}
-  [data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {{
-    background: transparent !important; color: var(--ink) !important;
-  }}
+  [data-testid="stForm"], [data-testid="stExpander"] {{ background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 20px !important; }}
+  [data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {{ background: transparent !important; color: var(--ink) !important; }}
 
-  [data-testid="stBaseButton-secondary"], button[kind="secondary"],
-  [data-testid="stDownloadButton"] button, [data-testid="stFormSubmitButton"] button {{
-    background: var(--surface) !important; border: 1px solid var(--border) !important;
-    border-radius: 99px !important; color: var(--ink) !important; font-weight: 600 !important;
-    box-shadow: 0 2px 8px rgba(24, 48, 30, 0.04) !important;
+  [data-testid="stBaseButton-secondary"], button[kind="secondary"], [data-testid="stDownloadButton"] button, [data-testid="stFormSubmitButton"] button {{
+    background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 99px !important;
+    color: var(--ink) !important; font-weight: 600 !important; box-shadow: 0 2px 8px rgba(24, 48, 30, 0.04) !important;
   }}
-  [data-testid="stBaseButton-secondary"]:hover, button[kind="secondary"]:hover,
-  [data-testid="stDownloadButton"] button:hover, [data-testid="stFormSubmitButton"] button:hover {{
+  [data-testid="stBaseButton-secondary"]:hover, button[kind="secondary"]:hover, [data-testid="stDownloadButton"] button:hover, [data-testid="stFormSubmitButton"] button:hover {{
     background: var(--accent-soft) !important; border-color: var(--accent) !important;
   }}
-  [data-testid="stBaseButton-secondary"] *, button[kind="secondary"] *,
-  [data-testid="stDownloadButton"] button *, [data-testid="stFormSubmitButton"] button * {{ color: var(--ink) !important; }}
+  [data-testid="stBaseButton-secondary"] *, button[kind="secondary"] *, [data-testid="stDownloadButton"] button *, [data-testid="stFormSubmitButton"] button * {{ color: var(--ink) !important; }}
 
-  /* Form inputs (React Aria + BaseWeb across main, forms, and dialogs) */
-  [data-testid="stSelectbox"] .react-aria-ComboBox [role="group"],
-  [data-testid="stTextInputRootElement"],
-  [data-testid="stDateInputField"],
-  [data-testid="stSelectbox"] [data-baseweb="select"] > div,
-  [data-testid="stDateInput"] [data-baseweb="input"],
-  [data-testid="stDateInput"] [data-baseweb="base-input"],
-  [data-testid="stTextInput"] [data-baseweb="input"],
-  [data-testid="stTextInput"] [data-baseweb="base-input"],
-  [data-testid="stNumberInput"] [data-baseweb="input"],
-  [data-testid="stNumberInput"] [data-baseweb="base-input"],
-  [data-baseweb="select"] > div,
-  [data-baseweb="input"],
-  [data-baseweb="base-input"] {{
-    background: {T['surface']} !important; background-color: {T['surface']} !important;
-    color: {T['ink']} !important; border: 1px solid {T['border']} !important; border-radius: 12px !important;
+  /* Form inputs (React Aria + BaseWeb) */
+  [data-testid="stSelectbox"] .react-aria-ComboBox [role="group"], [data-testid="stTextInputRootElement"], [data-testid="stDateInputField"],
+  [data-testid="stSelectbox"] [data-baseweb="select"] > div, [data-testid="stDateInput"] [data-baseweb="input"], [data-testid="stDateInput"] [data-baseweb="base-input"],
+  [data-testid="stTextInput"] [data-baseweb="input"], [data-testid="stTextInput"] [data-baseweb="base-input"],
+  [data-testid="stNumberInput"] [data-baseweb="input"], [data-testid="stNumberInput"] [data-baseweb="base-input"],
+  [data-baseweb="select"] > div, [data-baseweb="input"], [data-baseweb="base-input"] {{
+    background: {surface} !important; background-color: {surface} !important; color: {ink} !important; border: 1px solid {border} !important; border-radius: 12px !important;
   }}
-  [data-testid="stSelectbox"] .react-aria-ComboBox [role="group"] *,
-  [data-testid="stTextInputRootElement"] *,
-  [data-testid="stDateInputField"] *,
-  [data-testid="stNumberInputContainer"] *,
-  [data-testid="stNumberInputContainer"] input,
-  [data-baseweb="select"] > div *,
-  [data-baseweb="input"] input,
-  [data-baseweb="base-input"] input {{
-    background: transparent !important; background-color: transparent !important;
-    color: {T['ink']} !important; -webkit-text-fill-color: {T['ink']} !important; caret-color: {T['ink']} !important;
+  [data-testid="stSelectbox"] .react-aria-ComboBox [role="group"] *, [data-testid="stTextInputRootElement"] *, [data-testid="stDateInputField"] *,
+  [data-testid="stNumberInputContainer"] *, [data-testid="stNumberInputContainer"] input, [data-baseweb="select"] > div *, [data-baseweb="input"] input, [data-baseweb="base-input"] input {{
+    background: transparent !important; background-color: transparent !important; color: {ink} !important; -webkit-text-fill-color: {ink} !important; caret-color: {ink} !important;
   }}
-  [data-testid="stTextInputRootElement"] input::placeholder,
-  [data-testid="stSelectbox"] input::placeholder {{
-    color: {T['muted']} !important; -webkit-text-fill-color: {T['muted']} !important; opacity: 0.78 !important;
+  [data-testid="stTextInputRootElement"] input::placeholder, [data-testid="stSelectbox"] input::placeholder {{
+    color: {muted} !important; -webkit-text-fill-color: {muted} !important; opacity: 0.78 !important;
   }}
-  [data-testid="stSelectbox"] svg, [data-testid="stDateInput"] svg,
-  [data-baseweb="select"] svg, .stDateInput svg {{
-    color: {T['ink']} !important; fill: {T['ink']} !important;
-  }}
-  [data-testid="stNumberInputContainer"], .stNumberInput div[data-baseweb="input"] {{
-    background: var(--surface) !important; border: 1px solid var(--border) !important;
-    border-radius: 12px !important;
-  }}
-  [data-testid="stNumberInputStepDown"], [data-testid="stNumberInputStepUp"], .stNumberInput button {{
-    background: var(--soft) !important; color: var(--ink) !important; border-color: var(--border) !important;
-  }}
-  [data-testid="stNumberInputStepDown"] svg, [data-testid="stNumberInputStepUp"] svg, .stNumberInput button svg {{
-    fill: var(--ink) !important; color: var(--ink) !important;
-  }}
+  [data-testid="stSelectbox"] svg, [data-testid="stDateInput"] svg, [data-baseweb="select"] svg, .stDateInput svg {{ color: {ink} !important; fill: {ink} !important; }}
+  [data-testid="stNumberInputContainer"], .stNumberInput div[data-baseweb="input"] {{ background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 12px !important; }}
+  [data-testid="stNumberInputStepDown"], [data-testid="stNumberInputStepUp"], .stNumberInput button {{ background: var(--soft) !important; color: var(--ink) !important; border-color: var(--border) !important; }}
+  [data-testid="stNumberInputStepDown"] svg, [data-testid="stNumberInputStepUp"] svg, .stNumberInput button svg {{ fill: var(--ink) !important; color: var(--ink) !important; }}
 
   .asset-3d {{ transition: transform 0.25s cubic-bezier(.22,1,.36,1), filter 0.25s ease; }}
-
-  /* Seamless Equal-Height Hero Panorama Grid (replaces boxed containers!) */
-  .studio-grid {{
-    display: grid; grid-template-columns: 1fr 1.38fr 1fr; gap: 18px;
-    align-items: stretch; margin: 0.4rem 0 1.1rem 0;
-  }}
+  .studio-grid {{ display: grid; grid-template-columns: 1fr 1.38fr 1fr; gap: 18px; align-items: stretch; margin: 0.4rem 0 1.1rem 0; }}
   .studio-panel {{
-    background: var(--surface); border: 1px solid var(--border); border-radius: 22px;
-    padding: 1.25rem 1.35rem; box-shadow: var(--shadow);
-    display: flex; flex-direction: column; justify-content: space-between;
-    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 1.25rem 1.35rem; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.22s ease, box-shadow 0.22s ease;
   }}
   .studio-panel:hover {{ transform: translateY(-3px); }}
-  .eyebrow {{
-    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.9px; text-transform: uppercase;
-    color: var(--accent) !important; margin-bottom: 0.25rem;
-  }}
+  .eyebrow {{ font-size: 0.72rem; font-weight: 800; letter-spacing: 0.9px; text-transform: uppercase; color: var(--accent) !important; margin-bottom: 0.25rem; }}
   .soft-bar {{ width: 100%; height: 7px; background: var(--soft); border-radius: 99px; overflow: hidden; margin-top: 0.4rem; }}
   .soft-fill {{ height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }}
 
-  /* Open Top Header & KPI Cards without double borders */
   .nav-head {{ display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 0.35rem; }}
-  .streak-tag {{
-    background: {T['gold_bg']}; color: {T['gold_ink']} !important; font-size: 0.78rem;
-    font-weight: 800; padding: 0.28rem 0.78rem; border-radius: 99px; white-space: nowrap;
-  }}
-  [data-testid="stMetric"] {{
-    background: var(--surface) !important; border: 1px solid var(--border) !important;
-    border-radius: 20px !important; padding: 1.05rem 1.15rem !important; box-shadow: var(--shadow) !important;
-  }}
+  .streak-tag {{ background: {gold_bg}; color: {gold_ink} !important; font-size: 0.78rem; font-weight: 800; padding: 0.28rem 0.78rem; border-radius: 99px; white-space: nowrap; }}
+  [data-testid="stMetric"] {{ background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 20px !important; padding: 1.05rem 1.15rem !important; box-shadow: var(--shadow) !important; }}
   [data-testid="stMetricValue"] * {{ color: var(--ink) !important; }}
   [data-testid="stMetricLabel"] * {{ color: var(--muted) !important; font-weight: 700 !important; font-size: 0.84rem !important; }}
-  [data-testid="stMetricDelta"] {{
-    background: var(--accent-soft) !important; border-radius: 99px !important;
-    padding: 0.14rem 0.58rem !important; width: fit-content !important;
-  }}
-  [data-testid="stMetricDelta"] div, [data-testid="stMetricDelta"] span, [data-testid="stMetricDelta"] svg {{
-    color: var(--accent) !important;
-  }}
+  [data-testid="stMetricDelta"] {{ background: var(--accent-soft) !important; border-radius: 99px !important; padding: 0.14rem 0.58rem !important; width: fit-content !important; }}
+  [data-testid="stMetricDelta"] div, [data-testid="stMetricDelta"] span, [data-testid="stMetricDelta"] svg {{ color: var(--accent) !important; }}
 
-  /* Soft organic strips & tiles (Zero jagged boxes) */
-  .soft-strip {{
-    background: var(--soft); border-radius: 16px; padding: 0.72rem 1.15rem; margin: 0.65rem 0 1rem 0;
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
-  }}
-  .st-key-optimizer_card {{
-    background: var(--surface) !important; border: 1px solid var(--border) !important;
-    border-radius: 22px !important; padding: 0.45rem 0.65rem !important; box-shadow: var(--shadow) !important;
-  }}
-  .opt-flow {{
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-  }}
-  .opt-stage {{
-    flex: 1 1 190px; background: var(--soft); border-radius: 16px; padding: 0.8rem 1rem;
-  }}
+  .soft-strip {{ background: var(--soft); border-radius: 16px; padding: 0.72rem 1.15rem; margin: 0.65rem 0 1rem 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }}
+  .st-key-optimizer_card {{ background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 22px !important; padding: 0.45rem 0.65rem !important; box-shadow: var(--shadow) !important; }}
+  .opt-flow {{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }}
+  .opt-stage {{ flex: 1 1 190px; background: var(--soft); border-radius: 16px; padding: 0.8rem 1rem; }}
   .chip-tile {{
-    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
-    padding: 0.7rem 0.35rem; text-align: center; height: 176px; margin-bottom: 0.55rem;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    box-shadow: var(--shadow); transition: transform 0.22s ease, border-color 0.22s ease;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 0.7rem 0.35rem; text-align: center; height: 176px; margin-bottom: 0.55rem;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: var(--shadow); transition: transform 0.22s ease, border-color 0.22s ease;
   }}
   .chip-tile:hover {{ transform: translateY(-4px); border-color: var(--accent); }}
   .chip-tile:hover .asset-3d {{ transform: scale(1.1) rotate(-4deg); }}
-  .swap-card {{
-    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
-    padding: 1rem 1.1rem; box-shadow: var(--shadow); margin-bottom: 0.45rem;
-  }}
-  .badge-on {{
-    background: #4E7E36 !important; border-radius: 20px; padding: 1.15rem;
-    color: #FFFFFF !important; margin-bottom: 0.85rem; box-shadow: 0 8px 24px rgba(78, 126, 54, 0.24);
-    transition: transform 0.22s ease;
-  }}
+  .swap-card {{ background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1rem 1.1rem; box-shadow: var(--shadow); margin-bottom: 0.45rem; }}
+  .badge-on {{ background: #4E7E36 !important; border-radius: 20px; padding: 1.15rem; color: #FFFFFF !important; margin-bottom: 0.85rem; box-shadow: 0 8px 24px rgba(78, 126, 54, 0.24); transition: transform 0.22s ease; }}
   .badge-on:hover {{ transform: translateY(-3px); }}
   .badge-on *, .badge-on h3, .badge-on p {{ color: #FFFFFF !important; }}
-  .badge-off {{
-    background: var(--soft) !important; border: 1px dashed var(--border) !important;
-    border-radius: 20px; padding: 1.15rem; opacity: 0.72; margin-bottom: 0.85rem;
-  }}
-  .avatar-circle {{
-    width: 88px; height: 88px; border-radius: 50%; border: 2.5px solid var(--accent);
-    background: var(--surface); display: flex; align-items: center; justify-content: center;
-    margin: 0 auto; overflow: hidden; box-shadow: var(--shadow);
-  }}
+  .badge-off {{ background: var(--soft) !important; border: 1px dashed var(--border) !important; border-radius: 20px; padding: 1.15rem; opacity: 0.72; margin-bottom: 0.85rem; }}
+  .avatar-circle {{ width: 88px; height: 88px; border-radius: 50%; border: 2.5px solid var(--accent); background: var(--surface); display: flex; align-items: center; justify-content: center; margin: 0 auto; overflow: hidden; box-shadow: var(--shadow); }}
 
-  /* Editorial Botanical Section Dividers (Replaces plain HR dividers) */
   .sec-wrap {{ margin: 1.55rem 0 0.75rem 0; }}
   .sec-divider {{ display: flex; align-items: center; gap: 12px; opacity: 0.78; }}
-  .sec-line {{
-    flex: 1; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0.45;
-  }}
-  .sec-ornament {{
-    color: var(--accent) !important; background: var(--soft); border: 1px solid var(--border);
-    padding: 5px 10px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center;
-  }}
-  .sec-title {{
-    margin: 0.12rem 0 0 0 !important; font-size: 1.4rem !important; font-weight: 800 !important;
-    letter-spacing: -0.35px; color: var(--ink) !important;
-  }}
+  .sec-line {{ flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.45; }}
+  .sec-ornament {{ color: var(--accent) !important; background: var(--soft); border: 1px solid var(--border); padding: 5px 10px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; }}
+  .sec-title {{ margin: 0.12rem 0 0 0 !important; font-size: 1.4rem !important; font-weight: 800 !important; letter-spacing: -0.35px; color: var(--ink) !important; }}
   .sec-sub {{ margin: 0.18rem 0 0 0 !important; font-size: 0.86rem; color: var(--muted) !important; }}
 
-  /* Responsive Phone & Tablet Breakpoints */
-  @media (max-width: 920px) {{
-    .studio-grid {{ grid-template-columns: 1fr !important; }}
-    .nav-head {{ flex-direction: column; align-items: flex-start; }}
-  }}
+  @media (max-width: 920px) {{ .studio-grid {{ grid-template-columns: 1fr !important; }} .nav-head {{ flex-direction: column; align-items: flex-start; }} }}
 </style>
-""")
+""").format(**tk).strip()
+
+is_dark = st.session_state.dark_theme
+T = get_theme_tokens(is_dark)
+st.markdown(get_app_css(is_dark), unsafe_allow_html=True)
+
+@st.fragment
+def _render_offset_simulator(tokens: dict):
+    """Isolated interactive simulator so slider adjustments respond instantaneously without full-app reruns."""
+    sc1, sc2 = st.columns([1.2, 1.0])
+    sim_d = sc1.slider("Simulate Dollar Spend ($):", 5.0, 500.0, 75.0, 5.0)
+    sim_c = sc1.selectbox("Simulate Category:", list(CATEGORIES.keys()), key="sim_cat")
+    sim_e = sc1.checkbox("Certified Circular / Ethical?", True, key="sim_eth")
+    s_co2 = calculate_carbon(sim_d, sim_c, sim_e)
+    sm, sch, st_m = get_equivalency(s_co2)
+    render_html(f"<div style='background:{tokens['soft']}; border-radius:16px; padding:1rem;'><div class='eyebrow'>Estimated CO₂</div><div style='font-size:1.75rem; font-weight:800; color:{tokens['accent']};'>{s_co2:.2f} kg</div><div style='font-size:0.84rem; margin-top:0.35rem;'>~{sm:,} car miles • ~{sch:,} phone charges • ~{st_m} tree-mo</div></div>")
+    if sc2.button("+ Add Simulated Item to Tracker", width="stretch"):
+        _log_purchase_event(f"Simulated: {sim_c.split()[0]} (${sim_d:.0f})", sim_c, "Simulation Tool", sim_d, date.today(), sim_e)
 
 @st.dialog("Log a New Planned Purchase")
 def open_main_log_dialog():
@@ -1426,11 +1306,7 @@ def open_main_log_dialog():
         if not m_item.strip():
             st.error("Please enter an item description before recording.")
         else:
-            new_it, mood, msg, art = add_purchase(st.session_state.purchases, m_item, m_cat, m_brand, m_price, m_date, m_eth, st.session_state.user_mascot)
-            st.session_state.last_logged = new_it
-            st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
-            set_purchase_toast(new_it["item"], new_it["carbon_kg"], new_it["is_ethical"])
-            st.rerun()
+            _log_purchase_event(m_item, m_cat, m_brand, m_price, m_date, m_eth)
 
 # ------------------------------------------------------------------------------
 # SCREEN 1: WELCOME & ONBOARDING (Ecovista-Inspired Landscape + Man & Turtle)
@@ -1623,8 +1499,7 @@ else:
         capped_pct = min(100, int(round(used_pct)))
 
         active_art = st.session_state.recent_art or "preview"
-        art_img = draw_vector_art(active_art)
-        art_uri = image_to_data_uri(art_img)
+        art_uri = get_turtle_art_data_uri(active_art)
         art_titles = {"preview": "Seed Emblem (Log eco buy)", "leaf": "Botanical Eco Leaf", "footprint": "Earth Step Medallion", "traveler": "Mindful Walker & Turtle", "badge": "Championship Rosette"}
         mission_lbl = "Daily Eco Mission Complete" if eth_cnt >= 1 else "Goal: Log 1 circular purchase"
 
@@ -1680,7 +1555,7 @@ else:
 
         if st.session_state.recent_art:
             _, dl_col = st.columns([2.2, 1.0])
-            dl_col.download_button("Download Earned Turtle Art (.png)", image_to_png_bytes(art_img), f"shopimpact_{active_art}.png", "image/png", width="stretch")
+            dl_col.download_button("Download Earned Turtle Art (.png)", _render_turtle_art_png_cached(active_art), f"shopimpact_{active_art}.png", "image/png", width="stretch")
 
         # 4 KPI CARDS
         k1, k2, k3, k4 = st.columns(4)
@@ -1712,12 +1587,7 @@ else:
                 </div>
                 """)
                 if st.button("+ Log", key=f"chip_btn_{i}", width="stretch"):
-                    new_it, mood, msg, art = add_purchase(st.session_state.purchases, qp["name"], qp["category"], qp["brand"], qp["price"], date.today(), qp["is_ethical"], st.session_state.user_mascot)
-                    st.session_state.last_logged = new_it
-                    st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
-                    set_purchase_toast(new_it["item"], new_it["carbon_kg"], new_it["is_ethical"])
-                    if mood == "ecstatic": st.balloons()
-                    st.rerun()
+                    _log_purchase_event(qp["name"], qp["category"], qp["brand"], qp["price"], date.today(), qp["is_ethical"], celebrate=("ecstatic",))
 
         # CUSTOM LOGGING FORM
         render_section_header("Custom Purchase Log", "Log a Custom Planned Purchase", "Record any custom purchase into your active list; ethical picks apply a 30% CO₂ reduction.")
@@ -1737,26 +1607,10 @@ else:
                 if not item_name.strip():
                     st.error("Please enter an item description before recording.")
                 else:
-                    new_it, mood, msg, art = add_purchase(st.session_state.purchases, item_name, cat_choice, brand_val, price_val, date_val, is_eth, st.session_state.user_mascot)
-                    st.session_state.last_logged = new_it
-                    st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = mood, msg, art
-                    set_purchase_toast(new_it["item"], new_it["carbon_kg"], new_it["is_ethical"])
-                    if mood in ["ecstatic", "happy"]: st.balloons()
-                    st.rerun()
+                    _log_purchase_event(item_name, cat_choice, brand_val, price_val, date_val, is_eth, celebrate=("ecstatic", "happy"))
 
         with st.expander("Pre-Purchase Carbon & Tree Offset Simulator", expanded=False):
-            sc1, sc2 = st.columns([1.2, 1.0])
-            sim_d = sc1.slider("Simulate Dollar Spend ($):", 5.0, 500.0, 75.0, 5.0)
-            sim_c = sc1.selectbox("Simulate Category:", list(CATEGORIES.keys()), key="sim_cat")
-            sim_e = sc1.checkbox("Certified Circular / Ethical?", True, key="sim_eth")
-            s_co2 = calculate_carbon(sim_d, sim_c, sim_e)
-            sm, sch, st_m = get_equivalency(s_co2)
-            render_html(f"<div style='background:{T['soft']}; border-radius:16px; padding:1rem;'><div class='eyebrow'>Estimated CO₂</div><div style='font-size:1.75rem; font-weight:800; color:{T['accent']};'>{s_co2:.2f} kg</div><div style='font-size:0.84rem; margin-top:0.35rem;'>~{sm:,} car miles • ~{sch:,} phone charges • ~{st_m} tree-mo</div></div>")
-            if sc2.button("+ Add Simulated Item to Tracker", width="stretch"):
-                si, mood, msg, art = add_purchase(st.session_state.purchases, f"Simulated: {sim_c.split()[0]} (${sim_d:.0f})", sim_c, "Simulation Tool", sim_d, date.today(), sim_e, st.session_state.user_mascot)
-                st.session_state.last_logged, st.session_state.mascot_mood, st.session_state.mascot_message, st.session_state.recent_art = si, mood, msg, art
-                set_purchase_toast(si["item"], si["carbon_kg"], si["is_ethical"])
-                st.rerun()
+            _render_offset_simulator(T)
 
         # GREENER SWAPS
         if st.session_state.last_logged:
@@ -1922,7 +1776,7 @@ else:
         ]
         for col_v, (ak, title_a, desc_a) in zip(v_cols, art_specs):
             unlocked_art = ak in earned_arts
-            img_u = image_to_data_uri(draw_vector_art(ak if unlocked_art else "preview"))
+            img_u = get_turtle_art_data_uri(ak if unlocked_art else "preview")
             col_v.markdown(f"<div class='studio-panel' style='align-items:center; text-align:center; padding:1rem;'><img src='{img_u}' style='width:140px; height:140px;'/><div style='font-weight:800; font-size:0.86rem; margin-top:0.3rem;'>{title_a}</div><div style='font-size:0.76rem; color:{T['muted']};'>{'Unlocked • ' if unlocked_art else 'Locked • '}{desc_a}</div></div>", unsafe_allow_html=True)
 
 render_html(f"<div style='text-align:center; color:{T['muted']}; font-size:0.8rem; padding:1.4rem 0 0.6rem 0;'><strong>ShopImpact Conscious Shopping Studio</strong> • IDAI 102 • Candidate: <strong>Parth Pravinbhai Gajera</strong> (1000544)</div>")
