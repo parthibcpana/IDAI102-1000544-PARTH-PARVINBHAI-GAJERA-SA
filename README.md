@@ -282,32 +282,49 @@ Dual native Streamlit themes configured inside [`.streamlit/config.toml`](.strea
 - **Ecovista Botanical Light (`[theme.light]`):** `#F5F9F3` meadow cream backdrop, `#FFFFFF` elevated cards, `#13261B` deep pine ink, `#4E7E36` olive-moss primary buttons, `#D69838` ochre, `#C45B4D` terracotta.
 - **Forest Dusk Dark (`[theme.dark]`):** `#131C17` matte forest-slate backdrop, `#1C2921` card surfaces, `#ECF3EA` crisp pale ink, `#6CA452` sage accent, synced automatically between the sidebar toggle and Streamlit's `⋮` (`System / Light / Dark`) menu.
 
-### Live App Screenshots
+### Live App Showcase & Clickable Gallery
 
-<div align="center">
-<img src="assets/screenshots/onboarding_v3.png" alt="Screen 1: Ecovista Botanical Welcome Hero and Onboarding" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 1 (Welcome & Onboarding): Custom animated SVG botanical landscape beside the profile gateway and live mascot preview.</em></p>
-</div>
+<p align="center">
+  <a href="https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/">
+    <img src="assets/screenshots/studio_tour.gif" alt="Animated 5-screen tour of ShopImpact across Onboarding, Light Mode, Forest Dusk Dark Mode, Analytics, and Wall of Badges" width="840"/>
+  </a><br/>
+  <em>Animated Walkthrough (5 Screens): Onboarding Horizon -> Botanical Light Studio -> Forest Dusk Dark Mode -> Analytics &amp; Ledger -> Badges &amp; Turtle Vault.</em>
+</p>
 
-<div align="center">
-<img src="assets/screenshots/dashboard_v5.png" alt="Screen 2A: Botanical Light Studio Dashboard" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 2A (Botanical Light Studio): Equal-height 3-card Hero Studio, KPI cards, and uniform 3D Quick-Log tiles.</em></p>
-</div>
-
-<div align="center">
-<img src="assets/screenshots/dashboard_dark_v3.png" alt="Screen 2B: Forest Dusk Dark Mode Dashboard" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 2B (Forest Dusk Dark Mode): Matte forest-slate theme with calibrated contrast across dropdowns, date pickers, alerts, toasts, and charts.</em></p>
-</div>
-
-<div align="center">
-<img src="assets/screenshots/analytics_v3.png" alt="Screen 2C: What-If Carbon Optimizer, Altair Charts, and Progress Ledger" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 2C (Interactive Analytics & Optimizer): What-If Carbon Optimizer swap banner, Altair breakdown charts, and searchable Progress Ledger.</em></p>
-</div>
-
-<div align="center">
-<img src="assets/screenshots/wall_of_badges_v4.png" alt="Screen 3: Wall of Badges and 4-Piece Procedural Turtle Art Vault" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>Screen 3 (Wall of Badges & Procedural Turtle Art Vault): Unlocked milestone cards above the 4-piece HeadlessTurtle Vault.</em></p>
-</div>
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="assets/screenshots/onboarding_v3.png">
+        <img src="assets/screenshots/onboarding_v3.png" alt="Screen 1: Botanical Welcome Hero and Onboarding" width="420"/>
+      </a><br/>
+      <strong>1. Welcome &amp; Onboarding</strong><br/>
+      <sub>Animated SVG landscape, companion selector &amp; budget target (click to zoom)</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="assets/screenshots/dashboard_v5.png">
+        <img src="assets/screenshots/dashboard_v5.png" alt="Screen 2A: Botanical Light Studio Dashboard" width="420"/>
+      </a><br/>
+      <strong>2. Botanical Light Studio</strong><br/>
+      <sub>Equal-height 3-card hero, KPI metrics &amp; 3D Quick-Log chips (click to zoom)</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <a href="assets/screenshots/dashboard_dark_v3.png">
+        <img src="assets/screenshots/dashboard_dark_v3.png" alt="Screen 2B: Forest Dusk Dark Mode Dashboard" width="420"/>
+      </a><br/>
+      <strong>3. Forest Dusk Dark Mode</strong><br/>
+      <sub>Adaptive dark contrast across menus, calendars, alerts &amp; toasts (click to zoom)</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="assets/screenshots/wall_of_badges_v4.png">
+        <img src="assets/screenshots/wall_of_badges_v4.png" alt="Screen 3: Wall of Badges and 4-Piece Procedural Turtle Art Vault" width="420"/>
+      </a><br/>
+      <strong>4. Wall of Badges &amp; Turtle Vault</strong><br/>
+      <sub>Milestone cards above the 4-piece HeadlessTurtle gallery (click to zoom)</sub>
+    </td>
+  </tr>
+</table>
 
 <p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
 
@@ -328,12 +345,26 @@ As suggested in the brief, I tested ShopImpact by acting as a first-time user an
 - **Are badges awarded correctly?** Yes. Earned badges unlock at exact thresholds while *Low Impact Shopper* stays locked until carbon intensity falls below `0.25 kg/$`.
 - **Does Turtle drawing appear at the right time?** Yes. Eco Leaf, Earth Step Medallion, Mindful Man & Turtle, and Championship Rosette unlock and export cleanly as `.png` files.
 
-### Proof of tests (3 sample screenshots collage)
+### Proof of tests (Clickable Verification Captures)
 
-<div align="center">
-<img src="assets/screenshots/test_proof_collage_v4.png" alt="Collage of 3 test screenshots showing Botanical Light Studio, 12-purchase Altair analytics, and Wall of Badges" width="900" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
-<p><em>3-Panel Test Proof Collage: (1) Botanical Light Hero, Biosphere & Rosette reward; (2) 12-purchase mix with What-If Optimizer, Altair charts & ledger; (3) Wall of Badges & Turtle Art Vault.</em></p>
-</div>
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="assets/screenshots/analytics_v3.png">
+        <img src="assets/screenshots/analytics_v3.png" alt="12-purchase analytics test with What-If Carbon Optimizer, Altair charts, and searchable Progress Ledger" width="420"/>
+      </a><br/>
+      <strong>12-Purchase Mix, Optimizer &amp; Ledger</strong><br/>
+      <sub>Altair category/share charts, 1-click circular swap &amp; CSV/MD ledger (click to zoom)</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="assets/screenshots/wall_of_badges_v4.png">
+        <img src="assets/screenshots/wall_of_badges_v4.png" alt="Unlocked milestone badges and 4-piece HeadlessTurtle Vault verified after multi-purchase run" width="420"/>
+      </a><br/>
+      <strong>Verified Badges &amp; HeadlessTurtle Vault</strong><br/>
+      <sub>4 of 5 milestones unlocked at thresholds with downloadable `.png` art (click to zoom)</sub>
+    </td>
+  </tr>
+</table>
 
 ### Feedback & refinements we made
 Testing on desktop browsers, Streamlit Community Cloud, and narrow mobile viewports uncovered 6 concrete issues we resolved:
