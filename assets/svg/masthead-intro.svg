@@ -1,90 +1,87 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 340" width="960" height="340" role="img" aria-label="ShopImpact Carbon Ledger and Botanical Engine Overview">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" width="960" height="320" role="img" aria-label="ShopImpact Conscious Shopping Overview">
   <defs>
-    <pattern id="bp-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#6CA452" stroke-width="0.6" stroke-opacity="0.08"/>
-    </pattern>
-    <clipPath id="panel-clip">
-      <rect x="0" y="0" width="960" height="340" rx="14"/>
+    <linearGradient id="paper-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FAFDF7"/>
+      <stop offset="100%" stop-color="#EAF3E5"/>
+    </linearGradient>
+    <linearGradient id="hill-soft" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#D9EAC8" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#B9D9A4" stop-opacity="0.55"/>
+    </linearGradient>
+    <clipPath id="card-round">
+      <rect width="960" height="320" rx="18"/>
     </clipPath>
   </defs>
   <style>
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .serif { font-family: Georgia, "Times New Roman", serif; }
     .sans { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    @keyframes dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-    @keyframes bar-grow-a { 0%, 8% { transform: scaleX(0.08); } 35%, 88% { transform: scaleX(1); } 100% { transform: scaleX(0.08); } }
-    @keyframes bar-grow-b { 0%, 14% { transform: scaleX(0.08); } 42%, 88% { transform: scaleX(1); } 100% { transform: scaleX(0.08); } }
-    @keyframes bar-grow-c { 0%, 20% { transform: scaleX(0.15); } 48%, 88% { transform: scaleX(1); } 100% { transform: scaleX(0.15); } }
-    @keyframes stem-draw { 0% { stroke-dashoffset: 320; } 55%, 88% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -320; } }
-    @keyframes node-float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-4px); } }
-    .pulse-dot { animation: dot-pulse 2.4s ease-in-out infinite; }
-    .bar-a { transform-box: fill-box; transform-origin: left center; animation: bar-grow-a 9s cubic-bezier(.22,1,.36,1) infinite; }
-    .bar-b { transform-box: fill-box; transform-origin: left center; animation: bar-grow-b 9s cubic-bezier(.22,1,.36,1) infinite; }
-    .bar-c { transform-box: fill-box; transform-origin: left center; animation: bar-grow-c 9s cubic-bezier(.22,1,.36,1) infinite; }
-    .stem-path { stroke-dasharray: 320; animation: stem-draw 8s ease-in-out infinite; }
-    .seed-orbit { animation: node-float 4.2s ease-in-out infinite; }
+    @keyframes leaf-sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(3deg); } }
+    @keyframes bar-a { 0%, 10% { transform: scaleX(0.12); } 40%, 90% { transform: scaleX(1); } 100% { transform: scaleX(0.12); } }
+    @keyframes bar-b { 0%, 16% { transform: scaleX(0.2); } 48%, 90% { transform: scaleX(1); } 100% { transform: scaleX(0.2); } }
+    @keyframes rise { 0% { stroke-dashoffset: 180; } 55%, 92% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 180; } }
+    .sway { transform-box: fill-box; transform-origin: bottom center; animation: leaf-sway 5s ease-in-out infinite; }
+    .ba { transform-box: fill-box; transform-origin: left center; animation: bar-a 8s cubic-bezier(.22,1,.36,1) infinite; }
+    .bb { transform-box: fill-box; transform-origin: left center; animation: bar-b 8s cubic-bezier(.22,1,.36,1) infinite; }
+    .vine { stroke-dasharray: 180; animation: rise 7s ease-in-out infinite; }
   </style>
 
-  <g clip-path="url(#panel-clip)">
-    <rect width="960" height="340" fill="#111914"/>
-    <rect width="960" height="340" fill="url(#bp-grid)"/>
+  <g clip-path="url(#card-round)">
+    <rect width="960" height="320" fill="url(#paper-bg)"/>
 
-    <!-- Top telemetry index rail -->
-    <line x1="28" y1="44" x2="932" y2="44" stroke="#284031" stroke-width="1"/>
-    <circle class="pulse-dot" cx="38" cy="27" r="4" fill="#6CA452"/>
-    <text x="50" y="31" class="mono" font-size="11" fill="#A3B9A9" letter-spacing="1.2">IDAI 102 // SUMMATIVE ASSESSMENT // SESSION ENGINE</text>
-    <text x="928" y="31" text-anchor="end" class="mono" font-size="11" fill="#6CA452" letter-spacing="1.1">PYTHON + STREAMLIT + HEADLESS TURTLE</text>
+    <!-- Soft organic botanical hills on bottom margin -->
+    <path d="M 0 278 Q 250 245 520 272 T 960 228 L 960 320 L 0 320 Z" fill="url(#hill-soft)"/>
+    <path d="M 460 320 Q 680 250 960 264 L 960 320 Z" fill="#C9E1BA" opacity="0.5"/>
 
-    <!-- Left narrative thesis column -->
-    <text x="34" y="84" class="mono" font-size="11" font-weight="700" fill="#8DC06F" letter-spacing="1.8">01 / WHY THIS EXISTS</text>
-    <text x="34" y="122" class="sans" font-size="29" font-weight="800" fill="#ECF3EA" letter-spacing="-0.6">Receipts count price tags.</text>
-    <text x="34" y="156" class="sans" font-size="29" font-weight="800" fill="#8DC06F" letter-spacing="-0.6">Never atmospheric cost.</text>
+    <!-- Subtle top hairline -->
+    <circle cx="44" cy="40" r="4" fill="#4E7E36"/>
+    <text x="58" y="44" class="sans" font-size="11.5" font-weight="700" fill="#4E7E36" letter-spacing="1.8">CONSCIOUS SHOPPING COMPANION</text>
+    <text x="916" y="44" text-anchor="end" class="sans" font-size="11.5" font-weight="600" fill="#5D7463">Python &amp; Streamlit Studio</text>
+    <line x1="40" y1="62" x2="920" y2="62" stroke="#D3E2CB" stroke-width="1"/>
 
-    <text x="34" y="194" class="sans" font-size="13.5" fill="#B7CCBC">ShopImpact logs everyday purchases in Python session memory,</text>
-    <text x="34" y="214" class="sans" font-size="13.5" fill="#B7CCBC">computes live kg CO2e intensity and circular 30% reductions,</text>
-    <text x="34" y="234" class="sans" font-size="13.5" fill="#B7CCBC">surfaces greener brand swaps, and rewards habits with math-drawn art.</text>
+    <!-- Left Editorial Narrative -->
+    <text x="40" y="106" class="serif" font-size="30" font-weight="700" fill="#13261B">Every price tag tells half the story.</text>
+    <text x="40" y="142" class="serif" font-size="30" font-weight="700" fill="#4E7E36">ShopImpact reveals the carbon cost.</text>
 
-    <!-- Equation pill -->
-    <rect x="34" y="264" width="490" height="44" rx="8" fill="#17231C" stroke="#2B4434" stroke-width="1"/>
-    <text x="48" y="290" class="mono" font-size="12" fill="#ECF3EA">
-      co2_kg = price * multiplier * <tspan fill="#8DC06F">0.70 if circular else 1.00</tspan>
-    </text>
+    <text x="40" y="182" class="sans" font-size="14" fill="#3D5544">Track the hidden CO₂ footprint behind clothing, food, and tech in real time,</text>
+    <text x="40" y="203" class="sans" font-size="14" fill="#3D5544">discover practical circular brand swaps, and grow botanical Turtle art with</text>
+    <text x="40" y="224" class="sans" font-size="14" fill="#3D5544">every mindful habit inside a calm, private workspace.</text>
 
-    <!-- Right live metric & mathematical botanical trace module -->
-    <rect x="562" y="64" width="368" height="244" rx="10" fill="#16221B" stroke="#2B4434" stroke-width="1"/>
-    <text x="586" y="88" class="mono" font-size="10.5" fill="#A3B9A9" letter-spacing="1.2">MULTIPLIER TELEMETRY (0.45 KG/$ BASELINE)</text>
-    <line x1="586" y1="98" x2="906" y2="98" stroke="#24382C" stroke-width="1"/>
+    <!-- Soft warm pills -->
+    <g font-size="11.5" font-weight="600" class="sans">
+      <rect x="40" y="254" width="112" height="28" rx="14" fill="#FFFFFF" stroke="#CFE0C6"/>
+      <text x="96" y="272" text-anchor="middle" fill="#294832">9 Categories</text>
 
-    <!-- Bar 1: Leather -->
-    <text x="586" y="120" class="sans" font-size="12" font-weight="600" fill="#ECF3EA">Leather Footwear ($130 x 0.65)</text>
-    <text x="906" y="120" text-anchor="end" class="mono" font-size="12" font-weight="700" fill="#E07D70">84.50 kg</text>
-    <rect x="586" y="127" width="320" height="8" rx="4" fill="#1F2E25"/>
-    <rect class="bar-a" x="586" y="127" width="246" height="8" rx="4" fill="#C45B4D"/>
+      <rect x="162" y="254" width="142" height="28" rx="14" fill="#DCEBD4" stroke="#BBD6AE"/>
+      <text x="233" y="272" text-anchor="middle" fill="#2A5120">30% Circular Credit</text>
 
-    <!-- Bar 2: Fast Fashion -->
-    <text x="586" y="158" class="sans" font-size="12" font-weight="600" fill="#ECF3EA">Fast-Fashion Apparel ($55 x 0.42)</text>
-    <text x="906" y="158" text-anchor="end" class="mono" font-size="12" font-weight="700" fill="#F2CA6B">23.10 kg</text>
-    <rect x="586" y="165" width="320" height="8" rx="4" fill="#1F2E25"/>
-    <rect class="bar-b" x="586" y="165" width="112" height="8" rx="4" fill="#D69838"/>
-
-    <!-- Bar 3: Circular Thrift -->
-    <text x="586" y="196" class="sans" font-size="12" font-weight="600" fill="#ECF3EA">Second-Hand Denim ($32 x 0.05 x 0.70)</text>
-    <text x="906" y="196" text-anchor="end" class="mono" font-size="12" font-weight="700" fill="#8DC06F">1.12 kg (-98%)</text>
-    <rect x="586" y="203" width="320" height="8" rx="4" fill="#1F2E25"/>
-    <rect class="bar-c" x="586" y="203" width="24" height="8" rx="4" fill="#6CA452"/>
-
-    <!-- Lower right mathematical turtle trace curve (golden-angle spline) -->
-    <line x1="586" y1="226" x2="906" y2="226" stroke="#24382C" stroke-width="1"/>
-    <text x="586" y="245" class="mono" font-size="10" fill="#8DC06F" letter-spacing="1.1">HEADLESS TURTLE PATH // 137.508 DEG PHYLLOTAXIS</text>
-    <path class="stem-path" d="M 588 286 C 640 286, 658 256, 704 268 C 748 280, 772 252, 822 264 C 858 272, 882 256, 902 254" fill="none" stroke="#6CA452" stroke-width="2" stroke-linecap="round"/>
-    <g class="seed-orbit" fill="#D69838">
-      <circle cx="642" cy="274" r="2.2" opacity="0.75"/>
-      <circle cx="704" cy="268" r="2.8" fill="#8DC06F"/>
-      <circle cx="766" cy="262" r="2.4" opacity="0.85"/>
-      <circle cx="822" cy="264" r="2.8" fill="#8DC06F"/>
-      <circle cx="876" cy="259" r="2.2" opacity="0.75"/>
-      <circle cx="902" cy="254" r="3.4" fill="#ECF3EA"/>
+      <rect x="314" y="254" width="136" height="28" rx="14" fill="#FFFFFF" stroke="#CFE0C6"/>
+      <text x="382" y="272" text-anchor="middle" fill="#294832">5 Eco Mascots</text>
     </g>
-    <text x="586" y="298" class="mono" font-size="10.5" fill="#7D9685">9 CATEGORIES · 5 MASCOTS · ZERO PERSISTENT TRACKING</text>
+
+    <!-- Right Clean Organic Comparison Card -->
+    <rect x="576" y="84" width="344" height="202" rx="16" fill="#FFFFFF" stroke="#D2E2CA" stroke-width="1.2"/>
+    <text x="600" y="110" class="sans" font-size="11" font-weight="700" fill="#5D7463" letter-spacing="1.2">EVERYDAY IMPACT COMPARISON</text>
+
+    <!-- Choice A -->
+    <text x="600" y="140" class="sans" font-size="12.5" font-weight="700" fill="#13261B">New Leather Footwear ($130)</text>
+    <text x="896" y="140" text-anchor="end" class="sans" font-size="12.5" font-weight="700" fill="#B54D3E">84.5 kg CO₂</text>
+    <rect x="600" y="148" width="296" height="10" rx="5" fill="#F2E9E6"/>
+    <rect class="ba" x="600" y="148" width="240" height="10" rx="5" fill="#C45B4D"/>
+
+    <!-- Choice B -->
+    <text x="600" y="184" class="sans" font-size="12.5" font-weight="700" fill="#13261B">Thrifted Denim Jacket ($32)</text>
+    <text x="896" y="184" text-anchor="end" class="sans" font-size="12.5" font-weight="700" fill="#3F6E2C">1.12 kg CO₂</text>
+    <rect x="600" y="192" width="296" height="10" rx="5" fill="#E9F2E4"/>
+    <rect class="bb" x="600" y="192" width="28" height="10" rx="5" fill="#4E7E36"/>
+
+    <!-- Gentle Botanical Branch Accent -->
+    <line x1="600" y1="224" x2="896" y2="224" stroke="#E8F0E3" stroke-width="1"/>
+    <path class="vine" d="M 604 264 Q 645 244 686 260 T 764 252" fill="none" stroke="#6CA452" stroke-width="2" stroke-linecap="round"/>
+    <g class="sway">
+      <path d="M 764 252 C 769 240, 782 238, 786 248 C 779 255, 769 255, 764 252 Z" fill="#6CA452"/>
+      <path d="M 764 252 C 756 242, 745 243, 744 251 C 750 256, 758 255, 764 252 Z" fill="#9AC67E"/>
+    </g>
+    <text x="896" y="259" text-anchor="end" class="sans" font-size="12" font-weight="700" fill="#4E7E36">98% carbon cut via swap</text>
   </g>
-  <rect x="0.5" y="0.5" width="959" height="339" rx="14" fill="none" stroke="#2D4A36" stroke-width="1"/>
+  <rect x="0.75" y="0.75" width="958.5" height="318.5" rx="18" fill="none" stroke="#CBE0C1" stroke-width="1.5"/>
 </svg>

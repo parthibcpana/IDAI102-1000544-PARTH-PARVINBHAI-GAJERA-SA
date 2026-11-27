@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/svg/masthead-intro.svg" alt="ShopImpact: Receipts count price tags, never atmospheric cost. Interactive Python and Streamlit carbon ledger overview." width="100%"/>
+  <img src="assets/svg/masthead-intro.svg" alt="Every price tag tells half the story. ShopImpact reveals the carbon cost." width="100%"/>
 </p>
 
 <div align="center">
@@ -10,7 +10,7 @@
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-2D6A4F.svg)](https://www.python.org/)
 [![Streamlit >=1.45](https://img.shields.io/badge/Streamlit-%3E%3D1.45-4E7E36.svg)](https://streamlit.io/)
-[![Dual Theme](https://img.shields.io/badge/Theme-Botanical%20Light%20%26%20Forest%20Dusk-18241D.svg)](.streamlit/config.toml)
+[![Dual Theme](https://img.shields.io/badge/Theme-Botanical%20Light%20%26%20Forest%20Dusk-3D6628.svg)](.streamlit/config.toml)
 
 </div>
 
@@ -60,7 +60,7 @@ flowchart TD
 | **Design, develop, and deploy an interactive Python-based web application.** | I learned how to structure a multi-screen Python web app that reacts cleanly as users submit forms, toggle themes, and inspect live charts. | Built `app.py` with an Onboarding gateway, Command Studio (`+ Log Purchase` modal + live simulator fragment), and Wall of Badges hosted on Streamlit Cloud. |
 | **Apply core Python constructs (lists, dictionaries, control structures) to solve real-world problems.** | I learned how a Python `list` of dictionaries keeps fast, mutable session records without needing external SQL setup. | Stored active buys in `st.session_state.purchases` (`list[dict]`), mapped multipliers and brand swaps in dictionaries, and drove badges and moods with clean `if/elif` functions. |
 | **Utilize Python libraries (`datetime`, `Streamlit`) to enhance application functionality and user experience.** | I learned how combining standard and data libraries turns plain numeric logs into fast visual feedback. | Used `datetime` for purchase stamps and period filtering, `Streamlit` (`@st.cache_data`, `@st.dialog`, `@st.fragment`) for smooth speed, `Altair`/`pandas` for charts and exports, and `Pillow` for `HeadlessTurtle` PNGs. |
-| **Plan, document, test, and deploy a complete Python solution with real-world usability.** | I learned why sketching screen hierarchy first and stress-testing mixed purchases prevents layout bugs and edge-case errors. | Mapped a 3-screen wireframe early, verified 12+ varied purchases live, tuned dark/light popover contrast and WebSocket image caching, and documented every stage cleanly. |
+| **Plan, document, test, and deploy a complete Python solution with real-world usability.** | I learned why sketching screen hierarchy first and stress-testing mixed purchases prevents layout bugs and edge-case errors. | Mapped a 3-screen sketch early, verified 12+ varied purchases live, tuned dark/light popover contrast and WebSocket image caching, and documented every stage cleanly. |
 | **Reflect on ethical considerations, user needs, and societal impact when designing technology solutions.** | I learned that preachy or guilt-heavy interfaces push people away instead of building sustainable habits. | Kept all records strictly private inside local session memory with zero telemetry, and paired heavy-carbon purchases with constructive 1-click circular swaps. |
 
 <p align="center"><img src="assets/svg/section-divider.svg" width="100%" alt=""/></p>
@@ -121,14 +121,15 @@ mindmap
 ```
 
 ### Sketch of our vision
-To keep layout priorities clear before coding, I planned the three interconnected screens in a clean architectural wireframe (`assets/svg/wireframe-blueprint.svg`):
+To map the interface hierarchy before building in Streamlit, I sketched the screen layout for onboarding, the live studio dashboard, and rewards:
 
-<p align="center">
-  <img src="assets/svg/wireframe-blueprint.svg" alt="ShopImpact 3-Screen Wireframe Blueprint" width="100%"/>
-</p>
+<div align="center">
+<img src="assets/sketch.png" alt="Hand-drawn wireframe sketch of ShopImpact Onboarding, Studio Dashboard, and Wall of Badges" width="840" style="border-radius: 14px; border: 1px solid #4E7E36;"/>
+<p><em>Initial UI Sketch (`assets/sketch.png`): Planned placement of the onboarding horizon, 3-panel hero studio, KPI cards, and badge vault.</em></p>
+</div>
 
 - **Screen layout planned:** Keep a persistent `+ Log Purchase` button and 3-panel hero studio at the top, surface live KPIs and Quick-Log chips right underneath, and place interactive Altair charts beside a searchable Transaction Ledger.
-- **Visual style planned:** Flat, breathable botanical sage and forest-dusk tones paired with clear typography and procedural mathematical visuals rather than cluttered dashboard chrome.
+- **Visual style planned:** Calm botanical cream and sage tones (`#F5F9F3`, `#4E7E36`) paired with clear typography and procedural mathematical visuals rather than cluttered dashboard chrome.
 
 ### Compulsory features planned
 1. **Input fields:** Item description, category selector, optional brand, price, purchase date, and circular/ethical toggle.
@@ -189,12 +190,9 @@ Every log, swap, or chip click runs through one deterministic Python sequence in
    - **Phone Charges:** `CO₂ × 121`
    - **Tree-Months Needed to Offset:** `(CO₂ ÷ 21.0) × 12` *(1 mature tree absorbs ~21 kg CO₂/year)*
 
-```mermaid
-flowchart LR
-    T1["Ultra-Green (0.05 to 0.08)<br>Second-Hand | Zero-Waste | Organic"] --> T2["Conscious (0.11)<br>Refurbished Tech"]
-    T2 --> T3["Moderate / High (0.38 to 0.46)<br>Groceries | Fast Fashion | Plastics"]
-    T3 --> T4["Very Heavy (0.55 to 0.65)<br>New Electronics | Leather Shoes"]
-```
+<p align="center">
+  <img src="assets/svg/impact-spectrum.svg" alt="Category Intensity Spectrum from Ultra-Green 0.05 to Very Heavy 0.65 kg CO2 per dollar" width="100%"/>
+</p>
 
 | Product Type | Multiplier (kg CO₂ per $) | Impact Rating | Reasoning Behind Score |
 | :--- | :---: | :---: | :--- |
@@ -376,7 +374,7 @@ Testing on desktop browsers, Streamlit Community Cloud, and narrow mobile viewpo
 - `.streamlit/config.toml` (Dual `[theme.light]` & `[theme.dark]` botanical theme configuration + WebSocket cache tuning)
 - `requirements.txt` (`streamlit>=1.45.0`, `pandas>=2.0.0`, `pillow>=10.0.0`, `altair>=5.0.0`)
 - `README.md` (Project documentation, mathematical explanations, testing proof, and custom SVG visuals)
-- `assets/` (Custom animated SVGs under `assets/svg/`, 3D icons under `assets/3d/`, and verified screenshots under `assets/screenshots/`)
+- `assets/` (Design wireframe `assets/sketch.png`, custom botanical SVGs under `assets/svg/`, 3D icons under `assets/3d/`, and verified screenshots under `assets/screenshots/`)
 
 ### Deployment instructions
 

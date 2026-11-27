@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 190" width="920" height="190" role="img" aria-label="Category Multiplier Spectrum and Formula Breakdown">
+  <defs>
+    <linearGradient id="spec-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FAFDF7"/>
+      <stop offset="100%" stop-color="#EEF5E9"/>
+    </linearGradient>
+    <linearGradient id="scale-bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4E7E36"/>
+      <stop offset="45%" stop-color="#86B664"/>
+      <stop offset="72%" stop-color="#D69838"/>
+      <stop offset="100%" stop-color="#C45B4D"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .sans { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    @keyframes pulse-marker { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.22); } }
+    .dot { transform-box: fill-box; transform-origin: center; animation: pulse-marker 3.2s ease-in-out infinite; }
+  </style>
+
+  <rect width="920" height="190" rx="16" fill="url(#spec-bg)" stroke="#CFE0C6" stroke-width="1.2"/>
+  <text x="26" y="30" class="sans" font-size="11" font-weight="700" fill="#4E7E36" letter-spacing="1.4">CATEGORY INTENSITY SPECTRUM (KG CO₂ PER DOLLAR SPENT)</text>
+
+  <!-- Gradient bar -->
+  <rect x="26" y="54" width="868" height="12" rx="6" fill="url(#scale-bar)"/>
+
+  <!-- Marker 1 -->
+  <circle class="dot" cx="62" cy="60" r="7" fill="#FFFFFF" stroke="#4E7E36" stroke-width="3"/>
+  <rect x="26" y="82" width="196" height="84" rx="10" fill="#FFFFFF" stroke="#CFE0C6"/>
+  <text x="38" y="104" class="sans" font-size="12" font-weight="700" fill="#2A5120">Ultra-Green (0.05 to 0.08)</text>
+  <text x="38" y="124" class="sans" font-size="11.5" fill="#526859">Second-Hand Thrift</text>
+  <text x="38" y="141" class="sans" font-size="11.5" fill="#526859">Zero-Waste &amp; Local Organic</text>
+
+  <!-- Marker 2 -->
+  <circle cx="290" cy="60" r="6" fill="#FFFFFF" stroke="#6CA452" stroke-width="2.5"/>
+  <rect x="242" y="82" width="196" height="84" rx="10" fill="#FFFFFF" stroke="#CFE0C6"/>
+  <text x="254" y="104" class="sans" font-size="12" font-weight="700" fill="#3F6E2C">Conscious (0.11)</text>
+  <text x="254" y="124" class="sans" font-size="11.5" fill="#526859">Refurbished Electronics</text>
+  <text x="254" y="141" class="sans" font-size="11.5" fill="#526859">Skips raw mineral mining</text>
+
+  <!-- Marker 3 -->
+  <circle cx="585" cy="60" r="6" fill="#FFFFFF" stroke="#D69838" stroke-width="2.5"/>
+  <rect x="458" y="82" width="210" height="84" rx="10" fill="#FFFFFF" stroke="#E8D8B9"/>
+  <text x="470" y="104" class="sans" font-size="12" font-weight="700" fill="#9A6612">Moderate / High (0.38 to 0.46)</text>
+  <text x="470" y="124" class="sans" font-size="11.5" fill="#526859">Packaged Groceries</text>
+  <text x="470" y="141" class="sans" font-size="11.5" fill="#526859">Fast Fashion &amp; Home Plastics</text>
+
+  <!-- Marker 4 -->
+  <circle cx="852" cy="60" r="7" fill="#FFFFFF" stroke="#C45B4D" stroke-width="3"/>
+  <rect x="688" y="82" width="206" height="84" rx="10" fill="#FFFFFF" stroke="#E6C7C2"/>
+  <text x="700" y="104" class="sans" font-size="12" font-weight="700" fill="#A63F32">Very Heavy (0.55 to 0.65)</text>
+  <text x="700" y="124" class="sans" font-size="11.5" fill="#526859">New Consumer Electronics</text>
+  <text x="700" y="141" class="sans" font-size="11.5" fill="#526859">Leather Footwear</text>
+</svg>

@@ -1,55 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 210" width="920" height="210" role="img" aria-label="ShopImpact Python Event Execution Pipeline">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 215" width="920" height="215" role="img" aria-label="How ShopImpact Calculates and Updates Every Purchase">
   <defs>
-    <pattern id="pipe-dots" width="20" height="20" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="0.8" fill="#6CA452" opacity="0.16"/>
-    </pattern>
+    <linearGradient id="pipe-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FAFDF7"/>
+      <stop offset="100%" stop-color="#EEF5E9"/>
+    </linearGradient>
   </defs>
   <style>
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .sans { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-    @keyframes flow-dash { to { stroke-dashoffset: -24; } }
-    .wire { stroke-dasharray: 5 7; animation: flow-dash 1.4s linear infinite; }
+    @keyframes flow { to { stroke-dashoffset: -24; } }
+    .wire { stroke-dasharray: 6 6; animation: flow 1.6s linear infinite; }
   </style>
 
-  <rect width="920" height="210" rx="12" fill="#121B16" stroke="#2B4434" stroke-width="1"/>
-  <rect width="920" height="210" rx="12" fill="url(#pipe-dots)"/>
-  <text x="22" y="25" class="mono" font-size="10.5" fill="#8DC06F" letter-spacing="1.2">RUNTIME PIPELINE // PER INTERACTION RERUN</text>
+  <rect width="920" height="215" rx="16" fill="url(#pipe-bg)" stroke="#CFE0C6" stroke-width="1.2"/>
+  <text x="26" y="28" class="sans" font-size="11" font-weight="700" fill="#4E7E36" letter-spacing="1.4">HOW EVERY LOGGED PURCHASE FLOWS THROUGH PYTHON</text>
 
   <!-- Step 1 -->
-  <rect x="22" y="72" width="168" height="72" rx="8" fill="#19261E" stroke="#3B5B45" stroke-width="1.2"/>
-  <text x="34" y="94" class="mono" font-size="10" fill="#8DC06F">01 / ENTRY</text>
-  <text x="34" y="114" class="sans" font-size="13" font-weight="700" fill="#ECF3EA">Purchase Action</text>
-  <text x="34" y="131" class="sans" font-size="11" fill="#A3B9A9">Chip / Modal / Form</text>
+  <rect x="24" y="72" width="166" height="76" rx="12" fill="#FFFFFF" stroke="#CFE0C6" stroke-width="1.2"/>
+  <text x="38" y="95" class="sans" font-size="10.5" font-weight="700" fill="#4E7E36">1. INPUT</text>
+  <text x="38" y="116" class="sans" font-size="13.5" font-weight="700" fill="#13261B">Purchase Logged</text>
+  <text x="38" y="135" class="sans" font-size="11.5" fill="#526859">Chip, Modal, or Form</text>
 
   <!-- Step 2 -->
-  <rect x="228" y="72" width="184" height="72" rx="8" fill="#19261E" stroke="#4E7E36" stroke-width="1.4"/>
-  <text x="240" y="94" class="mono" font-size="10" fill="#8DC06F">02 / MATH</text>
-  <text x="240" y="114" class="sans" font-size="13" font-weight="700" fill="#ECF3EA">calculate_carbon()</text>
-  <text x="240" y="131" class="sans" font-size="11" fill="#A3B9A9">price * rate * (0.70 if eco)</text>
+  <rect x="226" y="72" width="184" height="76" rx="12" fill="#FFFFFF" stroke="#9AC67E" stroke-width="1.5"/>
+  <text x="240" y="95" class="sans" font-size="10.5" font-weight="700" fill="#4E7E36">2. CARBON MATH</text>
+  <text x="240" y="116" class="sans" font-size="13.5" font-weight="700" fill="#13261B">calculate_carbon()</text>
+  <text x="240" y="135" class="sans" font-size="11.5" fill="#526859">30% off circular buys</text>
 
   <!-- Step 3 -->
-  <rect x="450" y="72" width="184" height="72" rx="8" fill="#19261E" stroke="#4E7E36" stroke-width="1.4"/>
-  <text x="462" y="94" class="mono" font-size="10" fill="#F2CA6B">03 / STATE</text>
-  <text x="462" y="114" class="sans" font-size="13" font-weight="700" fill="#ECF3EA">session_state.purchases</text>
-  <text x="462" y="131" class="sans" font-size="11" fill="#A3B9A9">Append dict + toast msg</text>
+  <rect x="446" y="72" width="184" height="76" rx="12" fill="#FFFFFF" stroke="#CFE0C6" stroke-width="1.2"/>
+  <text x="460" y="95" class="sans" font-size="10.5" font-weight="700" fill="#B07514">3. SESSION LIST</text>
+  <text x="460" y="116" class="sans" font-size="13.5" font-weight="700" fill="#13261B">purchases.append()</text>
+  <text x="460" y="135" class="sans" font-size="11.5" fill="#526859">Saved in session state</text>
 
-  <!-- Step 4 Fanout -->
-  <rect x="676" y="42" width="222" height="44" rx="7" fill="#19261E" stroke="#3B5B45" stroke-width="1"/>
-  <text x="690" y="61" class="sans" font-size="12" font-weight="700" fill="#ECF3EA">KPIs, Biosphere &amp; Charts</text>
-  <text x="690" y="76" class="mono" font-size="10" fill="#A3B9A9">Altair bar + donut + dataframe</text>
+  <!-- Outputs -->
+  <rect x="670" y="42" width="226" height="46" rx="10" fill="#FFFFFF" stroke="#CFE0C6" stroke-width="1.2"/>
+  <text x="686" y="62" class="sans" font-size="12.5" font-weight="700" fill="#13261B">Dashboard &amp; Altair Charts</text>
+  <text x="686" y="78" class="sans" font-size="11" fill="#526859">Spend, CO₂, trees &amp; ledger</text>
 
-  <rect x="676" y="96" width="222" height="44" rx="7" fill="#19261E" stroke="#3B5B45" stroke-width="1"/>
-  <text x="690" y="115" class="sans" font-size="12" font-weight="700" fill="#ECF3EA">Badges &amp; Swap Finder</text>
-  <text x="690" y="130" class="mono" font-size="10" fill="#A3B9A9">evaluate_badges() + optimizer</text>
+  <rect x="670" y="97" width="226" height="46" rx="10" fill="#FFFFFF" stroke="#CFE0C6" stroke-width="1.2"/>
+  <text x="686" y="117" class="sans" font-size="12.5" font-weight="700" fill="#13261B">Badges &amp; Swap Optimizer</text>
+  <text x="686" y="133" class="sans" font-size="11" fill="#526859">Unlocks + 1-click green swap</text>
 
-  <rect x="676" y="150" width="222" height="44" rx="7" fill="#19261E" stroke="#6CA452" stroke-width="1.2"/>
-  <text x="690" y="169" class="sans" font-size="12" font-weight="700" fill="#8DC06F">HeadlessTurtle &amp; Mascot</text>
-  <text x="690" y="184" class="mono" font-size="10" fill="#A3B9A9">280x280 Pillow + SVG mood</text>
+  <rect x="670" y="152" width="226" height="46" rx="10" fill="#EAF4E4" stroke="#8FBE74" stroke-width="1.3"/>
+  <text x="686" y="172" class="sans" font-size="12.5" font-weight="700" fill="#2A5120">HeadlessTurtle &amp; Mascot</text>
+  <text x="686" y="188" class="sans" font-size="11" fill="#466549">280x280 botanical art + mood</text>
 
-  <!-- Animated flow connectors -->
-  <line class="wire" x1="190" y1="108" x2="228" y2="108" stroke="#6CA452" stroke-width="1.8"/>
-  <line class="wire" x1="412" y1="108" x2="450" y2="108" stroke="#6CA452" stroke-width="1.8"/>
-  <path class="wire" d="M 634 100 L 656 100 L 656 64 L 676 64" fill="none" stroke="#6CA452" stroke-width="1.6"/>
-  <line class="wire" x1="634" y1="118" x2="676" y2="118" stroke="#D69838" stroke-width="1.6"/>
-  <path class="wire" d="M 634 128 L 656 128 L 656 172 L 676 172" fill="none" stroke="#8DC06F" stroke-width="1.6"/>
+  <!-- Flowing organic connectors -->
+  <line class="wire" x1="190" y1="110" x2="226" y2="110" stroke="#4E7E36" stroke-width="2"/>
+  <line class="wire" x1="410" y1="110" x2="446" y2="110" stroke="#4E7E36" stroke-width="2"/>
+  <path class="wire" d="M 630 100 L 650 100 L 650 65 L 670 65" fill="none" stroke="#4E7E36" stroke-width="1.8"/>
+  <line class="wire" x1="630" y1="120" x2="670" y2="120" stroke="#D69838" stroke-width="1.8"/>
+  <path class="wire" d="M 630 132 L 650 132 L 650 175 L 670 175" fill="none" stroke="#6CA452" stroke-width="1.8"/>
 </svg>
