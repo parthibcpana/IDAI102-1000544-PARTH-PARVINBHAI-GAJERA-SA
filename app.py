@@ -1518,7 +1518,7 @@ else:
         st.toggle("Forest Dusk Dark Mode", key="sa_dark_toggle")
         _theme_sync_js = """<script>
         (function(){
-          const p = (window.parent && window.parent !== window) ? window.parent : window;
+          const p = document.querySelector('[data-testid="stApp"]') ? window : window.parent;
           if (!p || p._saThemeHook) return;
           p._saThemeHook = true;
           function findInp(){
