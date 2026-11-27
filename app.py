@@ -8,6 +8,7 @@ from datetime import date
 import pandas as pd
 from PIL import Image, ImageDraw
 import streamlit as st
+import streamlit.components.v1 as components
 
 try:
     import altair as alt
@@ -1015,8 +1016,16 @@ def set_purchase_toast(item_name: str, co2_kg: float, is_eth: bool, prefix: str 
 # SESSION STATE INITIALIZATION (Purchases stored in a Python list in session)
 # ------------------------------------------------------------------------------
 
+_ctx_theme = getattr(getattr(st.context, "theme", None), "type", None)
 if "dark_theme" not in st.session_state:
-    st.session_state.dark_theme = st.query_params.get("theme") == "dark"
+    _qp_t = st.query_params.get("theme")
+    st.session_state.dark_theme = (_qp_t == "dark") if _qp_t in ("light", "dark") else (_ctx_theme == "dark")
+elif "sa_dark_toggle" in st.session_state and st.session_state.sa_dark_toggle != st.session_state.dark_theme:
+    st.session_state.dark_theme = st.session_state.sa_dark_toggle
+elif _ctx_theme in ("light", "dark") and _ctx_theme != st.session_state.get("_last_ctx_theme"):
+    st.session_state.dark_theme = (_ctx_theme == "dark")
+st.session_state._last_ctx_theme = _ctx_theme
+st.session_state.sa_dark_toggle = st.session_state.dark_theme
 if "onboarded" not in st.session_state:
     st.session_state.onboarded = st.query_params.get("onboarded") in ["true", "1"]
 if "user_name" not in st.session_state: st.session_state.user_name = "Parth Gajera"
@@ -1094,7 +1103,8 @@ render_html(f"""
   }}
   .stApp {{ background: var(--bg) !important; color: var(--ink) !important; }}
   [data-testid="stHeader"] {{ background: transparent !important; }}
-  h1, h2, h3, h4, h5, p, span, label, [data-testid="stSidebar"] * {{ color: var(--ink) !important; }}
+  [data-testid="stMain"] h1, [data-testid="stMain"] h2, [data-testid="stMain"] h3, [data-testid="stMain"] h4, [data-testid="stMain"] h5,
+  [data-testid="stMain"] p, [data-testid="stMain"] span, [data-testid="stMain"] label, [data-testid="stSidebar"] * {{ color: var(--ink) !important; }}
   [data-testid="stSidebar"] {{ background: var(--side) !important; border-right: 1px solid var(--border) !important; }}
   [data-testid="stSidebarCollapseButton"] button, [data-testid="collapsedControl"] button {{
     background: var(--surface) !important; border: 1px solid var(--border) !important;
@@ -1505,10 +1515,60 @@ else:
             st.session_state.nav_view = target
             st.session_state.sidebar_nav_radio = target
         st.radio("Navigation", sa_nav_opts, key="sidebar_nav_radio", on_change=_sync_sa_nav)
-        dark_toggle = st.toggle("Forest Dusk Dark Mode", value=st.session_state.dark_theme)
-        if dark_toggle != st.session_state.dark_theme:
-            st.session_state.dark_theme = dark_toggle
-            st.rerun()
+        st.toggle("Forest Dusk Dark Mode", key="sa_dark_toggle")
+        _theme_sync_js = """<script>
+        (function(){
+          const p = (window.parent && window.parent !== window) ? window.parent : window;
+          if (!p || p._saThemeHook) return;
+          p._saThemeHook = true;
+          function findInp(){
+            let inp = p.document.querySelector('input[aria-label="Forest Dusk Dark Mode"]');
+            if (!inp) {
+              const lbl = Array.from(p.document.querySelectorAll('[data-testid="stSidebar"] label')).find(el => (el.innerText || "").includes("Forest Dusk Dark Mode"));
+              if (lbl) inp = lbl.querySelector('input[type="checkbox"]') || lbl.closest('[data-testid="stCheckbox"]')?.querySelector('input');
+            }
+            return inp;
+          }
+          p.document.addEventListener("click", function(ev){
+            if (!ev.isTrusted) return;
+            const item = ev.target && ev.target.closest && ev.target.closest('[data-testid^="stMainMenuItem-theme-"]');
+            if (item) {
+              const id = item.getAttribute("data-testid") || "";
+              const wantDark = id.endsWith("Dark") ? true : id.endsWith("Light") ? false : p.matchMedia("(prefers-color-scheme: dark)").matches;
+              setTimeout(function(){
+                const inp = findInp();
+                if (inp && Boolean(inp.checked) !== wantDark) inp.click();
+              }, 80);
+              return;
+            }
+            const tgl = ev.target && ev.target.closest && ev.target.closest('[data-testid="stSidebar"] [data-testid="stCheckbox"]');
+            if (tgl && (tgl.innerText || "").includes("Forest Dusk Dark Mode")) {
+              setTimeout(function(){
+                const inp = findInp();
+                const btn = p.document.querySelector('[data-testid="stMainMenuButton"]');
+                if (!inp || !btn) return;
+                const want = inp.checked ? "Dark" : "Light";
+                const stEl = p.document.createElement("style");
+                stEl.textContent = '[data-testid="stMainMenuPopover"]{opacity:0!important;pointer-events:none!important;}';
+                p.document.head.appendChild(stEl);
+                btn.click();
+                setTimeout(function(){
+                  const mItem = p.document.querySelector('[data-testid="stMainMenuItem-theme-' + want + '"]');
+                  if (mItem) mItem.click();
+                  setTimeout(function(){
+                    if (p.document.querySelector('[data-testid="stMainMenuPopover"]')) btn.click();
+                    stEl.remove();
+                  }, 30);
+                }, 40);
+              }, 60);
+            }
+          }, true);
+        })();
+        </script>"""
+        try:
+            st.html(_theme_sync_js, unsafe_allow_javascript=True)
+        except TypeError:
+            components.html(_theme_sync_js, height=0)
 
         st.markdown("---")
         eco_tip_cur = ECO_TIPS[len(st.session_state.purchases) % len(ECO_TIPS)]
