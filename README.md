@@ -282,8 +282,7 @@ Dual native Streamlit themes configured inside [`.streamlit/config.toml`](.strea
 - **Ecovista Botanical Light (`[theme.light]`):** `#F5F9F3` meadow cream backdrop, `#FFFFFF` elevated cards, `#13261B` deep pine ink, `#4E7E36` olive-moss primary buttons, `#D69838` ochre, `#C45B4D` terracotta.
 - **Forest Dusk Dark (`[theme.dark]`):** `#131C17` matte forest-slate backdrop, `#1C2921` card surfaces, `#ECF3EA` crisp pale ink, `#6CA452` sage accent, synced automatically between the sidebar toggle and Streamlit's `⋮` (`System / Light / Dark`) menu.
 
-### Live App Showcase & Clickable Gallery
-
+### App Showcase Gallery
 <p align="center">
   <a href="https://idai102-1000544-parth-parvinbhai-gajera-sa.streamlit.app/">
     <img src="assets/screenshots/studio_tour.gif" alt="Animated 5-screen tour of ShopImpact across Onboarding, Light Mode, Forest Dusk Dark Mode, Analytics, and Wall of Badges" width="840"/>
